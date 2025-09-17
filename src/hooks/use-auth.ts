@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { LOCAL_STORAGE_KEYS, QUERY_KEYS, ROUTES } from "@/config";
-import { AuthenticationState, ApiError } from "@/types/auth";
+import { AuthenState, ApiError, AuthUser } from "@/types/auth";
 import { authApi } from "@/lib/services/auth";
 import { UserInterface } from "@/types/global";
 import { useLocalStorage } from "./use-local-storage";
@@ -77,7 +77,7 @@ export function useAuth() {
                 queryClient.invalidateQueries({ queryKey: QUERY_KEYS.auth.profile });
 
                 toast.success(`Welcome back, ${session.user.first_name}!`)
-                router.push(ROUTES.dashboard)
+                router.push(`/${session.user?.role.toLocaleLowerCase() + ROUTES.dashboard}`)
             }
         },
         onError: (error: ApiError) => {
@@ -128,10 +128,12 @@ export function useAuth() {
 
     // Loading state
     const isLoading = loginMutation.isPending || isLoadingProfile;
-
+    function isAuthUser(user: UserInterface): user is AuthUser {
+        return "role" in user;
+    }
     // Auth state object
-    const authState: AuthenticationState = {
-        user: profile || user,
+    const authState: AuthenState = {
+        user: profile && isAuthUser(profile) ? profile : null,
         access_token: accessToken,
         isAuthenticated,
         isLoading,

@@ -14,7 +14,7 @@ interface MainLayoutProps {
 }
 
 export function MainLayout({ children, requireAuth = false, revealHeader = true }: MainLayoutProps) {
-    const { isAuthenticated, isLoading } = useAuthContext();
+    const { isAuthenticated, isLoading, user, } = useAuthContext();
     const router = useRouter();
     const pathname = usePathname();
 
@@ -23,10 +23,10 @@ export function MainLayout({ children, requireAuth = false, revealHeader = true 
             if (requireAuth && !isAuthenticated) {
                 router.push(ROUTES.login);
             } else if (!requireAuth && isAuthenticated && pathname === ROUTES.login) {
-                router.push(ROUTES.dashboard);
+                router.push(`/${user?.role.toLocaleLowerCase() + ROUTES.dashboard}`);
             }
         }
-    }, [isAuthenticated, isLoading, requireAuth, router, pathname]);
+    }, [isAuthenticated, isLoading, requireAuth, router, pathname, user]);
 
     // Show loading screen while checking auth
     if (isLoading) {

@@ -1,7 +1,7 @@
 'use client'
 import { useAuth } from '@/hooks/use-auth';
 import { signInFormData } from '@/schema/sign-in-schema';
-import { AuthenticationState } from '@/types/auth';
+import { AuthenState } from '@/types/auth';
 import { SessionProvider } from 'next-auth/react'
 import { Session } from 'next-auth'
 import React, { createContext, useContext } from 'react';
@@ -9,7 +9,7 @@ interface AuthProviderProps {
     children: React.ReactNode
     session: Session | null
 }
-interface AuthContextType extends AuthenticationState {
+interface AuthContextType extends AuthenState {
     login: (credentials: signInFormData) => void;
     logout: (callbackUrl?: string) => void;
     isLoggingIn: boolean;
