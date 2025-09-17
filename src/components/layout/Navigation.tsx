@@ -13,6 +13,7 @@ interface NavigationProps {
 export const Navigation: React.FC<NavigationProps> = ({ onLoginClick }) => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const { user, logout, isLoggingOut } = useAuthContext();
+    const role = user?.role.toLocaleLowerCase();
 
     const handleNavClick = (href: string) => {
         const element = document.querySelector(href);
@@ -43,7 +44,7 @@ export const Navigation: React.FC<NavigationProps> = ({ onLoginClick }) => {
                 {user ? (
                     <>
                         <div className="hidden md:block">
-                            <Link href={"/dashboard/profile"} className='flex gap-3 items-center'>
+                            <Link href={`/${role}/profile`} className='flex gap-3 items-center'>
                                 <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
                                     <User className="w-4 h-4 text-gray-600" />
                                 </div>
@@ -89,7 +90,7 @@ export const Navigation: React.FC<NavigationProps> = ({ onLoginClick }) => {
                     {user ? (
                         <>
                             <div className="block">
-                                <Link href={"/dashboard/profile"} className='flex gap-3 items-center'>
+                                <Link href={`/${role}/profile`} className='flex gap-3 items-center'>
                                     <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
                                         <User className="w-4 h-4 text-gray-600" />
                                     </div>

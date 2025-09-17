@@ -1,4 +1,5 @@
 
+import { UserRole } from "@/config";
 import { UserInterface } from "./global";
 
 export type Department =
@@ -28,8 +29,34 @@ export interface LoginResponse {
     response: string,
 }
 
-export interface AuthenticationState {
-    user: UserInterface | null;
+
+
+export interface Student extends UserInterface {
+    role: UserRole.STUDENT;
+    studentId: string;
+    course: string;
+    enrollmentDate: string
+    passport: string;
+}
+
+export interface Admin extends UserInterface {
+    role: UserRole.ADMIN;
+    adminId: string;
+    department: string;
+    passport: string;
+}
+
+export interface Teacher extends UserInterface {
+    role: UserRole.TEACHER;
+    teacherId: string;
+    department: string;
+    passport: string;
+}
+
+export type AuthUser = Student | Admin | Teacher;
+
+export interface AuthenState {
+    user: AuthUser | null;
     access_token: string | null;
     isAuthenticated: boolean;
     isLoading: boolean;

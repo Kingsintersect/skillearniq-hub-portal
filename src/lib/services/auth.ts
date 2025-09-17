@@ -22,7 +22,7 @@ export const authApi = {
             refreshToken,
         }),
 
-    getProfile: () => apiClient.get<UserInterface>("/auth/profile"),
+    getProfile: () => apiClient.get<UserInterface>("/application/profile"),
 
     forgotPassword: (email: string) =>
         apiClient.post("/auth/forgot-password", { email }),
@@ -42,5 +42,5 @@ export const authApi = {
         }),
 
     updateProfile: (data: Partial<UserInterface>) =>
-        apiClient.put<UserInterface>("/auth/profile", data),
+        apiClient.put<UserInterface>("/application/profile", data),
 };
