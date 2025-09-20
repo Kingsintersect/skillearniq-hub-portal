@@ -115,7 +115,6 @@
 @layer base {
 	* {
 		border-color: hsl(var(--border));
-		transition: all 0.4s ease-in-out;
 	}
 
 	html {

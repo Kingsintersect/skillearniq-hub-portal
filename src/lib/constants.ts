@@ -2,6 +2,7 @@ import { NavItem, Feature, Program, Stat, FooterSection } from "../types";
 
 export const NAV_ITEMS: NavItem[] = [
     { href: '#home', label: 'Home' },
+    { href: '#features', label: 'features' },
     { href: '#programs', label: 'Programs' },
     // { href: '#admissions', label: 'Admissions' },
     // { href: '#research', label: 'Research' },

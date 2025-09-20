@@ -26,7 +26,6 @@ export default function AuthProvider({ children, session }: AuthProviderProps) {
         <SessionProvider session={session}>
             <AuthContext.Provider value={auth} >
                 {children}
-
             </AuthContext.Provider>
         </SessionProvider>
     )
