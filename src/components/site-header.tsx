@@ -5,17 +5,11 @@ import {
 } from "@/components/ui/sidebar"
 import { ModeToggle } from './ui/mood-toggle'
 import { ThemeSelector } from './theme-selector'
-import { Power } from 'lucide-react'
 import { DynamicBreadcrumb } from './ui/dynamic-breadcrumb'
 import Link from 'next/link'
-import { UseMutateFunction } from '@tanstack/react-query'
-import { ApiError } from '@/types/auth'
+import SignOutButton from './core/signout-button'
 
-interface SiteHeaderProps {
-    logout?: UseMutateFunction<void, ApiError, string | undefined, unknown>;
-}
-
-const SiteHeader: React.FC<SiteHeaderProps> = ({ logout }) => {
+const SiteHeader = () => {
     return (
         <header className="flex h-16 shrink-0 items-center justify-between gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
             <div className="flex items-center gap-2 px-4">
@@ -41,7 +35,7 @@ const SiteHeader: React.FC<SiteHeaderProps> = ({ logout }) => {
                 />
                 <ThemeSelector />
                 <ModeToggle />
-                {logout && <Power className="cursor-pointer" color='red' onClick={() => logout} />}
+                <SignOutButton />
             </div>
         </header>
     )

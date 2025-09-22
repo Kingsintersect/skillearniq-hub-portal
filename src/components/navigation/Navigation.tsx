@@ -6,13 +6,11 @@ import { useAuthContext } from '@/providers/AuthProvider';
 import { Button } from '@/components/ui/button';
 import { LogOut, User } from 'lucide-react';
 import Link from 'next/link';
-// import { useProgress } from '@bprogress/next';
 
 export const Navigation = () => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const { user, logout, isLoggingOut } = useAuthContext();
     const role = user?.role.toLocaleLowerCase();
-    // const { start, stop } = useProgress();
 
     const handleNavClick = (href: string) => {
         const element = document.querySelector(href);
