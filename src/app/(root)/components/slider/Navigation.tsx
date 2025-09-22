@@ -6,7 +6,7 @@ interface NavigationProps {
     onSlideSelect: (index: number) => void;
 }
 
-export const Navigation = ({ totalSlides, currentSlide, onSlideSelect }: NavigationProps) => {
+export const SliderNavigation = ({ totalSlides, currentSlide, onSlideSelect }: NavigationProps) => {
     return (
         <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20">
             <div className="flex gap-3">

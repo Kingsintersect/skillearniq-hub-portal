@@ -1,5 +1,5 @@
 'use client'
-import { useAuthContext } from '@/app/providers/AuthProvider';
+import { useAuthContext } from '@/providers/AuthProvider';
 import { Button } from '../ui/button';
 import { LogOut } from 'lucide-react';
 

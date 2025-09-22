@@ -1,4 +1,4 @@
-import { MainLayout } from "@/components/layout/main-layout"
+import { MainLayout } from "@/components/layout/dashboard/main-layout"
 import { SITE_NAME } from "@/config";
 import { Metadata } from "next";
 

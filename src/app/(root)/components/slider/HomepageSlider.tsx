@@ -6,7 +6,7 @@ import { useSlider } from "@/hooks/animations/useSlider";
 import { useGSAPAnimations } from "@/hooks/animations/useGsapAnimation";
 import { Particles } from "./Particles";
 import { Slide } from "./Slide";
-import { Navigation } from "./Navigation";
+import { SliderNavigation } from "./Navigation";
 import { SliderControls } from "./SliderControls";
 
 export const HomepageSlider = () => {
@@ -140,6 +140,7 @@ export const HomepageSlider = () => {
 
     return (
         <section
+            id={`home`}
             ref={containerRef}
             className="relative w-full h-screen bg-black text-white overflow-hidden"
             onMouseEnter={stopAutoplay}
@@ -166,7 +167,7 @@ export const HomepageSlider = () => {
             ))}
 
             {/* Navigation Controls */}
-            <Navigation
+            <SliderNavigation
                 totalSlides={slidesData.length}
                 currentSlide={currentSlide}
                 onSlideSelect={goToSlide}
