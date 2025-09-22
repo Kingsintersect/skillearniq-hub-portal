@@ -8,7 +8,7 @@ export default function Profile() {
     const router = useRouter()
 
     useEffect(() => {
-        if (status === 'loading') return // Still loading
+        if (status === 'loading') return
         if (!session) {
             router.push('/auth/signin')
             return

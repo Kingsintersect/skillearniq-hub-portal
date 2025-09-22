@@ -12,7 +12,8 @@ export const authApi = {
 
     signup: async (data: SignUpFormData): Promise<SignupResponse> => {
         const response = await apiClient.post<SignupResponse>("/application/purchase", data);
-        return response as unknown as SignupResponse;
+
+        return { ...response, user: { email: data.email } } as unknown as SignupResponse;
     },
 
     logout: () => apiClient.post("/auth/logout"),

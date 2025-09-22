@@ -14,10 +14,10 @@ interface ExtendedAxiosRequestConfig extends InternalAxiosRequestConfig {
 }
 
 // Define the structure for refresh token response
-interface RefreshTokenResponse {
-    accessToken: string;
-    refreshToken: string;
-}
+// interface RefreshTokenResponse {
+//     accessToken: string;
+//     refreshToken: string;
+// }
 
 // Define the structure for API error response
 interface ApiErrorResponse {
@@ -86,38 +86,39 @@ class ApiClient {
                     originalRequest._retry = true;
                     this.isRefreshing = true;
 
-                    try {
-                        const refreshToken = localStorage.getItem(LOCAL_STORAGE_KEYS.refreshToken);
-                        if (refreshToken) {
-                            // Use the instance directly to avoid circular dependency during refresh
-                            const refreshResponse = await this.instance.post<ApiResponse<RefreshTokenResponse>>(
-                                "/auth/refresh",
-                                { refreshToken }
-                            );
+                    // try {
+                    //     const refreshToken = localStorage.getItem(LOCAL_STORAGE_KEYS.refreshToken);
+                    //     if (refreshToken) {
+                    //         // Use the instance directly to avoid circular dependency during refresh
+                    //         const refreshResponse = await this.instance.post<ApiResponse<RefreshTokenResponse>>(
+                    //             "/auth/refresh",
+                    //             { refreshToken }
+                    //         );
 
-                            if (refreshResponse.data.status && refreshResponse.data.data) {
-                                const { accessToken, refreshToken: newRefreshToken } = refreshResponse.data.data;
-                                localStorage.setItem(LOCAL_STORAGE_KEYS.accessToken, accessToken);
-                                localStorage.setItem(LOCAL_STORAGE_KEYS.refreshToken, newRefreshToken);
+                    //         if (refreshResponse.data.status && refreshResponse.data.data) {
+                    //             const { accessToken, refreshToken: newRefreshToken } = refreshResponse.data.data;
+                    //             localStorage.setItem(LOCAL_STORAGE_KEYS.accessToken, accessToken);
+                    //             localStorage.setItem(LOCAL_STORAGE_KEYS.refreshToken, newRefreshToken);
 
-                                this.processQueue(null);
-                                return this.instance(originalRequest);
-                            } else {
-                                throw new Error("Failed to refresh token");
-                            }
-                        } else {
-                            throw new Error("No refresh token available");
-                        }
-                    } catch (refreshError) {
-                        this.processQueue(refreshError);
-                        this.clearAuthTokens();
-                        if (typeof window !== "undefined") {
-                            window.location.href = "/auth/signin";
-                        }
-                        return Promise.reject(refreshError);
-                    } finally {
-                        this.isRefreshing = false;
-                    }
+                    //             this.processQueue(null);
+                    //             return this.instance(originalRequest);
+                    //         } else {
+                    //             throw new Error("Failed to refresh token");
+                    //         }
+                    //     } else {
+                    //         throw new Error("No refresh token available");
+                    //     }
+                    // } catch (refreshError) {
+                    //     this.processQueue(refreshError);
+                    //     this.clearAuthTokens();
+                    //     if (typeof window !== "undefined") {
+                    //         alert("client.ts")
+                    //         window.location.href = "/auth/signin";
+                    //     }
+                    //     return Promise.reject(refreshError);
+                    // } finally {
+                    //     this.isRefreshing = false;
+                    // }
                 }
 
                 return Promise.reject(this.handleError(error));

@@ -128,12 +128,10 @@ export function useAuth() {
 
     // Loading state
     const isLoading = loginMutation.isPending || isLoadingProfile;
-    function isAuthUser(user: UserInterface): user is AuthUser {
-        return "role" in user;
-    }
+
     // Auth state object
     const authState: AuthenState = {
-        user: profile && isAuthUser(profile) ? profile : null,
+        user: (profile ?? user) as AuthUser,
         access_token: accessToken,
         isAuthenticated,
         isLoading,

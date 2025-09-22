@@ -2,15 +2,12 @@
 
 import React, { useState } from 'react';
 import { NAV_ITEMS } from '@/lib/constants';
-import { useAuthContext } from '@/app/providers/AuthProvider';
+import { useAuthContext } from '@/providers/AuthProvider';
 import { Button } from '@/components/ui/button';
 import { LogOut, User } from 'lucide-react';
 import Link from 'next/link';
-interface NavigationProps {
-    onLoginClick: () => void;
-}
 
-export const Navigation: React.FC<NavigationProps> = ({ onLoginClick }) => {
+export const Navigation = () => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const { user, logout, isLoggingOut } = useAuthContext();
     const role = user?.role.toLocaleLowerCase();
@@ -63,7 +60,15 @@ export const Navigation: React.FC<NavigationProps> = ({ onLoginClick }) => {
                         </Button>
                     </>
                 ) : (
-                    <Button size='sm' onClick={onLoginClick}>Sign In</Button>
+                    <Button
+                        size='sm'
+                        // onClick={onLoginClick}
+                        asChild
+                    >
+                        <Link href={`/auth/signin`}>
+                            Sign In
+                        </Link>
+                    </Button>
                 )}
             </nav>
 
@@ -109,7 +114,15 @@ export const Navigation: React.FC<NavigationProps> = ({ onLoginClick }) => {
                             </Button>
                         </>
                     ) : (
-                        <Button size='sm' onClick={onLoginClick} className="mt-2">Sign In</Button>
+                        <Button
+                            size='sm'
+                            className='mt-2'
+                            asChild
+                        >
+                            <Link href={`/auth/signin`}>
+                                Sign In
+                            </Link>
+                        </Button>
                     )}
                 </nav>
             )}

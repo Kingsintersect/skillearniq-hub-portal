@@ -1,15 +1,16 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import AuthProvider from "./providers/AuthProvider";
 import { APP_CONFIG } from "@/config";
 import { cookies } from "next/headers";
 import { cn } from "@/lib/utils";
-import { ThemeProvider } from "./providers/theme-provider";
 import { ActiveThemeProvider } from "@/components/active-theme";
-import { QueryProvider } from "./providers/query-provider";
 import { auth } from "@/auth";
 import { Toaster } from "@/components/ui/sonner";
+import { ThemeProvider } from "@/providers/theme-provider";
+import { QueryProvider } from "@/providers/query-provider";
+import AuthProvider from "@/providers/AuthProvider";
+import { PageLoadProviders } from "@/providers/page-load-provider";
 
 const geistSans = Geist({
 	variable: "--font-geist-sans",
@@ -82,39 +83,41 @@ export default async function RootLayout({
 					disableTransitionOnChange
 					enableColorScheme
 				>
-					<ActiveThemeProvider initialTheme={activeThemeValue}>
-						<QueryProvider>
-							<AuthProvider session={session}>
-								{children}
-								<Toaster
-									position="top-right"
-									expand={true}
-									richColors
-									toastOptions={{
-										duration: 4000,
-										style: {
-											background: "#363636",
-											color: "#fff",
-										},
-										// success: {
-										//     duration: 3000,
-										//     iconTheme: {
-										//         primary: "#10b981",
-										//         secondary: "#fff",
-										//     },
-										// },
-										// error: {
-										//     duration: 5000,
-										//     iconTheme: {
-										//         primary: "#ef4444",
-										//         secondary: "#fff",
-										//     },
-										// },
-									}}
-								/>
-							</AuthProvider>
-						</QueryProvider>
-					</ActiveThemeProvider>
+					<PageLoadProviders>
+						<ActiveThemeProvider initialTheme={activeThemeValue}>
+							<QueryProvider>
+								<AuthProvider session={session}>
+									{children}
+									<Toaster
+										position="top-right"
+										expand={true}
+										richColors
+										toastOptions={{
+											duration: 4000,
+											style: {
+												background: "#363636",
+												color: "#fff",
+											},
+											// success: {
+											//     duration: 3000,
+											//     iconTheme: {
+											//         primary: "#10b981",
+											//         secondary: "#fff",
+											//     },
+											// },
+											// error: {
+											//     duration: 5000,
+											//     iconTheme: {
+											//         primary: "#ef4444",
+											//         secondary: "#fff",
+											//     },
+											// },
+										}}
+									/>
+								</AuthProvider>
+							</QueryProvider>
+						</ActiveThemeProvider>
+					</PageLoadProviders>
 				</ThemeProvider>
 			</body>
 		</html>

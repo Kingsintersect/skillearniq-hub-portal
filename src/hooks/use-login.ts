@@ -1,6 +1,6 @@
 'use client'
 
-import { useAuthContext } from "@/app/providers/AuthProvider";
+import { useAuthContext } from "@/providers/AuthProvider";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 import { Resolver, useForm } from "react-hook-form";
