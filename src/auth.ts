@@ -1,6 +1,6 @@
 import NextAuth from "next-auth"
 import Credentials from "next-auth/providers/credentials"
-import { signInFormData, signInSchema } from "./schema/sign-in-schema"
+import { signInFormData, signInSchema } from "./schema/auth-schema"
 import { authApi } from "./lib/services/auth"
 import { UserInterface } from "./types/global"
 
