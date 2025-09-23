@@ -9,7 +9,7 @@ import { authApi } from "@/lib/services/auth";
 import { UserInterface } from "@/types/global";
 import { useLocalStorage } from "./use-local-storage";
 import { getSession, signIn, signOut } from "next-auth/react";
-import { signInFormData } from "@/schema/sign-in-schema";
+import { signInFormData } from "@/schema/auth-schema";
 
 export function useAuth() {
     const router = useRouter();

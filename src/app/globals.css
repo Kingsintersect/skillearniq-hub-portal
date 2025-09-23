@@ -511,12 +511,23 @@
 	}
 
 	/* Gradient utilities */
-	.gradient-primary {
+	/* .gradient-primary {
 		background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
 	}
 
 	.gradient-secondary {
 		background: linear-gradient(135deg, #6b7280 0%, #374151 100%);
+	} */
+	.gradient-primary {
+		background: linear-gradient(135deg,
+				color-mix(in oklch, var(--primary) 80%, white 20%) 0%,
+				var(--primary) 100%);
+	}
+
+	.gradient-secondary {
+		background: linear-gradient(135deg,
+				color-mix(in oklch, var(--secondary) 80%, white 20%) 0%,
+				var(--secondary) 100%);
 	}
 
 	.gradient-success {

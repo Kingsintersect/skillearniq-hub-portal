@@ -2,7 +2,7 @@ import { SignUpFormData } from "@/schema/sign-up-schema";
 import { apiClient } from "./client";
 import type { LoginResponse, SignupResponse } from "@/types/auth";
 import { UserInterface } from "@/types/global";
-import { signInFormData } from "@/schema/sign-in-schema";
+import { forgotPasswordFormData, resetPasswordFormData, signInFormData } from "@/schema/auth-schema";
 
 export const authApi = {
     login: async (credentials: signInFormData): Promise<LoginResponse> => {
@@ -25,15 +25,14 @@ export const authApi = {
 
     getProfile: () => apiClient.get<UserInterface>("/application/profile"),
 
-    forgotPassword: (email: string) =>
-        apiClient.post("/auth/forgot-password", { email }),
+    forgotPassword: (forgotCredention: forgotPasswordFormData) =>
+        apiClient.post("/auth/forgot-password", { ...forgotCredention }),
 
-    resetPassword: (token: string, password: string, passwordConfirmation: string) =>
-        apiClient.post("/auth/reset-password", {
-            token,
-            password,
-            password_confirmation: passwordConfirmation,
-        }),
+    verifyResetPasswordToken: (token: string) =>
+        apiClient.get(`/verify-token?token=${token}`),
+
+    resetPassword: (resetPasswordCredention: resetPasswordFormData) =>
+        apiClient.post("/auth/reset-password", { ...resetPasswordCredention }),
 
     changePassword: (currentPassword: string, newPassword: string, passwordConfirmation: string) =>
         apiClient.post("/auth/change-password", {

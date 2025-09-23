@@ -18,17 +18,6 @@ export interface SignupResponse {
     user: UserInterface
 }
 
-// PASSWORD RECOVERY
-export interface ForgotPasswordRequest {
-    email: string;
-}
-
-export interface ResetPasswordRequest {
-    token: string;
-    password: string;
-    confirmPassword: string;
-}
-
 // LOGIN TYPES
 export interface LoginResponse {
     access_token: string;
