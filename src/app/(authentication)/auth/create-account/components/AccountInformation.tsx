@@ -25,15 +25,6 @@ export const AccountInformation: React.FC<AccountInformationProps> = ({ register
                     required
                 />
 
-                {/* <InputField
-                    id='regNumber'
-                    {...register('regNumber')}
-                    label="Student Registration Number"
-                    placeholder="Enter your student Registration Number"
-                    error={errors.regNumber?.message}
-                    required
-                /> */}
-
                 <InputField
                     id='username'
                     {...register('username')}

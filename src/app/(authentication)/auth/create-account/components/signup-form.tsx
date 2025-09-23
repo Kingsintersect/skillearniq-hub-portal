@@ -107,7 +107,6 @@ export function SignupForm() {
                             loading={isSubmitting}
                             className="flex items-center px-6 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
                         >
-                            {isSubmitting && <>memmmmm</>}
                             <Check className="w-4 h-4 ml-1" />
                             Complete Registration
                         </Button>

@@ -1,6 +1,6 @@
 'use client'
 import { useAuth } from '@/hooks/use-auth';
-import { signInFormData } from '@/schema/sign-in-schema';
+import { signInFormData } from '@/schema/auth-schema';
 import { AuthenState } from '@/types/auth';
 import { SessionProvider } from 'next-auth/react'
 import { Session } from 'next-auth'

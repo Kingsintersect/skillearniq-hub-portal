@@ -53,7 +53,7 @@ export const referenceEmailSchcema = z.string()
         message: "Please enter a valid email address or reference number",
     });
 
-export const token = z.string().min(1, "Reset token is required");
+export const tokenSchema = z.string().min(1, "Reset token is required");
 
 export const passwordSchema = z.string()
     .min(1, "Password is required")
