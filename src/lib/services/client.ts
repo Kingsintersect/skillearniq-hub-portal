@@ -9,9 +9,9 @@ import { ApiError, ApiResponse } from "@/types/auth";
 import { APP_CONFIG, LOCAL_STORAGE_KEYS } from "@/config";
 
 // Extend the InternalAxiosRequestConfig to include _retry property
-interface ExtendedAxiosRequestConfig extends InternalAxiosRequestConfig {
-    _retry?: boolean;
-}
+// interface ExtendedAxiosRequestConfig extends InternalAxiosRequestConfig {
+//     _retry?: boolean;
+// }
 
 // Define the structure for refresh token response
 // interface RefreshTokenResponse {
@@ -70,21 +70,27 @@ class ApiClient {
             (response: AxiosResponse<ApiResponse>) => response,
             async (error: unknown) => {
                 const axiosError = error as AxiosError<ApiErrorResponse>;
-                const originalRequest = axiosError.config as ExtendedAxiosRequestConfig;
+                // const originalRequest = axiosError.config as ExtendedAxiosRequestConfig;
 
                 // Handle 401 unauthorized errors with token refresh
-                if (axiosError.response?.status === 401 && originalRequest && !originalRequest._retry) {
-                    if (this.isRefreshing) {
-                        return new Promise<AxiosResponse>((resolve, reject) => {
-                            this.failedQueue.push({
-                                resolve: () => resolve(this.instance(originalRequest)),
-                                reject: (error) => reject(error)
-                            });
-                        });
-                    }
+                // if (axiosError.response?.status === 401 && originalRequest && !originalRequest._retry) {
+                //     if (this.isRefreshing) {
+                //         return new Promise<AxiosResponse>((resolve, reject) => {
+                //             this.failedQueue.push({
+                //                 resolve: () => resolve(this.instance(originalRequest)),
+                //                 reject: (error) => reject(error)
+                //             });
+                //         });
+                //     }
 
-                    originalRequest._retry = true;
-                    this.isRefreshing = true;
+                //     originalRequest._retry = true;
+                //     this.isRefreshing = true;
+                if (axiosError.response?.status === 401) {
+                    // this.clearAuthTokens();
+                    // if (typeof window !== "undefined") {
+                    //     window.location.href = "/auth/signin";
+                    // }
+                    return Promise.reject(this.handleError(error));
 
                     // try {
                     //     const refreshToken = localStorage.getItem(LOCAL_STORAGE_KEYS.refreshToken);
@@ -179,7 +185,7 @@ class ApiClient {
     private clearAuthTokens(): void {
         if (typeof window !== "undefined") {
             localStorage.removeItem(LOCAL_STORAGE_KEYS.accessToken);
-            localStorage.removeItem(LOCAL_STORAGE_KEYS.refreshToken);
+            // localStorage.removeItem(LOCAL_STORAGE_KEYS.refreshToken);
             localStorage.removeItem(LOCAL_STORAGE_KEYS.user);
         }
     }
@@ -272,9 +278,9 @@ class ApiClient {
         if (typeof window === "undefined") return false;
 
         const token = localStorage.getItem(LOCAL_STORAGE_KEYS.accessToken);
-        const refreshToken = localStorage.getItem(LOCAL_STORAGE_KEYS.refreshToken);
+        // const refreshToken = localStorage.getItem(LOCAL_STORAGE_KEYS.refreshToken);
 
-        return !!(token && refreshToken);
+        return !!(token);
     }
 
     /**

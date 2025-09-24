@@ -76,8 +76,10 @@ export function useAuth() {
                 // Invalidate and refetch profile
                 queryClient.invalidateQueries({ queryKey: QUERY_KEYS.auth.profile });
 
-                toast.success(`Welcome back, ${session.user.first_name}!`)
-                router.push(`/${session.user?.role.toLocaleLowerCase() + ROUTES.dashboard}`)
+                toast.success(`Welcome back, ${session.user.first_name}!`);
+
+                if (session.user?.role === "STUDENT") router.push(`/course-overview`)
+                else router.push(`/${session.user?.role.toLocaleLowerCase() + ROUTES.dashboard}`)
             }
         },
         onError: (error: ApiError) => {
