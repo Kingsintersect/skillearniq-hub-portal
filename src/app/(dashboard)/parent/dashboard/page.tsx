@@ -1,7 +1,10 @@
 import React from 'react'
 
-export const ParentDashboardPage = () => {
+
+const ParentDashboardPage = () => {
   return (
     <div>ParentDashboardPage</div>
   )
 }
+
+export default ParentDashboardPage

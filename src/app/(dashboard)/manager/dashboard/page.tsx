@@ -1,7 +1,10 @@
 import React from 'react'
 
-export const ManagerDashboardPage = () => {
+
+const ManagerDashboardPage = () => {
   return (
     <div>ManagerDashboardPage</div>
   )
 }
+
+export default ManagerDashboardPage
