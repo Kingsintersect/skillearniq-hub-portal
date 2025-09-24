@@ -15,7 +15,6 @@ export const Features: React.FC = () => {
                         We provide comprehensive business education that combines theoretical knowledge
                         with practical skills to prepare leaders for the global marketplace.
                     </p>
-                    <Example />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -38,21 +37,3 @@ export const Features: React.FC = () => {
     );
 };
 
-export default function Example() {
-    return (
-        <div className="bg-background text-foreground min-h-screen flex items-center justify-center">
-            <div className="bg-card border border-border rounded-lg p-6">
-                <h1 className="text-primary text-2xl font-bold">Dynamic Green Theme 🌿</h1>
-                <p className="text-muted-foreground mt-2">
-                    Change <code>--hue</code> in CSS and the whole theme shifts!
-                </p>
-                <button className="mt-4 bg-primary-foreground text-primary px-4 py-2 rounded-md">
-                    Primary Button
-                </button>
-                <div className="bg-[oklch(var(--primary-foreground))] text-[oklch(var(--primary))] p-4">
-                    This uses Tailwinds arbitrary value syntax with CSS variables
-                </div>
-            </div>
-        </div>
-    );
-}
