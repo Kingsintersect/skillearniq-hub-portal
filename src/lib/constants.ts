@@ -121,7 +121,7 @@ export const AdminNavMain: SidebarNavConfig = {
             items: [
                 {
                     title: "Statistics",
-                    url: "/dashboard/admin",
+                    url: "/admin/dashboard",
                 },
             ],
             display: true,
@@ -133,19 +133,19 @@ export const AdminNavMain: SidebarNavConfig = {
             items: [
                 {
                     title: "Manage Admission",
-                    url: "/dashboard/admin/manage-admissions",
+                    url: "/admin/manage-admissions",
                 },
                 // {
                 // 	title: "Student Listing",
-                // 	url: "/dashboard/admin/users",
+                // 	url: "/admin/users",
                 // },
                 {
                     title: "Add New User",
-                    url: "/dashboard/admin/users/create",
+                    url: "/admin/users/create",
                 },
                 {
                     title: "Tutors Enrolment",
-                    url: "/dashboard/admin/users/tutors-enrollment",
+                    url: "/admin/users/tutors-enrollment",
                 },
             ],
             display: true,
@@ -157,7 +157,7 @@ export const AdminNavMain: SidebarNavConfig = {
             items: [
                 {
                     title: "Migrate Students",
-                    url: "/dashboard/admin/session-migrations",
+                    url: "/admin/session-migrations",
                 },
             ],
             display: true,
@@ -169,7 +169,7 @@ export const AdminNavMain: SidebarNavConfig = {
             items: [
                 {
                     title: "Veiw Student Report",
-                    url: "/dashboard/admin/students-grade-report",
+                    url: "/admin/students-grade-report",
                 },
             ],
             display: true,
@@ -181,23 +181,23 @@ export const AdminNavMain: SidebarNavConfig = {
             items: [
                 {
                     title: "Faculties",
-                    url: "/dashboard/admin/course-management/faculty",
+                    url: "/admin/course-management/faculty",
                 },
                 {
                     title: "Departments",
-                    url: "/dashboard/admin/course-management/department",
+                    url: "/admin/course-management/department",
                 },
                 {
                     title: "Courses",
-                    url: "/dashboard/admin/course-management/courses",
+                    url: "/admin/course-management/courses",
                 },
                 {
                     title: "Course Categories",
-                    url: "/dashboard/admin/course-management/course-categories",
+                    url: "/admin/course-management/course-categories",
                 },
                 {
                     title: "Course Assignments",
-                    url: "/dashboard/admin/course-management/course-assignment",
+                    url: "/admin/course-management/course-assignment",
                 },
             ],
             display: false,
@@ -209,15 +209,15 @@ export const AdminNavMain: SidebarNavConfig = {
             items: [
                 {
                     title: "Countries",
-                    url: "/dashboard/admin/region/countries",
+                    url: "/admin/region/countries",
                 },
                 {
                     title: "States",
-                    url: "/dashboard/admin/region/states",
+                    url: "/admin/region/states",
                 },
                 {
                     title: "Local Government Areas",
-                    url: "/dashboard/admin/region/local-gov",
+                    url: "/admin/region/local-gov",
                 },
             ],
             display: false,
@@ -234,7 +234,7 @@ export const StudentNavMain: SidebarNavConfig = {
             items: [
                 {
                     title: "Statistics",
-                    url: "/dashboard/student",
+                    url: "/student/dashboard",
                 },
             ],
             display: true,
@@ -246,11 +246,11 @@ export const StudentNavMain: SidebarNavConfig = {
             items: [
                 {
                     title: "Pay Acceptance Fee",
-                    url: "/dashboard/history/student-payments/acceptance",
+                    url: "/history/student-payments/acceptance",
                 },
                 {
                     title: "Pay Tuition Fee",
-                    url: "/dashboard/history/student-payments/tuition",
+                    url: "/history/student-payments/tuition",
                 },
             ],
             display: false,
@@ -262,11 +262,11 @@ export const StudentNavMain: SidebarNavConfig = {
             items: [
                 {
                     title: "Payment History",
-                    url: "/dashboard/student/history/student-payments",
+                    url: "/student/history/student-payments",
                 },
                 {
                     title: "Result History",
-                    url: "/dashboard/student/history/student-results",
+                    url: "/student/history/student-results",
                 },
             ],
             display: true,
@@ -278,11 +278,11 @@ export const StudentNavMain: SidebarNavConfig = {
             items: [
                 {
                     title: "Enrolled Courses",
-                    url: "/dashboard/student/enrolled-courses",
+                    url: "/student/enrolled-courses",
                 },
                 {
                     title: "Profile",
-                    url: "/dashboard/student/profile",
+                    url: "/student/profile",
                 },
             ],
             display: true,
@@ -294,7 +294,7 @@ export const StudentNavMain: SidebarNavConfig = {
             items: [
                 {
                     title: "Grade Report",
-                    url: "/dashboard/student/grade-report",
+                    url: "/student/grade-report",
                 },
             ],
             display: true,
@@ -311,7 +311,7 @@ export const TeacherNavMain: SidebarNavConfig = {
             items: [
                 {
                     title: "Overview",
-                    url: "/dashboard/teacher",
+                    url: "/teacher/dashboard",
                 },
             ],
             display: true,
@@ -320,31 +320,80 @@ export const TeacherNavMain: SidebarNavConfig = {
     flat: [
         {
             title: "My COURSES",
-            url: "/dashboard/teacher/enrolled-courses",
+            url: "/teacher/enrolled-courses",
             icon: GraduationCap,
             display: true,
         },
         {
             title: "ASSIGNMENTS",
-            url: "/dashboard/teacher/assignments",
+            url: "/teacher/assignments",
             icon: School2,
             display: true,
         },
         {
             title: "CALENDER",
-            url: "/dashboard/teacher/calender",
+            url: "/teacher/calender",
             icon: CalendarCheck,
             display: true,
         },
         {
             title: "DISCUSSIONS",
-            url: "/dashboard/teacher/discussions",
+            url: "/teacher/discussions",
             icon: MessageSquare,
             display: true,
         },
         {
             title: "SETTINGS",
-            url: "/dashboard/teacher/settings",
+            url: "/teacher/settings",
+            icon: Settings2,
+            display: false,
+        },
+    ],
+};
+export const ParentNavMain: SidebarNavConfig = {
+    compound: [
+        {
+            title: "DASHBOARD",
+            url: "#",
+            icon: PieChart,
+            isActive: true,
+            items: [
+                {
+                    title: "Overview",
+                    url: "/parent/dashboard",
+                },
+            ],
+            display: true,
+        },
+    ],
+    flat: [
+        {
+            title: "My COURSES",
+            url: "/parent/enrolled-courses",
+            icon: GraduationCap,
+            display: true,
+        },
+        {
+            title: "ASSIGNMENTS",
+            url: "/parent/assignments",
+            icon: School2,
+            display: true,
+        },
+        {
+            title: "CALENDER",
+            url: "/parent/calender",
+            icon: CalendarCheck,
+            display: true,
+        },
+        {
+            title: "DISCUSSIONS",
+            url: "/parent/discussions",
+            icon: MessageSquare,
+            display: true,
+        },
+        {
+            title: "SETTINGS",
+            url: "/parent/settings",
             icon: Settings2,
             display: false,
         },
