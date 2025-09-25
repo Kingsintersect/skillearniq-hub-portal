@@ -540,6 +540,18 @@
 		background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
 	}
 
+	.text-gradient-primary {
+		@apply text-5xl font-extrabold bg-gradient-to-r from-primary-200 via-secondary-300 to-secondary-600 bg-clip-text text-transparent;
+	}
+
+	.bg-gradient-primary {
+		background-image: radial-gradient(at 25% 25%, white 0%, rgb(24, 24, 27) 75%);
+	}
+
+	.bg-gradient-secondary {
+		background-image: radial-gradient(at 25% 25%, white 0%, rgb(24, 24, 27) 75%);
+	}
+
 	/* Layout utilities */
 	.container-custom {
 		width: 100%;
