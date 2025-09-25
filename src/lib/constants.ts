@@ -319,14 +319,14 @@ export const TeacherNavMain: SidebarNavConfig = {
     ],
     flat: [
         {
-            title: "My COURSES",
-            url: "/teacher/enrolled-courses",
+            title: "My CLASSES",
+            url: "/teacher/classes",
             icon: GraduationCap,
             display: true,
         },
         {
             title: "ASSIGNMENTS",
-            url: "/teacher/assignments",
+            url: "/teacher/assessments",
             icon: School2,
             display: true,
         },
@@ -334,6 +334,18 @@ export const TeacherNavMain: SidebarNavConfig = {
             title: "CALENDER",
             url: "/teacher/calender",
             icon: CalendarCheck,
+            display: true,
+        },
+         {
+            title: "ATTENDANCE",
+            url: "/teacher/attendance",
+            icon: MessageSquare,
+            display: true,
+        },
+         {
+            title: "MESSAGES",
+            url: "/teacher/messages",
+            icon: MessageSquare,
             display: true,
         },
         {
