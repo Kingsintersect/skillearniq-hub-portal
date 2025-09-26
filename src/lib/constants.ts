@@ -90,7 +90,10 @@ import {
     School2,
     MessageSquare,
     Settings2,
-    LucideIcon
+    LucideIcon,
+    School,
+    ClipboardList,
+    BookOpenCheck
 } from "lucide-react";
 export interface SidebarNavItem {
     title: string;
@@ -318,30 +321,44 @@ export const TeacherNavMain: SidebarNavConfig = {
         },
     ],
     flat: [
-        {
-            title: "My COURSES",
-            url: "/teacher/enrolled-courses",
+
+         {
+            title: "STUDENTS",
+            url: "/teacher/students",
             icon: GraduationCap,
             display: true,
         },
         {
+            title: "CLASSES",
+            url: "/teacher/classes",
+            icon: School,
+            display: true,
+        },
+        {
             title: "ASSIGNMENTS",
-            url: "/teacher/assignments",
-            icon: School2,
+            url: "/teacher/assessments",
+            icon: BookOpenCheck,
             display: true,
         },
-        {
-            title: "CALENDER",
-            url: "/teacher/calender",
-            icon: CalendarCheck,
+        // {
+        //     title: "CALENDER",
+        //     url: "/teacher/calender",
+        //     icon: CalendarCheck,
+        //     display: true,
+        // },
+         {
+            title: "ATTENDANCE",
+            url: "/teacher/attendance",
+            icon: ClipboardList,
             display: true,
         },
-        {
-            title: "DISCUSSIONS",
-            url: "/teacher/discussions",
+         {
+            title: "MESSAGES",
+            url: "/teacher/messages",
             icon: MessageSquare,
             display: true,
         },
+        
         {
             title: "SETTINGS",
             url: "/teacher/settings",

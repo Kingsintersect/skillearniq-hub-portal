@@ -3,8 +3,11 @@ import * as React from "react"
 import DatePicker, { DatePickerProps } from "react-date-picker"
 import { Calendar as CalendarIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
-import "react-date-picker/dist/DatePicker.css"
-import "react-calendar/dist/Calendar.css"
+// @ts-ignore - CSS has no types
+import "react-date-picker/dist/DatePicker.css";
+// @ts-ignore - CSS has no types
+import "react-calendar/dist/Calendar.css";
+
 import { Value } from "react-date-picker/dist/shared/types.js"
 
 interface CalendarProps extends Omit<DatePickerProps, "onChange" | "value"> {
