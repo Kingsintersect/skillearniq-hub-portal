@@ -1,426 +1,528 @@
 'use client'
 import React, { useState } from 'react';
-import { useAssignments, useAssignmentMutation } from '@/hooks/useAssignments';
-import { useExams, useExamMutation } from '@/hooks/useExams';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { Assignment } from '@/types';
+import { useTeacherClasses, useClassAssessments } from '@/hooks/use-classes';
 
-const assignmentSchema = z.object({
-  title: z.string().min(1, 'Title is required'),
-  description: z.string().min(1, 'Description is required'),
-  subjectId: z.number().min(1, 'Subject is required'),
-  classId: z.number().min(1, 'Class is required'),
-  dueDate: z.string().min(1, 'Due date is required'),
-  maxScore: z.number().min(1, 'Max score must be greater than 0'),
-  type: z.enum(['quiz', 'assignment', 'exam']),
-});
 
-type AssignmentFormData = z.infer<typeof assignmentSchema>;
+import { Button } from '@/components/ui/button';
+import { Card, CardContent} from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { Label } from '@/components/ui/label';
+import { Progress } from '@/components/ui/progress';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
-const examSchema = z.object({
-  title: z.string().min(1, 'Title is required'),
-  description: z.string().min(1, 'Description is required'),
-  subjectId: z.number().min(1, 'Subject is required'),
-  classId: z.number().min(1, 'Class is required'),
-  duration: z.number().min(1, 'Duration is required'),
-  startTime: z.string().min(1, 'Start time is required'),
-  maxScore: z.number().min(1, 'Max score must be greater than 0'),
-  requiresWebcam: z.boolean(),
-  ipRestriction: z.boolean(),
-});
+import { toast } from 'sonner';
+import { 
+  FileText, 
+  Download, 
+  Plus,
+  Filter,
+  Clock,
+  Award,
+  BarChart3,
+  Edit,
+  Trash2
+} from 'lucide-react';
 
-type ExamFormData = z.infer<typeof examSchema>;
-
- const AssessmentsPage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'assignments' | 'exams' | 'results'>('assignments');
-  const [showAssignmentForm, setShowAssignmentForm] = useState(false);
-  const [showExamForm, setShowExamForm] = useState(false);
-  const [selectedType, setSelectedType] = useState<'quiz' | 'assignment' | 'exam'>('assignment');
-
-  const { data: assignments, isLoading: assignmentsLoading } = useAssignments();
-  const { data: exams, isLoading: examsLoading } = useExams();
-  const assignmentMutation = useAssignmentMutation();
-  const examMutation = useExamMutation();
-
-  const { 
-    register: registerAssignment, 
-    handleSubmit: handleAssignmentSubmit, 
-    formState: { errors: assignmentErrors }, 
-    reset: resetAssignment 
-  } = useForm<AssignmentFormData>({
-    resolver: zodResolver(assignmentSchema),
+export const AssessmentsPage: React.FC = () => {
+  const [filters, setFilters] = useState({
+    academicYear: '2024-2025',
+    term: '1st',
+    classId: 1,
+    type: 'all'
   });
+  const [view, setView] = useState<'upcoming' | 'completed' | 'drafts'>('upcoming');
+  const [searchTerm, setSearchTerm] = useState('');
 
-  const { 
-    register: registerExam, 
-    handleSubmit: handleExamSubmit, 
-    formState: { errors: examErrors }, 
-    reset: resetExam 
-  } = useForm<ExamFormData>({
-    resolver: zodResolver(examSchema),
-    defaultValues: {
-      requiresWebcam: false,
-      ipRestriction: true,
-      maxScore: 100
-    }
-  });
+  const currentTeacherId = 1;
+  const { data: classes, isLoading } = useTeacherClasses(currentTeacherId);
+  //const { data: assessments } = useClassAssessments(filters.classId);
 
-  const onSubmitAssignment = async (data: AssignmentFormData) => {
-    try {
-      await assignmentMutation.mutateAsync({
-        ...data,
+  // Mock assessments data
+  const assessmentsData = {
+    upcoming: [
+      {
+        id: 1,
+        title: 'Mathematics Quiz - Algebra',
+        class: 'JSS 1A',
+        type: 'quiz',
+        dueDate: '2024-02-01',
+        maxScore: 20,
+        status: 'scheduled',
+        submissions: 0,
+        totalStudents: 30
+      }
+    ],
+    completed: [
+      {
+        id: 2,
+        title: 'English Literature Assignment',
+        class: 'JSS 1A',
+        type: 'assignment',
+        dueDate: '2024-01-20',
+        maxScore: 100,
+        status: 'graded',
+        submissions: 28,
+        totalStudents: 30,
+        averageScore: 85.5
+      }
+    ],
+    drafts: [
+      {
+        id: 3,
+        title: 'Science Project',
+        class: 'JSS 1A',
+        type: 'project',
+        dueDate: '2024-02-15',
+        maxScore: 50,
         status: 'draft',
-        createdAt: new Date().toISOString()
-      } as any); // Temporary fix for type issue
-      resetAssignment();
-      setShowAssignmentForm(false);
-    } catch (error) {
-      console.error('Failed to create assignment:', error);
-    }
+        submissions: 0,
+        totalStudents: 30
+      }
+    ]
   };
 
-  const onSubmitExam = async (data: ExamFormData) => {
-    try {
-      await examMutation.mutateAsync({
-        ...data,
-        status: 'draft',
-        endTime: new Date(new Date(data.startTime).getTime() + data.duration * 60000).toISOString()
-      } as any);
-      resetExam();
-      setShowExamForm(false);
-    } catch (error) {
-      console.error('Failed to create exam:', error);
-    }
+  const academicYears = ['2023-2024', '2024-2025', '2025-2026'];
+  const terms = ['1st', '2nd', '3rd'];
+  const assessmentTypes = ['all', 'quiz', 'assignment', 'exam', 'project'];
+
+  const handleCreateAssessment = () => {
+    toast.success('New assessment created successfully!');
   };
 
-  const publishAssessment = async (id: number, type: 'assignment' | 'exam') => {
-    // Implement publish logic
-    console.log('Publish:', type, id);
-    alert(`${type} ${id} published successfully!`);
-  };
-
-  const duplicateAssessment = async (assessment: any) => {
-    // Implement duplication logic
-    console.log('Duplicate:', assessment);
-    alert(`${assessment.title} duplicated!`);
-  };
-
-  const filteredAssignments = assignments?.filter(a => a.type === selectedType);
-
-  if (assignmentsLoading || examsLoading) {
+  if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 p-6 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen p-6 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading assessments...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Assessments & Exams</h1>
-          <p className="text-gray-600">Manage assignments, quizzes, exams, and results</p>
-        </div>
-
-        {/* Tabs */}
-        <div className="bg-white rounded-lg shadow-sm mb-6">
-          <div className="border-b">
-            <nav className="flex space-x-8 px-6">
-              {['assignments', 'exams', 'results'].map((tab) => (
-                <button
-                  key={tab}
-                  onClick={() => setActiveTab(tab as any)}
-                  className={`py-4 px-1 border-b-2 font-medium text-sm capitalize ${
-                    activeTab === tab
-                      ? 'border-blue-500 text-blue-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700'
-                  }`}
-                >
-                  {tab}
-                </button>
-              ))}
-            </nav>
+        <div className="mb-8 text-center">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-primary rounded-2xl mb-4">
+            <FileText className="h-8 w-8 text-primary-foreground" />
           </div>
+          <h1 className="text-4xl font-bold text-foreground mb-2">Assessments</h1>
+          <p className="text-muted-foreground text-lg">Create and manage student assessments</p>
         </div>
 
-        {/* Assignments Tab */}
-        {activeTab === 'assignments' && (
-          <div className="space-y-6">
-            {/* Filters and Actions */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center space-y-4 lg:space-y-0">
-                <div className="flex space-x-4">
-                  {(['assignment', 'quiz', 'exam'] as const).map(type => (
-                    <button
-                      key={type}
-                      onClick={() => setSelectedType(type)}
-                      className={`px-4 py-2 rounded-lg font-medium capitalize ${
-                        selectedType === type
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      }`}
-                    >
-                      {type}s
-                    </button>
-                  ))}
+        {/* Stats Overview */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Total Assessments</p>
+                  <p className="text-2xl font-bold text-foreground">24</p>
                 </div>
-                <button
-                  onClick={() => setShowAssignmentForm(true)}
-                  className="bg-blue-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700"
-                >
-                  Create New {selectedType.charAt(0).toUpperCase() + selectedType.slice(1)}
-                </button>
+                <div className="w-12 h-12 bg-blue-500/10 rounded-lg flex items-center justify-center">
+                  <FileText className="h-6 w-6 text-blue-500" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Pending Grading</p>
+                  <p className="text-2xl font-bold text-foreground">3</p>
+                </div>
+                <div className="w-12 h-12 bg-orange-500/10 rounded-lg flex items-center justify-center">
+                  <Clock className="h-6 w-6 text-orange-500" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Avg Score</p>
+                  <p className="text-2xl font-bold text-foreground">82.5%</p>
+                </div>
+                <div className="w-12 h-12 bg-green-500/10 rounded-lg flex items-center justify-center">
+                  <Award className="h-6 w-6 text-green-500" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Submission Rate</p>
+                  <p className="text-2xl font-bold text-foreground">94.2%</p>
+                </div>
+                <div className="w-12 h-12 bg-purple-500/10 rounded-lg flex items-center justify-center">
+                  <BarChart3 className="h-6 w-6 text-purple-500" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Filters and Actions */}
+        <Card className="mb-6">
+          <CardContent className="p-6">
+            <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
+              <div className="flex flex-col sm:flex-row gap-4 flex-1">
+                <div className="flex-1">
+                  <Label htmlFor="academicYear">Academic Year</Label>
+                  <Select
+                    value={filters.academicYear}
+                    onValueChange={(value) => setFilters(prev => ({ ...prev, academicYear: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {academicYears.map(year => (
+                        <SelectItem key={year} value={year}>{year}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="flex-1">
+                  <Label htmlFor="term">Term</Label>
+                  <Select
+                    value={filters.term}
+                    onValueChange={(value) => setFilters(prev => ({ ...prev, term: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {terms.map(term => (
+                        <SelectItem key={term} value={term}>{term} Term</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="flex-1">
+                  <Label htmlFor="class">Class</Label>
+                  <Select
+                    value={filters.classId.toString()}
+                    onValueChange={(value) => setFilters(prev => ({ ...prev, classId: parseInt(value) }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {classes?.map(cls => (
+                        <SelectItem key={cls.id} value={cls.id.toString()}>{cls.shortName}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="flex-1">
+                  <Label htmlFor="type">Type</Label>
+                  <Select
+                    value={filters.type}
+                    onValueChange={(value) => setFilters(prev => ({ ...prev, type: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {assessmentTypes.map(type => (
+                        <SelectItem key={type} value={type}>
+                          {type.charAt(0).toUpperCase() + type.slice(1)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button>
+                      <Plus className="h-4 w-4 mr-2" />
+                      New Assessment
+                    </Button>
+                  </DialogTrigger>
+                  <CreateAssessmentDialog onCreate={handleCreateAssessment} classes={classes || []} />
+                </Dialog>
+                <Button variant="outline">
+                  <Download className="h-4 w-4 mr-2" />
+                  Export
+                </Button>
               </div>
             </div>
+          </CardContent>
+        </Card>
 
-            {/* Assessments Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-              {filteredAssignments?.map((assignment) => (
-                <AssessmentCard
-                  key={assignment.id}
-                  assessment={assignment}
-                  type="assignment"
-                  onPublish={publishAssessment}
-                  onDuplicate={duplicateAssessment}
-                />
-              ))}
-              {filteredAssignments?.length === 0 && (
-                <div className="col-span-full text-center py-12 text-gray-500">
-                  No {selectedType}s found. Create your first one!
+        {/* Search */}
+        <Card className="mb-6">
+          <CardContent className="p-4">
+            <div className="flex gap-4">
+              <Input
+                placeholder="Search assessments by title or description..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="flex-1"
+              />
+              <Button variant="outline">
+                <Filter className="h-4 w-4 mr-2" />
+                Filter
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Main Content */}
+        <Tabs value={view} onValueChange={(value: any) => setView(value)} className="space-y-6">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
+            <TabsTrigger value="completed">Completed</TabsTrigger>
+            <TabsTrigger value="drafts">Drafts</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="upcoming">
+            <AssessmentsListView data={assessmentsData.upcoming} type="upcoming" />
+          </TabsContent>
+
+          <TabsContent value="completed">
+            <AssessmentsListView data={assessmentsData.completed} type="completed" />
+          </TabsContent>
+
+          <TabsContent value="drafts">
+            <AssessmentsListView data={assessmentsData.drafts} type="drafts" />
+          </TabsContent>
+        </Tabs>
+      </div>
+    </div>
+  );
+};
+
+// Assessments List View Component
+const AssessmentsListView: React.FC<{ data: any[]; type: string }> = ({ data, type }) => {
+  if (data.length === 0) {
+    return (
+      <Card>
+        <CardContent className="text-center py-12">
+          <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+            <FileText className="h-10 w-10 text-muted-foreground" />
+          </div>
+          <h3 className="text-lg font-semibold text-foreground mb-2">No assessments found</h3>
+          <p className="text-muted-foreground">
+            {type === 'upcoming' ? 'No upcoming assessments' :
+             type === 'completed' ? 'No completed assessments' : 'No draft assessments'}
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Assessment Title</TableHead>
+            <TableHead>Class</TableHead>
+            <TableHead>Type</TableHead>
+            <TableHead>Due Date</TableHead>
+            <TableHead>Max Score</TableHead>
+            <TableHead>Submissions</TableHead>
+            {type === 'completed' && <TableHead>Average Score</TableHead>}
+            <TableHead>Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {data.map((assessment) => (
+            <TableRow key={assessment.id}>
+              <TableCell className="font-medium">{assessment.title}</TableCell>
+              <TableCell>
+                <Badge variant="outline">{assessment.class}</Badge>
+              </TableCell>
+              <TableCell>
+                <Badge variant={
+                  assessment.type === 'quiz' ? 'secondary' :
+                  assessment.type === 'assignment' ? 'default' :
+                  assessment.type === 'exam' ? 'destructive' : 'outline'
+                }>
+                  {assessment.type}
+                </Badge>
+              </TableCell>
+              <TableCell>
+                {new Date(assessment.dueDate).toLocaleDateString()}
+              </TableCell>
+              <TableCell>{assessment.maxScore}</TableCell>
+              <TableCell>
+                <div className="flex items-center space-x-2">
+                  <Progress 
+                    value={(assessment.submissions / assessment.totalStudents) * 100} 
+                    className="h-2 w-16" 
+                  />
+                  <span className="text-sm">{assessment.submissions}/{assessment.totalStudents}</span>
                 </div>
+              </TableCell>
+              {type === 'completed' && (
+                <TableCell>
+                  <Badge variant={assessment.averageScore >= 80 ? 'default' : 'destructive'}>
+                    {assessment.averageScore}%
+                  </Badge>
+                </TableCell>
               )}
-            </div>
-          </div>
-        )}
-
-        {/* Exams Tab */}
-        {activeTab === 'exams' && (
-          <div className="space-y-6">
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <div className="flex justify-between items-center">
-                <h2 className="text-lg font-semibold">Exam Management</h2>
-                <button
-                  onClick={() => setShowExamForm(true)}
-                  className="bg-blue-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700"
-                >
-                  Create New Exam
-                </button>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-              {exams?.map((exam) => (
-                <AssessmentCard
-                  key={exam.id}
-                  assessment={exam}
-                  type="exam"
-                  onPublish={publishAssessment}
-                  onDuplicate={duplicateAssessment}
-                />
-              ))}
-              {exams?.length === 0 && (
-                <div className="col-span-full text-center py-12 text-gray-500">
-                  No exams found. Create your first exam!
+              <TableCell>
+                <div className="flex space-x-2">
+                  <Button variant="outline" size="sm">
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                  <Button variant="outline" size="sm">
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Results Tab */}
-        {activeTab === 'results' && (
-          <ResultsManager />
-        )}
-      </div>
-
-      {/* Assignment Form Modal */}
-      {showAssignmentForm && (
-        <AssignmentFormModal
-          onClose={() => setShowAssignmentForm(false)}
-          onSubmit={handleAssignmentSubmit(onSubmitAssignment)}
-          register={registerAssignment}
-          errors={assignmentErrors}
-          type={selectedType}
-        />
-      )}
-
-      {/* Exam Form Modal */}
-      {showExamForm && (
-        <ExamFormModal
-          onClose={() => setShowExamForm(false)}
-          onSubmit={handleExamSubmit(onSubmitExam)}
-          register={registerExam}
-          errors={examErrors}
-        />
-      )}
-    </div>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </Card>
   );
 };
 
-const AssessmentCard: React.FC<{
-  assessment: any;
-  type: 'assignment' | 'exam';
-  onPublish: (id: number, type: 'assignment' | 'exam') => void;
-  onDuplicate: (assessment: any) => void;
-}> = ({ assessment, type, onPublish, onDuplicate }) => {
-  const isOverdue = new Date(assessment.dueDate || assessment.startTime) < new Date();
+// Create Assessment Dialog Component
+const CreateAssessmentDialog: React.FC<{ onCreate: () => void; classes: any[] }> = ({ onCreate, classes }) => {
+  const [formData, setFormData] = useState({
+    title: '',
+    classId: '',
+    type: 'assignment',
+    dueDate: '',
+    maxScore: '',
+    description: ''
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onCreate();
+  };
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border hover:shadow-md transition-shadow">
-      <div className="p-6">
-        <div className="flex justify-between items-start mb-3">
-          <h3 className="font-semibold text-lg text-gray-900">{assessment.title}</h3>
-          <span className={`px-2 py-1 rounded text-xs font-medium ${
-            assessment.status === 'published' ? 'bg-green-100 text-green-800' :
-            assessment.status === 'draft' ? 'bg-yellow-100 text-yellow-800' :
-            'bg-gray-100 text-gray-800'
-          }`}>
-            {assessment.status}
-          </span>
-        </div>
-
-        <p className="text-gray-600 text-sm mb-4 line-clamp-2">{assessment.description}</p>
-
-        <div className="space-y-2 text-sm">
-          <div className="flex justify-between">
-            <span className="text-gray-500">Due Date:</span>
-            <span className="font-medium">
-              {new Date(assessment.dueDate || assessment.startTime).toLocaleDateString()}
-            </span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-gray-500">Max Score:</span>
-            <span className="font-medium">{assessment.maxScore}</span>
-          </div>
-          {type === 'exam' && (
-            <div className="flex justify-between">
-              <span className="text-gray-500">Duration:</span>
-              <span className="font-medium">{assessment.duration} mins</span>
-            </div>
-          )}
-        </div>
-
-        {isOverdue && assessment.status !== 'completed' && (
-          <div className="mt-3 p-2 bg-red-50 border border-red-200 rounded">
-            <p className="text-red-700 text-sm font-medium">⚠️ Overdue for grading</p>
-          </div>
-        )}
-      </div>
-
-      <div className="px-6 py-4 bg-gray-50 border-t flex justify-between">
-        <button
-          onClick={() => onPublish(assessment.id, type)}
-          disabled={assessment.status === 'published'}
-          className="text-blue-600 hover:text-blue-800 text-sm font-medium disabled:opacity-50"
-        >
-          {assessment.status === 'published' ? 'Published' : 'Publish'}
-        </button>
-        <div className="flex space-x-3">
-          <button
-            onClick={() => onDuplicate(assessment)}
-            className="text-gray-600 hover:text-gray-800 text-sm"
-          >
-            Duplicate
-          </button>
-          <button className="text-blue-600 hover:text-blue-800 text-sm">
-            View Results
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const AssignmentFormModal: React.FC<any> = ({ onClose, onSubmit, register, errors, type }) => {
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="p-6 border-b">
-          <h3 className="text-lg font-semibold">Create New {type.charAt(0).toUpperCase() + type.slice(1)}</h3>
-        </div>
-        
-        <form onSubmit={onSubmit} className="p-6 space-y-4">
-          {/* Form fields similar to previous implementation */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">Title *</label>
-              <input {...register('title')} className="w-full p-2 border rounded" />
-              {errors.title && <p className="text-red-500 text-xs">{errors.title.message}</p>}
-            </div>
-            {/* More fields... */}
-          </div>
-          
-          <div className="flex space-x-3 pt-4">
-            <button type="submit" className="flex-1 bg-blue-600 text-white py-2 rounded font-medium">
-              Create
-            </button>
-            <button type="button" onClick={onClose} className="flex-1 bg-gray-300 text-gray-700 py-2 rounded font-medium">
-              Cancel
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-};
-
-const ExamFormModal: React.FC<any> = ({ onClose, onSubmit, register, errors }) => {
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg max-w-2xl w-full">
-        <div className="p-6 border-b">
-          <h3 className="text-lg font-semibold">Create New Exam</h3>
-        </div>
-        
-        <form onSubmit={onSubmit} className="p-6 space-y-4">
-          {/* Exam-specific fields */}
-          <div>
-            <label className="block text-sm font-medium mb-1">Exam Duration (minutes) *</label>
-            <input 
-              type="number" 
-              {...register('duration', { valueAsNumber: true })} 
-              className="w-full p-2 border rounded" 
+    <DialogContent className="max-w-2xl">
+      <DialogHeader>
+        <DialogTitle>Create New Assessment</DialogTitle>
+        <DialogDescription>
+          Fill in the details to create a new assessment for your students.
+        </DialogDescription>
+      </DialogHeader>
+      
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="title">Assessment Title</Label>
+            <Input
+              id="title"
+              value={formData.title}
+              onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+              placeholder="Enter assessment title"
+              required
             />
-            {errors.duration && <p className="text-red-500 text-xs">{errors.duration.message}</p>}
           </div>
-          
-          <div className="flex items-center space-x-2">
-            <input type="checkbox" {...register('requiresWebcam')} className="w-4 h-4" />
-            <label className="text-sm font-medium">Require webcam monitoring</label>
-          </div>
-          
-          <div className="flex space-x-3 pt-4">
-            <button type="submit" className="flex-1 bg-blue-600 text-white py-2 rounded font-medium">
-              Create Exam
-            </button>
-            <button type="button" onClick={onClose} className="flex-1 bg-gray-300 text-gray-700 py-2 rounded font-medium">
-              Cancel
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-};
 
-const ResultsManager: React.FC = () => {
-  // Results management component
-  return (
-    <div className="bg-white rounded-lg shadow-sm">
-      <div className="p-6 border-b">
-        <h2 className="text-lg font-semibold">Results Management</h2>
-      </div>
-      <div className="p-6">
-        <div className="text-center py-12 text-gray-500">
-          Results management interface coming soon...
+          <div className="space-y-2">
+            <Label htmlFor="class">Class</Label>
+            <Select
+              value={formData.classId}
+              onValueChange={(value) => setFormData(prev => ({ ...prev, classId: value }))}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select class" />
+              </SelectTrigger>
+              <SelectContent>
+                {classes.map(cls => (
+                  <SelectItem key={cls.id} value={cls.id.toString()}>{cls.shortName}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
-      </div>
-    </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="type">Assessment Type</Label>
+            <Select
+              value={formData.type}
+              onValueChange={(value) => setFormData(prev => ({ ...prev, type: value }))}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="quiz">Quiz</SelectItem>
+                <SelectItem value="assignment">Assignment</SelectItem>
+                <SelectItem value="exam">Exam</SelectItem>
+                <SelectItem value="project">Project</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="dueDate">Due Date</Label>
+            <Input
+              id="dueDate"
+              type="date"
+              value={formData.dueDate}
+              onChange={(e) => setFormData(prev => ({ ...prev, dueDate: e.target.value }))}
+              required
+            />
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="maxScore">Maximum Score</Label>
+          <Input
+            id="maxScore"
+            type="number"
+            value={formData.maxScore}
+            onChange={(e) => setFormData(prev => ({ ...prev, maxScore: e.target.value }))}
+            placeholder="Enter maximum score"
+            required
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="description">Description</Label>
+          <Textarea
+            id="description"
+            value={formData.description}
+            onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+            placeholder="Enter assessment description and instructions"
+            rows={4}
+          />
+        </div>
+
+        <div className="flex justify-end space-x-2 pt-4">
+          <Button type="button" variant="outline">
+            Cancel
+          </Button>
+          <Button type="submit">
+            Create Assessment
+          </Button>
+        </div>
+      </form>
+    </DialogContent>
   );
 };
 
-export default AssessmentsPage
+export default AssessmentsPage;

@@ -37,20 +37,8 @@ export interface User {
   avatar?: string;
 }
 
-export interface Class {
-  id: number;
-  name: string;
-  level: string; // JSS1, JSS2, etc.
-  arm: string; // A, B, C
-  subjects: Subject[];
-}
 
-export interface Subject {
-  id: number;
-  name: string;
-  teacherId: number;
-  classId: number;
-}
+
 
 export interface Assignment {
   id: number;
@@ -65,15 +53,7 @@ export interface Assignment {
   createdAt: string;
 }
 
-export interface Grade {
-  id: number;
-  studentId: number;
-  assignmentId: number;
-  score: number;
-  feedback?: string;
-  gradedBy: number;
-  gradedAt: string;
-}
+
 
 export interface LiveClass {
   id: number;
@@ -88,14 +68,7 @@ export interface LiveClass {
   description?: string;
 }
 
-export interface Student {
-  id: number;
-  name: string;
-  email: string;
-  classId: number;
-  parentId?: number;
-  avatar?: string;
-}
+
 
 export interface Attendance {
   id: number;
@@ -146,4 +119,105 @@ export interface Answer {
   questionId: number;
   answer: string;
   submittedAt: string;
+}
+
+export interface Class {
+  id: number;
+  name: string;
+  shortName: string;
+  level: string;
+  arm: string;
+  academicYear: string;
+  term: '1st' | '2nd' | '3rd';
+  teacherId: number;
+  studentCount: number;
+  createdAt: string;
+}
+
+
+
+export interface Class {
+  id: number;
+  name: string;
+  shortName: string;
+  level: string;
+  arm: string;
+  academicYear: string;
+  term: '1st' | '2nd' | '3rd';
+  teacherId: number;
+  studentCount: number;
+  createdAt: string;
+}
+
+export interface ClassStudent {
+  id: number;
+  classId: number;
+  studentId: number;
+  studentName: string;
+  studentEmail: string;
+  studentAvatar: string;
+  enrollmentDate: string;
+}
+
+export interface Assessment {
+  id: number;
+  title: string;
+  type: 'quiz' | 'assignment' | 'exam';
+  classId: number;
+  maxScore: number;
+  dueDate: string;
+  createdAt: string;
+  status: 'draft' | 'published' | 'completed';
+}
+
+export interface Grade {
+  id: number;
+  assessmentId: number;
+  studentId: number;
+  score: number;
+  totalScore: number;
+  percentage: number;
+  gradedAt: string;
+  feedback?: string;
+}
+
+export interface StudentPerformance {
+  studentId: number;
+  studentName: string;
+  studentAvatar: string;
+  averageScore: number;
+  assignmentsCompleted: number;
+  totalAssignments: number;
+  recentGrades: Grade[];
+}
+
+
+export interface Student {
+  id: number;
+  name: string;
+  email: string;
+  avatar: string;
+  enrollmentDate: string;
+}
+
+export interface Enrollment {
+  id: number;
+  studentId: number;
+  classId: number;
+  className: string;
+  subjects: string[];
+  academicYear: string; // e.g., "2024-2025"
+  term: '1st' | '2nd' | '3rd';
+  enrollmentDate: string;
+}
+
+export interface StudentGroup {
+  id: number;
+  name: string;
+  description?: string;
+  classId: number;
+  className: string;
+  studentIds: number[];
+  createdAt: string;
+  createdBy: number; // teacher ID
 }

@@ -4,7 +4,7 @@ import { useDashboardStats } from '@/hooks/useDashboardStats';
 import { StatsOverview } from './StatsOverview';
 import { StudentPerformanceGrid } from './StudentPerformanceGrid';
 import { RecentActivityFeed } from './RecentActivityFeed';
-import { AssignmentList } from './AssignmentList';
+
 import { LiveClassSchedule } from './LiveClassSchedule';
 import { PerformanceTrendChart } from './charts/PerformanceTrendChart';
 import { ScoreDistributionChart } from './charts/ScoreDistributionChart';
@@ -83,14 +83,7 @@ export const Dashboard: React.FC = () => {
         </div>
 
         {/* Assignments & Live Classes */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div>
-            <AssignmentList classId={1} />
-          </div>
-          <div>
-            <LiveClassSchedule />
-          </div>
-        </div>
+        
 
         {/* Upcoming Deadlines Quick View */}
         <div className="bg-white rounded-xl shadow-sm p-6 mt-6">
