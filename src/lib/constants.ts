@@ -93,7 +93,12 @@ import {
     LucideIcon,
     School,
     ClipboardList,
-    BookOpenCheck
+    BookOpenCheck,
+    Gamepad,
+    Gamepad2,
+    ShieldUser,
+    SendHorizonal,
+    BanknoteArrowDown
 } from "lucide-react";
 export interface SidebarNavItem {
     title: string;
@@ -129,102 +134,142 @@ export const AdminNavMain: SidebarNavConfig = {
             ],
             display: true,
         },
-        {
-            title: "USERS",
+        // {
+        //     title: "USERS",
+        //     url: "#",
+        //     icon: GraduationCap,
+        //     items: [
+        //         {
+        //             title: "Manage Admission",
+        //             url: "/admin/manage-admissions",
+        //         },
+        //         // {
+        //         // 	title: "Student Listing",
+        //         // 	url: "/admin/users",
+        //         // },
+        //         {
+        //             title: "Add New User",
+        //             url: "/admin/users/create",
+        //         },
+        //         {
+        //             title: "Tutors Enrolment",
+        //             url: "/admin/users/tutors-enrollment",
+        //         },
+        //     ],
+        //     display: true,
+        // },
+
+         {
+            title: "MESSAGES",
             url: "#",
-            icon: GraduationCap,
+            icon: SendHorizonal,
             items: [
                 {
-                    title: "Manage Admission",
-                    url: "/admin/manage-admissions",
+                    title: "Messages",
+                    url: "/admin/messages",
                 },
-                // {
-                // 	title: "Student Listing",
-                // 	url: "/admin/users",
-                // },
+                
+                
+                
+            ],
+            display: true,
+        },
+        {
+            title: "CLASSES",
+            url: "#",
+            icon: BookOpen,
+            items: [
                 {
-                    title: "Add New User",
-                    url: "/admin/users/create",
+                    title: "Classes",
+                    url: "/admin/classes",
                 },
+            ],
+            display: true,
+        },
+         {
+            title: "PAYMENT HISTORY",
+            url: "#",
+            icon: BanknoteArrowDown,
+            items: [
                 {
-                    title: "Tutors Enrolment",
-                    url: "/admin/users/tutors-enrollment",
+                    title: "Payments",
+                    url: "/admin/payments",
                 },
             ],
             display: true,
         },
         {
-            title: "SESSION MIGRTION",
+            title: "STUDENT REPORTS",
             url: "#",
             icon: BookOpen,
             items: [
                 {
-                    title: "Migrate Students",
-                    url: "/admin/session-migrations",
+                    title: "View Reports",
+                    url: "/admin/reports",
                 },
             ],
             display: true,
         },
         {
-            title: "STUDENT GRADES",
+            title: "SETTINGS",
             url: "#",
-            icon: BookOpen,
+            icon: Settings2,
             items: [
                 {
-                    title: "Veiw Student Report",
-                    url: "/admin/students-grade-report",
+                    title: "Profile Settings",
+                    url: "/admin/settings",
                 },
             ],
             display: true,
         },
-        {
-            title: "COURSE MANAGEMENT",
-            url: "#",
-            icon: BookOpen,
-            items: [
-                {
-                    title: "Faculties",
-                    url: "/admin/course-management/faculty",
-                },
-                {
-                    title: "Departments",
-                    url: "/admin/course-management/department",
-                },
-                {
-                    title: "Courses",
-                    url: "/admin/course-management/courses",
-                },
-                {
-                    title: "Course Categories",
-                    url: "/admin/course-management/course-categories",
-                },
-                {
-                    title: "Course Assignments",
-                    url: "/admin/course-management/course-assignment",
-                },
-            ],
-            display: false,
-        },
-        {
-            title: "REGION MANAGEMENT",
-            url: "#",
-            icon: MapPinHouse,
-            items: [
-                {
-                    title: "Countries",
-                    url: "/admin/region/countries",
-                },
-                {
-                    title: "States",
-                    url: "/admin/region/states",
-                },
-                {
-                    title: "Local Government Areas",
-                    url: "/admin/region/local-gov",
-                },
-            ],
-            display: false,
-        },
+        // {
+        //     title: "COURSE MANAGEMENT",
+        //     url: "#",
+        //     icon: BookOpen,
+        //     items: [
+        //         {
+        //             title: "Faculties",
+        //             url: "/admin/course-management/faculty",
+        //         },
+        //         {
+        //             title: "Departments",
+        //             url: "/admin/course-management/department",
+        //         },
+        //         {
+        //             title: "Courses",
+        //             url: "/admin/course-management/courses",
+        //         },
+        //         {
+        //             title: "Course Categories",
+        //             url: "/admin/course-management/course-categories",
+        //         },
+        //         {
+        //             title: "Course Assignments",
+        //             url: "/admin/course-management/course-assignment",
+        //         },
+        //     ],
+        //     display: false,
+        // },
+        // {
+        //     title: "REGION MANAGEMENT",
+        //     url: "#",
+        //     icon: MapPinHouse,
+        //     items: [
+        //         {
+        //             title: "Countries",
+        //             url: "/admin/region/countries",
+        //         },
+        //         {
+        //             title: "States",
+        //             url: "/admin/region/states",
+        //         },
+        //         {
+        //             title: "Local Government Areas",
+        //             url: "/admin/region/local-gov",
+        //         },
+        //     ],
+        //     display: false,
+        // },
     ]
 }
 export const StudentNavMain: SidebarNavConfig = {
@@ -259,6 +304,19 @@ export const StudentNavMain: SidebarNavConfig = {
             display: false,
         },
         {
+            title: "MY CLASSES",
+            url: "#",
+            icon: School,
+            items: [
+                {
+                    title: "My Classes",
+                    url: "/student/classes",
+                },
+               
+            ],
+            display: true,
+        },
+        {
             title: "HISTORY",
             url: "#",
             icon: DollarSign,
@@ -275,18 +333,15 @@ export const StudentNavMain: SidebarNavConfig = {
             display: true,
         },
         {
-            title: "MANAGE ACCOUNT",
+            title: "LEADERBOARD & PERFORMANCES",
             url: "#",
-            icon: UserRoundPen,
+            icon: Gamepad2,
             items: [
                 {
-                    title: "Enrolled Courses",
-                    url: "/student/enrolled-courses",
+                    title: "Leaderboard & Performances",
+                    url: "/student/leaderboard",
                 },
-                {
-                    title: "Profile",
-                    url: "/student/profile",
-                },
+               
             ],
             display: true,
         },
@@ -298,6 +353,19 @@ export const StudentNavMain: SidebarNavConfig = {
                 {
                     title: "Grade Report",
                     url: "/student/grade-report",
+                },
+            ],
+            display: true,
+        },
+
+        {
+            title: "PROFILE",
+            url: "#",
+            icon: ShieldUser,
+            items: [
+                {
+                    title: "Profile Settings",
+                    url: "/student/profile",
                 },
             ],
             display: true,
