@@ -27,7 +27,7 @@ export const PasswordInput = ({ register, error, placeholder }: PasswordInputPro
                 type={showPassword ? "text" : "password"}
                 placeholder={placeholder}
                 error={error}
-                className="h-12 pr-12"
+                className="h-12 pr-12 text-black"
             />
             <button
                 type="button"
