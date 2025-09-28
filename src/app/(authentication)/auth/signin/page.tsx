@@ -39,7 +39,7 @@ const LoginFormPage = () => {
                             type="text"
                             placeholder="Enter your email or reference number"
                             error={!!errors.reference}
-                            className="h-12"
+                            className="h-12 text-black"
                         />
                     </FormField>
                 </div>
