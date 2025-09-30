@@ -44,12 +44,24 @@ const config: Config = {
                 'secondary-900': 'var(--secondary-900)',
                 'secondary-950': 'var(--secondary-950)',
 
+                // Secondary
+                'accent': 'var(--accent)',
+                'accent-foreground': 'var(--accent-foreground)',
+                'accent-50': 'var(--accent-50)',
+                'accent-100': 'var(--accent-100)',
+                'accent-200': 'var(--accent-200)',
+                'accent-300': 'var(--accent-300)',
+                'accent-400': 'var(--accent-400)',
+                'accent-500': 'var(--accent-500)',
+                'accent-600': 'var(--accent-600)',
+                'accent-700': 'var(--accent-700)',
+                'accent-800': 'var(--accent-800)',
+                'accent-900': 'var(--accent-900)',
+                'accent-950': 'var(--accent-950)',
+
                 // Muted / Accent / etc
                 muted: 'var(--muted)',
                 'muted-foreground': 'var(--muted-foreground)',
-                accent: 'var(--accent)',
-                'accent-foreground': 'var(--accent-foreground)',
-
                 destructive: 'var(--destructive)',
                 border: 'var(--border)',
                 input: 'var(--input)',
