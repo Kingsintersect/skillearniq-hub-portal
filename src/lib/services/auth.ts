@@ -6,7 +6,7 @@ import { forgotPasswordFormData, resetPasswordFormData, signInFormData } from "@
 
 export const authApi = {
     login: async (credentials: signInFormData): Promise<LoginResponse> => {
-        const response = await apiClient.post<LoginResponse>("/application/login", credentials);
+        const response = await apiClient.post<LoginResponse>("/auth/login", credentials);
         return response as unknown as LoginResponse;
     },
 

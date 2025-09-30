@@ -1,4 +1,4 @@
-import NextAuth from "next-auth"
+import NextAuth, { User } from "next-auth"
 import Credentials from "next-auth/providers/credentials"
 import { signInFormData, signInSchema } from "./schema/auth-schema"
 import { authApi } from "./lib/services/auth"
@@ -8,27 +8,28 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
     providers: [
         Credentials({
             credentials: {
-                reference: { label: "Email", type: "text" },
+                email: { label: "Email", type: "text" },
                 password: { label: "Password", type: "password" }
             },
             async authorize(credentials) {
                 try {
                     await signInSchema.parseAsync(credentials)
-
                     const response = await authApi.login(credentials as signInFormData)
 
-                    if (!response.access_token) {
-                        throw new Error(response.response || "Login failed");
+                    if (!response.status) {
+                        console.error('Signin Failed Response', response)
+                        throw new Error(response.message || "Login failed");
                     }
 
-                    const { access_token, user, expires_in } = response;
+                    const { token, user, expires_in } = response.data;
 
-                    if (access_token) {
+                    if (token) {
                         return {
                             ...user,
-                            access_token,
-                            expires_in,
-                        } satisfies import("next-auth").User
+                            id: String(user.id),
+                            access_token: token,
+                            expires_in: expires_in ?? 86400,
+                        } as unknown as User;
                     }
 
                     return null;
@@ -50,14 +51,15 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
             return token
         },
         async session({ session, token }) {
-            return {
-                ...session,
-                user: {
+            if (token?.user) {
+                session.user = {
                     ...(token.user as UserInterface),
                     access_token: token.access_token as string,
                     expires_in: token.expires_in as number,
-                },
+                    emailVerified: null,
+                };
             }
+            return session;
         }
     },
 

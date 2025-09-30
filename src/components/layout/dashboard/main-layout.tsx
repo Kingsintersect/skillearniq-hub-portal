@@ -37,7 +37,7 @@ export function MainLayout({ children, requireAuth = false }: MainLayoutProps) {
     }
 
     return (
-        <div>
+        <div suppressHydrationWarning>
             {children}
         </div>
     );

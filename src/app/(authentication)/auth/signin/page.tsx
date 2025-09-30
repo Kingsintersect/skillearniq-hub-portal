@@ -30,15 +30,15 @@ const LoginFormPage = () => {
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                 <div className="animate-in fade-in-50 duration-700 delay-300">
                     <FormField
-                        label="Email or Reference Number"
-                        error={errors.reference?.message}
+                        label="Email or email Number"
+                        error={errors.email?.message}
                         required
                     >
                         <Input
-                            {...register("reference")}
+                            {...register("email")}
                             type="text"
-                            placeholder="Enter your email or reference number"
-                            error={!!errors.reference}
+                            placeholder="Enter your email number"
+                            error={!!errors.email}
                             className="h-12 text-black"
                         />
                     </FormField>
