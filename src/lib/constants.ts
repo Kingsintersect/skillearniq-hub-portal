@@ -98,7 +98,9 @@ import {
     Gamepad2,
     ShieldUser,
     SendHorizonal,
-    BanknoteArrowDown
+    BanknoteArrowDown,
+    Users,
+    CreditCard
 } from "lucide-react";
 export interface SidebarNavItem {
     title: string;
@@ -134,30 +136,30 @@ export const AdminNavMain: SidebarNavConfig = {
             ],
             display: true,
         },
-        // {
-        //     title: "USERS",
-        //     url: "#",
-        //     icon: GraduationCap,
-        //     items: [
-        //         {
-        //             title: "Manage Admission",
-        //             url: "/admin/manage-admissions",
-        //         },
-        //         // {
-        //         // 	title: "Student Listing",
-        //         // 	url: "/admin/users",
-        //         // },
-        //         {
-        //             title: "Add New User",
-        //             url: "/admin/users/create",
-        //         },
-        //         {
-        //             title: "Tutors Enrolment",
-        //             url: "/admin/users/tutors-enrollment",
-        //         },
-        //     ],
-        //     display: true,
-        // },
+        {
+            title: "USERS",
+            url: "#",
+            icon: Users,
+            items: [
+                {
+                    title: "Students Listing",
+                    url: "/admin/students",
+                },
+                {
+                	title: "Teachers Listing",
+                	url: "/admin/teachers",
+                },
+                {
+                    title: "Parents Listing",
+                    url: "/admin/parents",
+                },
+                // {
+                //     title: "Tutors Enrolment",
+                //     url: "/admin/users/tutors-enrollment",
+                // },
+            ],
+            display: true,
+        },
 
          {
             title: "MESSAGES",
@@ -174,22 +176,22 @@ export const AdminNavMain: SidebarNavConfig = {
             ],
             display: true,
         },
-        {
-            title: "CLASSES",
-            url: "#",
-            icon: BookOpen,
-            items: [
-                {
-                    title: "Classes",
-                    url: "/admin/classes",
-                },
-            ],
-            display: true,
-        },
+        // {
+        //     title: "CLASSES",
+        //     url: "#",
+        //     icon: BookOpen,
+        //     items: [
+        //         {
+        //             title: "Classes",
+        //             url: "/admin/classes",
+        //         },
+        //     ],
+        //     display: true,
+        // },
          {
             title: "PAYMENT HISTORY",
             url: "#",
-            icon: BanknoteArrowDown,
+            icon: CreditCard,
             items: [
                 {
                     title: "Payments",
@@ -201,7 +203,7 @@ export const AdminNavMain: SidebarNavConfig = {
         {
             title: "STUDENT REPORTS",
             url: "#",
-            icon: BookOpen,
+            icon: ClipboardList,
             items: [
                 {
                     title: "View Reports",
@@ -452,27 +454,28 @@ export const ParentNavMain: SidebarNavConfig = {
         },
     ],
     flat: [
+       
         {
-            title: "My COURSES",
-            url: "/parent/enrolled-courses",
-            icon: GraduationCap,
+            title: "MESSAGES",
+            url: "/parent/messages",
+            icon: SendHorizonal,
             display: true,
         },
         {
-            title: "ASSIGNMENTS",
-            url: "/parent/assignments",
-            icon: School2,
+            title: "CLASSES",
+            url: "/parent/classes",
+            icon: BookOpen,
             display: true,
         },
         {
-            title: "CALENDER",
-            url: "/parent/calender",
-            icon: CalendarCheck,
+            title: "PAYMENT HISTORY",
+            url: "/parent/payments",
+            icon: BanknoteArrowDown,
             display: true,
         },
         {
-            title: "DISCUSSIONS",
-            url: "/parent/discussions",
+            title: "STUDENT REPORTS",
+            url: "/parent/reports",
             icon: MessageSquare,
             display: true,
         },
