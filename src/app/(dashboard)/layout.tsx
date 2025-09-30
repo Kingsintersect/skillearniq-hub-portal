@@ -11,6 +11,9 @@ import { AppSidebar } from "@/components/app-sidebar";
 import SiteHeader from "@/components/site-header";
 import { auth } from "@/auth";
 import { AuthUser } from "@/types/auth";
+import { Suspense } from "react";
+import { ExtensionCleanup } from "@/components/layout/ClientOnly";
+import { SafeSidebarProvider } from "@/components/layout/dashboard/safe-sidebar-provider";
 
 export const metadata: Metadata = {
     title: `${SITE_NAME}`,
@@ -22,14 +25,18 @@ const layout = async ({ children }: { children: React.ReactNode }) => {
 
     return (
         <MainLayout requireAuth revealHeader={true}>
+            <ExtensionCleanup />
             <SidebarProvider>
-                <AppSidebar user={session?.user as unknown as AuthUser} />
-                <SidebarInset>
-                    <SiteHeader />
-                    {/* {(isAuthenticated && revealHeader) && <SiteHeader />} */}
-                    <PageWrapper>{children}</PageWrapper>
-                    <TeacherFeedbackIntegration />
-                </SidebarInset>
+                <SafeSidebarProvider>
+                    <Suspense fallback={<div>Loading sidebar...</div>}>
+                        <AppSidebar user={session?.user as unknown as AuthUser} />
+                    </Suspense>
+                    <SidebarInset>
+                        <SiteHeader />
+                        <PageWrapper>{children}</PageWrapper>
+                        <TeacherFeedbackIntegration />
+                    </SidebarInset>
+                </SafeSidebarProvider>
             </SidebarProvider>
         </MainLayout>
     )

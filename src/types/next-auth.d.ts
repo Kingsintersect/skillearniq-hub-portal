@@ -23,7 +23,7 @@ declare module "next-auth/jwt" {
 
 declare module "next-auth/providers" {
   interface CredentialsInput {
-    reference: string;
+    email: string;
     password: string;
   }
 }

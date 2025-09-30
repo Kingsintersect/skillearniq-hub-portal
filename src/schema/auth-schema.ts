@@ -1,9 +1,9 @@
-import { referenceEmailSchcema, passwordSchema, rememberMeSchema, emailSchema, tokenSchema, confirmPasswordSchema } from "@/lib/validations/zod"
+import { emailSchema, passwordSchema, rememberMeSchema, tokenSchema, confirmPasswordSchema } from "@/lib/validations/zod"
 import z, { object } from "zod"
 
 // SIGNIN SCHEMA
 export const signInSchema = object({
-    reference: referenceEmailSchcema,
+    email: emailSchema,
     password: passwordSchema,
     rememberMe: rememberMeSchema,
 })

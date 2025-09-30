@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge"
 import { BadgeCategory } from '@/types/student'
 import { Award, Users, Target, Star, Trophy } from 'lucide-react'
 import { useBadges } from '../hooks/useStudentData'
-import { useStudentStore } from '../../../../../../store/studentStore'
+import { useStudentStore } from '@/store/studentStore'
 
 const categoryIcons = {
     [BadgeCategory.ACADEMIC]: <Award className="h-4 w-4" />,
