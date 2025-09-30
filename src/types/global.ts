@@ -13,34 +13,18 @@ export enum StatusType {
 }
 
 export interface UserInterface extends Record<string, unknown> {
-    id?: string;
-    pictureRef: string;
-    last_name: string;
+    id: string;
     first_name: string;
-    other_name: string;
-    username: string;
-    faculty_id: string;
-    department_id: string;
-    program: string;
-    program_id: string;
-    nationality: string;
-    state: string;
-    phone_number: string;
+    last_name: string;
+    username: string | null;
     email: string;
-    password: string;
-    reference: string;
-    amount: number;
-    reg_number: string;
-    is_applied: number;
-    reason_for_denial: string;
-    admission_status: AdmissionStatusType;
-    acceptance_fee_payment_status: StatusType;
-    tuition_payment_status: StatusType;
-    application_payment_status: StatusType;
-    created_at: Date | string;
-    updated_at: Date | string;
-    deleted_at: Date | string;
-    role: UserRole;
-    level: string;
-    tuition_amount_paid: number;
+    phone: string;
+    role: UserRole | string; // extend as needed
+    is_active: number;
+    email_verified: number;
+    phone_verified: number;
+    created_at: string; // ISO datetime
+    updated_at: string; // ISO datetime
+    last_login_at: string; // ISO datetime
+    meta: unknown | null;
 }

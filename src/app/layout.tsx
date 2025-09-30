@@ -75,6 +75,7 @@ export default async function RootLayout({
 					activeThemeValue ? `theme-${activeThemeValue}` : "",
 					isScaled ? "theme-scaled" : "",
 				)}
+				suppressHydrationWarning
 			>
 				<ThemeProvider
 					attribute="class"

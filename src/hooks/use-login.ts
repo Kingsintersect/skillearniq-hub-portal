@@ -16,7 +16,7 @@ export const useLoginForm = () => {
         resolver: zodResolver(signInSchema) as Resolver<signInFormData>,
         mode: "onChange",
         defaultValues: {
-            reference: referenceNumber || undefined,
+            email: referenceNumber || undefined,
             password: "",
             rememberMe: false,
         },
@@ -24,7 +24,7 @@ export const useLoginForm = () => {
 
     useEffect(() => {
         if (referenceNumber) {
-            form.setValue('reference', referenceNumber);
+            form.setValue('email', referenceNumber);
         }
     }, [referenceNumber, form]);
 
