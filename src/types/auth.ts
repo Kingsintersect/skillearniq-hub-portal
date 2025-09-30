@@ -20,13 +20,13 @@ export interface SignupResponse {
 
 // LOGIN TYPES
 export interface LoginResponse {
-    access_token: string;
-    expires_in: number;
-    token_type: string;
-    user: UserInterface
-
-    status: number,
-    response: string,
+    status: boolean;
+    message: string;
+    data: {
+        user: UserInterface;
+        token: string;
+        expires_in: number;
+    };
 }
 
 

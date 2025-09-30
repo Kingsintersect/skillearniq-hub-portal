@@ -6,6 +6,7 @@ import { useAuthContext } from '@/providers/AuthProvider';
 import { Button } from '@/components/ui/button';
 import { LogOut, User } from 'lucide-react';
 import Link from 'next/link';
+import { ModeToggle } from '../ui/mood-toggle';
 
 export const Navigation = () => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -70,6 +71,7 @@ export const Navigation = () => {
                         </Link>
                     </Button>
                 )}
+                <ModeToggle />
             </nav>
 
             {/* Mobile Menu Button */}

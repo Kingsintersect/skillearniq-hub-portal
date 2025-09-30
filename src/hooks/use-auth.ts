@@ -10,6 +10,7 @@ import { UserInterface } from "@/types/global";
 import { useLocalStorage } from "./use-local-storage";
 import { getSession, signIn, signOut } from "next-auth/react";
 import { signInFormData } from "@/schema/auth-schema";
+import { apiClient } from "@/lib/services/client";
 
 export function useAuth() {
     const router = useRouter();
@@ -126,7 +127,7 @@ export function useAuth() {
     };
 
     // Check if user is authenticated
-    const isAuthenticated = !!accessToken && !!user;
+    const isAuthenticated = apiClient.isAuthenticated();
 
     // Loading state
     const isLoading = loginMutation.isPending || isLoadingProfile;
