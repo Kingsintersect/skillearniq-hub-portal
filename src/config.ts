@@ -38,7 +38,6 @@ const secretKey = process.env.NEXT_PUBLIC_SESSION_SECRET;
 export const encodedKey = new TextEncoder().encode(secretKey);
 export type PaymentStatus = "FULLY_PAID" | "PART_PAID" | "UNPAID" | null;
 
-
 export type SessionPayload<T = Record<string, unknown>> = T & {
     issuedAt?: number;
     expiresAt: number;
@@ -48,6 +47,7 @@ export enum UserRole {
     STUDENT = "STUDENT",
     TEACHER = "TEACHER",
     MANAGER = "MANAGER",
+    PARENT = "PARENT",
 }
 
 export const APPLICATION_FEE = 37000;

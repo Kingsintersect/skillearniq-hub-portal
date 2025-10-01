@@ -22,15 +22,16 @@ export const locationService = {
 
     async fetchStates(): Promise<LocationItem[]> {
         try {
-            // const res = await apiClient.get(`/states?country_id=${countryId}`);
             const response = await apiClient.get<LocationItem[]>(`/admin/state/all-states`);
+
             if (!response.status || !response.data) {
-                throw new Error(response.message || 'Failed to load state data');
+                throw new Error('Failed to load state data');
             }
+
             return response.data;
-        } catch (error) {
-            console.error(`Failed to get state data:`, error);
-            throw error as ApiError;
+        } catch (error: any) {
+            console.error("Failed to get state data:", error?.response?.data || error.message || error);
+            throw new Error(error?.response?.data?.message || "Unable to fetch states");
         }
     },
 

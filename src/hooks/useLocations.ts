@@ -18,12 +18,12 @@ export const useStates = () => {
     return useQuery({
         queryKey: ["states"],
         queryFn: () => locationService.fetchStates(),
-        select: (data) =>
-            data.map((item) => ({
-                id: item.id,
-                label: item.name,
-                value: String(item.id),
-            })),
+        select: (data) => data.map((item) => ({
+            id: item.id,
+            label: item.name,
+            value: String(item.id),
+        })),
+        retry: false,
     });
 };
 

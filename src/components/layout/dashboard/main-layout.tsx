@@ -21,6 +21,7 @@ export function MainLayout({ children, requireAuth = false }: MainLayoutProps) {
         if (!isLoading) {
             if (requireAuth && !isAuthenticated) {
                 router.push(ROUTES.login);
+                // } else if (!requireAuth && isAuthenticated && pathname === ROUTES.login) {
             } else if (!requireAuth && isAuthenticated && pathname === ROUTES.login) {
                 if (user?.role === "STUDENT") router.push(`/course-overview`)
                 else router.push(`/${user?.role.toLocaleLowerCase() + ROUTES.dashboard}`);

@@ -13,25 +13,39 @@ const validateFileExtension = (file: File): boolean => {
     return ALLOWED_EXTENSIONS.includes(extension as typeof ALLOWED_EXTENSIONS[number]);
 };
 // Main schema
-export const nameSchema = (name: string) => z
-    .string()
-    .min(2, `${name} must be at least 2 characters`)
-    .max(50, `${name} must not exceed 50 characters`)
-    .regex(/^[a-zA-Z\s]+$/, `${name} can only contain letters and spaces`);
+export const nameSchema = (label: string, optional: boolean = false) => {
+    let schema = z
+        .string()
+        .min(2, `${label} must be at least 2 characters`)
+        .max(50, `${label} must not exceed 50 characters`)
+        .regex(/^[a-zA-Z\s]+$/, `${label} can only contain letters and spaces`);
 
-export const usernameSchema = (name: string) => z
-    .string()
-    .min(2, `${name} must be at least 2 characters`)
-    .max(50, `${name} must not exceed 50 characters`)
-    .regex(/^[a-zA-Z0-9!@#$%&*(),.:|_\-]+$/, `${name} can only contain letters and spaces`);
+    // return optional ? schema.optional() : schema;
+    return optional
+        ? z.union([schema, z.literal(""), z.undefined()])
+        : schema;
+};
 
-export const regNumberSchema = (name: string) => z
-    .string()
-    .min(8, `${name} must be at least 8 characters`)
-    .max(15, `${name} must not exceed 15 characters`)
-    .regex(/^[A-Za-z0-9/]+$/, `${name} format is invalid`)
-    .optional()
-    .or(z.literal(""));
+export const usernameSchema = (name: string, optional: boolean = false) => {
+    let schema = z
+        .string()
+        .min(2, `${name} must be at least 2 characters`)
+        .max(50, `${name} must not exceed 50 characters`)
+        .regex(/^[a-zA-Z0-9!@#$%&*(),.:|_\-]+$/, `${name} can only contain letters and spaces`);
+
+    return optional ? schema.optional() : schema;
+}
+
+export const regNumberSchema = (name: string, optional: boolean = false) => {
+    let schema = z
+        .string()
+        .min(8, `${name} must be at least 8 characters`)
+        .max(15, `${name} must not exceed 15 characters`)
+        .regex(/^[A-Za-z0-9/]+$/, `${name} format is invalid`)
+        .optional()
+        .or(z.literal(""));
+    return optional ? schema.optional() : schema;
+}
 
 export const imageFileSchema = z.instanceof(File)
     .refine((file) => file.size > 0, "File is required")
@@ -39,8 +53,15 @@ export const imageFileSchema = z.instanceof(File)
     .refine(validateFileType, `File type must be one of: ${ALLOWED_FILE_TYPES.join(', ')}`)
     .refine(validateFileExtension, `File extension must be one of: ${ALLOWED_EXTENSIONS.join(', ')}`);
 
-export const emailSchema = z.email("Please enter a valid email address")
-    .min(1, "Email is required");
+export const emailSchema = (label?: string, optional: boolean = false) => {
+    let schema = z.email("Please enter a valid email address")
+        .min(1, `${label ?? "Email"}  is required `);
+
+    // return optional ? schema.optional() : schema;
+    return optional
+        ? z.union([schema, z.literal(""), z.undefined()])
+        : schema.min(1, `${label} is required`);
+}
 
 export const referenceEmailSchcema = z.string()
     .min(1, "Email or reference number is required")
@@ -62,63 +83,68 @@ export const passwordSchema = z.string()
 // .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
 //     'Password must contain at least one uppercase letter, lowercase letter, number, and special character');
 
-export const confirmPasswordSchema = (password: string) => z.string()
-    .min(1, "Please confirm your password")
-    .refine((value) => value === password, {
-        message: "Passwords don't match",
-    });
+export const confirmPasswordSchema = (password: string) => z.string().min(1, "Please confirm your password")
 
 export const otpSchema = z.string()
     .min(6, "OTP must be 6 digits")
     .max(6, "OTP must be 6 digits")
     .regex(/^\d{6}$/, "OTP must be 6 digits");
 
-export const phoneSchema = z.string()
-    .min(10, "Phone number must be at least 10 digits")
-    .max(15, "Phone number must be at most 15 digits")
-    .regex(/^\+?[0-9]{10,15}$/, "Invalid phone number");
+export const phoneSchema = (optional: boolean = false) => {
+    const schema = z.string()
+        .min(10, "Phone number must be at least 10 digits")
+        .max(15, "Phone number must be at most 15 digits")
+        .regex(/^\+?[0-9]{10,15}$/, "Invalid phone number");
 
-export const addressSchema = (name: string) => z.string()
-    .min(5, `${name} must be at least 5 characters`)
-    .max(200, `${name} must be at most 200 characters`);
+    // return optional ? schema.optional() : schema;
+    return optional
+        ? z.union([schema, z.literal(""), z.undefined()])
+        : schema;
+}
 
-export const citySchema = z.string()
-    .min(2, "City must be at least 2 characters")
-    .max(100, "City must be at most 100 characters");
+export const shortStringSchema = (label: string, optional: boolean = false, minLength: number = 2, maxLength: number = 100) => {
+    let schema = z.string()
+        .min(minLength, `${label} must be at least 2 characters`)
+        .max(maxLength, `${label} must be at most 100 characters`);
+    return optional ? schema.optional() : schema;
+}
 
-export const stateSchema = z.string()
-    .min(2, "State must be at least 2 characters")
-    .max(100, "State must be at most 100 characters");
+export const longStringSchema = (label: string, optional: boolean = false) => {
+    let schema = z.string()
+        .min(2, `${label} must be at least 2 characters`)
+    return optional ? schema.optional() : schema;
+}
 
-export const zipCodeSchema = z.string()
-    .min(4, "Zip code must be at least 4 characters")
-    .max(10, "Zip code must be at most 10 characters");
+export const zipCodeSchema = (optional: boolean = false) => {
+    let schema = z.number()
+        .min(4, "Zip code must be at least 4 characters")
+        .max(10, "Zip code must be at most 10 characters");
+    return optional ? schema.optional() : schema;
+}
 
-export const countrySchema = z.string()
-    .min(2, "Country must be at least 2 characters")
-    .max(100, "Country must be at most 100 characters");
+export const urlSchema = (label: string, optional: boolean = false) => {
+    let schema = z.string()
+        .url("Invalid URL")
+        .max(100, `${label} must be less than 100 characters`)
+        .optional()
+        .or(z.literal(""));
 
-export const websiteSchema = z.string()
-    .url("Invalid URL")
-    .max(100, "Website must be less than 100 characters")
-    .optional()
-    .or(z.literal(""));
-
-export const bioSchema = z.string()
-    .max(500, "Bio must be less than 500 characters")
-    .optional()
-    .or(z.literal(""));
+    return optional ? schema.optional() : schema;
+}
 
 export const termsSchema = z.boolean()
     .refine((val) => val === true, {
         message: "You must accept the terms and conditions",
     });
 
-export const dateOfBirthSchema = z.string()
-    .min(1, "Date of birth is required")
-    .refine((value) => !isNaN(Date.parse(value)), {
-        message: "Invalid date format",
-    });
+export const dateOfBirthSchema = (optional: boolean = false) => {
+    let schema = z.string()
+        .min(1, "Date of birth is required")
+        .refine((value) => !isNaN(Date.parse(value)), {
+            message: "Invalid date format",
+        });
+    return optional ? schema.optional() : schema;
+}
 
 export const rememberMeSchema = z.coerce.boolean().optional();
 
@@ -127,20 +153,25 @@ export const genderSchema = z.enum(["Male", "Female"]).or(z.literal(""))
         message: "Please select your gender",
     });
 
-export const priceSchema = z.string()
-    .trim()
-    .regex(/^\d+(\.\d{1,2})?$/, "Invalid amount format") //allows whole numbers or decimals with up to 2 decimal places(100, 250.50, 99.9).
-    // .transform((val) => parseFloat(val)) // convert string -> number
-    .refine((val) => parseFloat(val) > 0, "Amount must be greater than 0");
+export const priceSchema = (optional: boolean = false) => {
+    let schema = z.string()
+        .trim()
+        .regex(/^\d+(\.\d{1,2})?$/, "Invalid amount format") //allows whole numbers or decimals with up to 2 decimal places(100, 250.50, 99.9).
+        // .transform((val) => parseFloat(val)) // convert string -> number
+        .refine((val) => parseFloat(val) > 0, "Amount must be greater than 0");
+    return optional ? schema.optional() : schema;
+}
 
 // GENERIC SCHEMA PARTS
 
-export const stringSchema = (name: string) => z.string()
-    .min(1, `${name} Must not be empty`);
+// export const stringSchema = (name: string) => z.string()
+//     .min(1, `${name} Must not be empty`);
 
-export const selectMenuSchema = (name: string) => z.string()
-    .min(1, `Please select your ${name}`);
-
+export const selectMenuSchema = (name: string, optional: boolean = false) => {
+    let schema = z.string()
+        .min(1, `Please select your ${name}`);
+    return optional ? schema.optional() : schema;
+}
 
 export const paginationSchema = z.object({
     page: z.number().min(1).default(1),
@@ -162,6 +193,9 @@ export const isActiveSchema = z.boolean().default(true);
 
 export const isDeletedSchema = z.boolean().default(false);
 
-export const roleSchema = z.enum(["ADMIN", "STUDENT", "MANAGER", "TEACHER   "]).default("STUDENT");
+export const roleSchema = z.enum(["ADMIN", "STUDENT", "MANAGER", "TEACHER", "PARENT"]).default("STUDENT");
 
-export const booleanOptionSchema = z.boolean().optional();
+export const booleanOptionSchema = (optional: boolean = false) => {
+    let schema = z.boolean();
+    return optional ? schema.optional() : schema;
+}
