@@ -1,4 +1,4 @@
-import { passwordSchema, emailSchema, nameSchema, regNumberSchema, selectMenuSchema, confirmPasswordSchema, genderSchema, phoneSchema, priceSchema, addressSchema, usernameSchema } from "@/lib/validations/zod"
+import { passwordSchema, emailSchema, nameSchema, selectMenuSchema, confirmPasswordSchema, genderSchema, phoneSchema, usernameSchema } from "@/lib/validations/zod"
 import z, { object } from "zod"
 
 // Define Zod Schemas for each step
@@ -14,41 +14,30 @@ export const personalInfoSchema = z.object({
 
     nationality: selectMenuSchema('country'),
 
-    state: selectMenuSchema('state'),
+    state: selectMenuSchema('state', true),
 
-    phone_number: phoneSchema,
-
-    hometown_address: addressSchema('hometown address'),
-
-    residential_address: addressSchema('residential address'),
+    phone: phoneSchema(),
 });
 
+export const parentInfoSchema = z.object({
+    parent_first_name: nameSchema('Parent First name', true),
 
-export const academicInfoSchema = z.object({
-    regNumber: regNumberSchema('Reg. Number'),
+    parent_last_name: nameSchema('Parent Last name', true),
 
-    program: selectMenuSchema('program'),
+    parent_email: emailSchema("Parent Email", true),
 
-    program_id: selectMenuSchema('program_id'),
-
-    academic_session: selectMenuSchema('academic session'),
-
-    academic_semester: selectMenuSchema('academic semster'),
-
-    start_year: selectMenuSchema('academic year'),
+    parent_phone_number: phoneSchema(true),
 });
 
 
 export const accouintInfoSchema = z.object({
-    email: emailSchema,
+    email: emailSchema(),
 
     username: usernameSchema('username'),
 
     password: passwordSchema,
 
     confirmPassword: confirmPasswordSchema('password'),
-
-    amount: priceSchema,
 
 }).refine((data) => data.password === data.confirmPassword, {
     message: 'Passwords do not match',
@@ -57,7 +46,7 @@ export const accouintInfoSchema = z.object({
 
 export const signUpSchema = object({
     ...personalInfoSchema.shape,
-    ...academicInfoSchema.shape,
+    ...parentInfoSchema.shape,
     ...accouintInfoSchema.shape,
 });
 

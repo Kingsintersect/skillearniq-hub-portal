@@ -27,6 +27,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
                         return {
                             ...user,
                             id: String(user.id),
+                            role: user.role.toUpperCase(),
                             access_token: token,
                             expires_in: expires_in ?? 86400,
                         } as unknown as User;

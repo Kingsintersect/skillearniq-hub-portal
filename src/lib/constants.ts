@@ -146,22 +146,18 @@ export const AdminNavMain: SidebarNavConfig = {
                     url: "/admin/students",
                 },
                 {
-                	title: "Teachers Listing",
-                	url: "/admin/teachers",
+                    title: "Teachers Listing",
+                    url: "/admin/teachers",
                 },
                 {
                     title: "Parents Listing",
                     url: "/admin/parents",
                 },
-                // {
-                //     title: "Tutors Enrolment",
-                //     url: "/admin/users/tutors-enrollment",
-                // },
             ],
             display: true,
         },
 
-         {
+        {
             title: "MESSAGES",
             url: "#",
             icon: SendHorizonal,
@@ -170,25 +166,13 @@ export const AdminNavMain: SidebarNavConfig = {
                     title: "Messages",
                     url: "/admin/messages",
                 },
-                
-                
-                
+
+
+
             ],
             display: true,
         },
-        // {
-        //     title: "CLASSES",
-        //     url: "#",
-        //     icon: BookOpen,
-        //     items: [
-        //         {
-        //             title: "Classes",
-        //             url: "/admin/classes",
-        //         },
-        //     ],
-        //     display: true,
-        // },
-         {
+        {
             title: "PAYMENT HISTORY",
             url: "#",
             icon: CreditCard,
@@ -224,54 +208,6 @@ export const AdminNavMain: SidebarNavConfig = {
             ],
             display: true,
         },
-        // {
-        //     title: "COURSE MANAGEMENT",
-        //     url: "#",
-        //     icon: BookOpen,
-        //     items: [
-        //         {
-        //             title: "Faculties",
-        //             url: "/admin/course-management/faculty",
-        //         },
-        //         {
-        //             title: "Departments",
-        //             url: "/admin/course-management/department",
-        //         },
-        //         {
-        //             title: "Courses",
-        //             url: "/admin/course-management/courses",
-        //         },
-        //         {
-        //             title: "Course Categories",
-        //             url: "/admin/course-management/course-categories",
-        //         },
-        //         {
-        //             title: "Course Assignments",
-        //             url: "/admin/course-management/course-assignment",
-        //         },
-        //     ],
-        //     display: false,
-        // },
-        // {
-        //     title: "REGION MANAGEMENT",
-        //     url: "#",
-        //     icon: MapPinHouse,
-        //     items: [
-        //         {
-        //             title: "Countries",
-        //             url: "/admin/region/countries",
-        //         },
-        //         {
-        //             title: "States",
-        //             url: "/admin/region/states",
-        //         },
-        //         {
-        //             title: "Local Government Areas",
-        //             url: "/admin/region/local-gov",
-        //         },
-        //     ],
-        //     display: false,
-        // },
     ]
 }
 export const StudentNavMain: SidebarNavConfig = {
@@ -314,7 +250,7 @@ export const StudentNavMain: SidebarNavConfig = {
                     title: "My Classes",
                     url: "/student/classes",
                 },
-               
+
             ],
             display: true,
         },
@@ -343,7 +279,7 @@ export const StudentNavMain: SidebarNavConfig = {
                     title: "Leaderboard & Performances",
                     url: "/student/leaderboard",
                 },
-               
+
             ],
             display: true,
         },
@@ -392,7 +328,7 @@ export const TeacherNavMain: SidebarNavConfig = {
     ],
     flat: [
 
-         {
+        {
             title: "STUDENTS",
             url: "/teacher/students",
             icon: GraduationCap,
@@ -416,19 +352,19 @@ export const TeacherNavMain: SidebarNavConfig = {
         //     icon: CalendarCheck,
         //     display: true,
         // },
-         {
+        {
             title: "ATTENDANCE",
             url: "/teacher/attendance",
             icon: ClipboardList,
             display: true,
         },
-         {
+        {
             title: "MESSAGES",
             url: "/teacher/messages",
             icon: MessageSquare,
             display: true,
         },
-        
+
         {
             title: "SETTINGS",
             url: "/teacher/settings",
@@ -454,7 +390,7 @@ export const ParentNavMain: SidebarNavConfig = {
         },
     ],
     flat: [
-       
+
         {
             title: "MESSAGES",
             url: "/parent/messages",

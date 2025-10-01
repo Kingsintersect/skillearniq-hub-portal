@@ -24,7 +24,7 @@ import {
 import { SITE_NAME, UserRole } from "@/config"
 import { NavProjects } from "./nav-projects"
 import { AuthUser } from "@/types/auth"
-import { AdminNavMain, StudentNavMain, TeacherNavMain } from "@/lib/constants"
+import { AdminNavMain, StudentNavMain, TeacherNavMain, ParentNavMain } from "@/lib/constants"
 
 // This is sample data.
 const data = {
@@ -65,7 +65,7 @@ const data = {
 }
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
-	user: AuthUser | null | undefined;
+	user: AuthUser;
 }
 export function AppSidebar({ user, ...props }: AppSidebarProps) {
 	const userData = {
@@ -80,6 +80,7 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
 			case UserRole.STUDENT: return StudentNavMain;
 			case UserRole.TEACHER: return TeacherNavMain;
 			case UserRole.ADMIN: return AdminNavMain;
+			case UserRole.PARENT: return ParentNavMain;
 			default: return StudentNavMain;
 		}
 	})();

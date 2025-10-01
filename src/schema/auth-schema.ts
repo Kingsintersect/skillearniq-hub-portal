@@ -3,7 +3,7 @@ import z, { object } from "zod"
 
 // SIGNIN SCHEMA
 export const signInSchema = object({
-    email: emailSchema,
+    email: emailSchema(),
     password: passwordSchema,
     rememberMe: rememberMeSchema,
 })
@@ -11,7 +11,7 @@ export type signInFormData = z.infer<typeof signInSchema>;
 
 // FORGOT PASSWORD SCHEMA
 export const forgotPasswordSchema = object({
-    email: emailSchema,
+    email: emailSchema(),
 });
 export type forgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;
 

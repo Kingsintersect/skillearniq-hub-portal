@@ -16,11 +16,11 @@ export const CourseCard = () => {
             </CardHeader>
             <CardContent>
                 <div className='text-primary-500 text-xl font-bold'>English Language</div>
-                <div className='text-mute text-xl text-secondary-700 font-bold'>Mr. Alfred</div>
+                <div className='text-mute text-xl text-accent-700 font-bold'>Mr. Alfred</div>
                 <div className='text-mute'>Lorem ipsum, dolor sit amet consectetur adipisicing elit. Facilis omnis provident cupiditate aut ipsum doloribus minima dolorem laudantium deleniti animi!</div>
             </CardContent>
             <CardFooter>
-                <p className='text-secondary font-bold'>{formatToCurrency(10000)}</p>
+                <p className='text-accent font-bold'>{formatToCurrency(10000)}</p>
             </CardFooter>
         </Card>
     )

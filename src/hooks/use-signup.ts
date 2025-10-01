@@ -1,16 +1,15 @@
 
 
-import { APPLICATION_FEE, baseUrl } from '@/config';
+import { baseUrl } from '@/config';
 import { SignUpFormData, signUpSchema } from '@/schema/sign-up-schema';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useForm, UseFormReturn } from 'react-hook-form';
 import { useMutation } from '@tanstack/react-query';
 import { authApi } from '@/lib/services/auth';
 import { toast } from 'sonner';
 import { ApiError, SignupResponse } from '@/types/auth';
 import { useRouter } from 'next/navigation';
-import { useCurrentSemester, useCurrentSession } from './useAccademics';
 import { STEPS, useSignupSteps } from './use-signup-steps';
 
 interface UseSignupReturn extends UseFormReturn<SignUpFormData> {
@@ -35,21 +34,13 @@ export function useSignup(): UseSignupReturn {
         resolver: zodResolver(signUpSchema),
         mode: 'onChange',
         defaultValues: {
-            regNumber: '',
             first_name: '',
             last_name: '',
             email: '',
             username: '',
             gender: '',
             nationality: '',
-            state: '',
-            phone_number: '',
-            program: '',
-            program_id: '',
-            academic_session: "",
-            academic_semester: "",
-            start_year: "",
-            amount: APPLICATION_FEE.toString(),
+            phone: '',
         },
     });
 
@@ -64,21 +55,20 @@ export function useSignup(): UseSignupReturn {
         delta,
     } = useSignupSteps(form);
 
+    // const { data: currentSession, isSuccess: isSessionLoaded } = useCurrentSession();
+    // const { data: currentSemester, isSuccess: isSemesterLoaded } = useCurrentSemester();
 
-    const { data: currentSession, isSuccess: isSessionLoaded } = useCurrentSession();
-    const { data: currentSemester, isSuccess: isSemesterLoaded } = useCurrentSemester();
 
-
-    useEffect(() => {
-        if (isSessionLoaded && isSemesterLoaded) {
-            form.reset({
-                academic_session: currentSession?.name ?? "",
-                academic_semester: currentSemester?.name ?? "",
-                start_year: "2025",
-                amount: APPLICATION_FEE.toString(),
-            });
-        }
-    }, [isSessionLoaded, isSemesterLoaded, currentSession, currentSemester, form]);
+    // useEffect(() => {
+    //     if (isSessionLoaded && isSemesterLoaded) {
+    //         form.reset({
+    //             academic_session: currentSession?.name ?? "",
+    //             academic_semester: currentSemester?.name ?? "",
+    //             start_year: "2025",
+    //             amount: APPLICATION_FEE.toString(),
+    //         });
+    //     }
+    // }, [isSessionLoaded, isSemesterLoaded, currentSession, currentSemester, form]);
 
 
     // Create Account Mutation
