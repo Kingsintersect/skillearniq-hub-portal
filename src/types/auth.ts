@@ -53,7 +53,13 @@ export interface Teacher extends UserInterface {
     passport: string;
 }
 
-export type AuthUser = Student | Admin | Teacher;
+export interface Parent extends UserInterface {
+    role: UserRole.PARENT;
+    teacherId: string;
+    passport: string;
+}
+
+export type AuthUser = Student | Admin | Teacher | Parent;
 
 export interface AuthenState {
     user: AuthUser | null;

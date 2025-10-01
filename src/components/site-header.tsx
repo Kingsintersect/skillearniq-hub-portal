@@ -26,13 +26,13 @@ const SiteHeader = () => {
                 />
             </div>
             <div className="flex items-center gap-4 px-4">
-                <Link href="/admission" className="text-sm font-medium text-gray-700 hover:text-gray-900">
+                {/* <Link href="/admission" className="text-sm font-medium text-gray-700 hover:text-gray-900">
                     Admission
                 </Link>
                 <Separator
                     orientation="vertical"
                     className="data-[orientation=vertical]:h-4"
-                />
+                /> */}
                 <ThemeSelector />
                 <ModeToggle />
                 <SignOutButton />

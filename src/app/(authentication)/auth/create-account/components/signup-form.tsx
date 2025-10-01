@@ -5,7 +5,7 @@ import { useSignup } from '@/hooks/use-signup';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { PersonalInformation } from './PersonalInformation';
-import { AcademicInformation } from './AcademicInformation';
+import { ParentInformation } from './ParenntInformation';
 import { AccountInformation } from './AccountInformation';
 import { ProgressStepper } from './ProgressStepper';
 import { FormErrorList } from '@/components/core/forms/errors';
@@ -63,7 +63,7 @@ export function SignupForm() {
                         animate={{ x: 0, opacity: 1 }}
                         transition={{ duration: 0.5, ease: "easeInOut" }}
                     >
-                        <AcademicInformation register={register} errors={errors} control={control} setValue={setValue} getValues={getValues} watch={watch} />
+                        <ParentInformation register={register} errors={errors} control={control} setValue={setValue} getValues={getValues} watch={watch} />
                     </motion.div>
                 )}
 
