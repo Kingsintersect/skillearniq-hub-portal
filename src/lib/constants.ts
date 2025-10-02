@@ -1,4 +1,4 @@
-import { NavItem, Feature, Program, Stat, FooterSection } from "../types";
+import { NavItem, Feature, Program, Stat, FooterSection, CampusHighlights } from "../types";
 
 export const NAV_ITEMS: NavItem[] = [
     { href: '#home', label: 'Home' },
@@ -30,19 +30,59 @@ export const FEATURES: Feature[] = [
 
 export const PROGRAMS: Program[] = [
     {
-        title: 'Master of Business Administration (MBA)',
-        description: 'A comprehensive program for experienced professionals seeking to advance their careers and develop strategic leadership skills.',
+        title: "Computer Science",
+        description: "Explore cutting-edge technology and software development",
+        icon: Code,
         duration: '2 Years',
     },
     {
-        title: 'Bachelor of Business Administration (BBA)',
-        description: 'Build a strong foundation in business principles with specializations in finance, marketing, management, and entrepreneurship.',
+        title: "Business Administration",
+        description: "Develop leadership skills for the modern business world",
+        icon: Briefcase,
         duration: '4 Years',
     },
     {
-        title: 'Executive Education',
-        description: 'Short-term intensive programs for working professionals to enhance specific skills and stay current with industry trends.',
-        duration: 'Flexible',
+        title: "Biology",
+        description: "Discover the science of life through innovative research",
+        icon: Microscope,
+        duration: '4 Years',
+    },
+    {
+        title: "Literature",
+        description: "Analyze great works and develop critical thinking skills",
+        icon: Book,
+        duration: '4 Years',
+    },
+    {
+        title: "Physics",
+        description: "Understand the fundamental laws that govern our universe",
+        icon: Atom,
+        duration: '4 Years',
+    },
+    {
+        title: "International Relations",
+        description: "Study global politics and cross-cultural communication",
+        icon: Globe,
+        duration: '4 Years',
+    },
+];
+
+export const CAMPUSHIGHLIGHTS: CampusHighlights[] = [
+    {
+        title: "Modern Library",
+        imageUrl: "/campus/ca-1.jpeg",
+    },
+    {
+        title: "Research Facilities",
+        imageUrl: "/campus/ca-2.jpeg",
+    },
+    {
+        title: "Sports Complex",
+        imageUrl: "/campus/ca-3.jpeg",
+    },
+    {
+        title: "tudent Housing",
+        imageUrl: "/campus/ca-4.jpeg",
     },
 ];
 
@@ -100,7 +140,13 @@ import {
     SendHorizonal,
     BanknoteArrowDown,
     Users,
-    CreditCard
+    CreditCard,
+    Atom,
+    Book,
+    Briefcase,
+    Code,
+    Globe,
+    Microscope
 } from "lucide-react";
 export interface SidebarNavItem {
     title: string;

@@ -3,6 +3,8 @@ import { Features } from './components/Features';
 import { Programs } from './components/Programs';
 import { Stats } from './components/Stats';
 import { HomepageSlider } from './components/slider/HomepageSlider';
+import CampusHighlights from './components/CampusHighlights';
+import CalenderView from './components/CalenderView';
 
 export default function HomePage() {
   return (
@@ -10,6 +12,8 @@ export default function HomePage() {
       <HomepageSlider />
       <Features />
       <Programs />
+      <CalenderView />
+      <CampusHighlights />
       <Stats />
     </main>
   );
