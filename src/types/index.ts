@@ -1,31 +1,39 @@
+import { LucideIcon } from "lucide-react";
+
 export interface NavItem {
-    href: string;
-    label: string;
+  href: string;
+  label: string;
 }
 
 export interface Feature {
-    icon: string;
-    title: string;
-    description: string;
+  icon: string;
+  title: string;
+  description: string;
 }
 
 export interface Program {
-    title: string;
-    description: string;
-    duration: string;
+  title: string;
+  description: string;
+  duration: string;
+  icon: LucideIcon;
+}
+
+export interface CampusHighlights {
+  title: string;
+  imageUrl: string;
 }
 
 export interface Stat {
-    number: string;
-    label: string;
+  number: string;
+  label: string;
 }
 
 export interface FooterSection {
-    title: string;
-    links: Array<{
-        label: string;
-        href: string;
-    }>;
+  title: string;
+  links: Array<{
+    label: string;
+    href: string;
+  }>;
 }
 
 
