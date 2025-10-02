@@ -4,8 +4,8 @@ export const NAV_ITEMS: NavItem[] = [
     { href: '#home', label: 'Home' },
     { href: '#features', label: 'features' },
     { href: '#programs', label: 'Programs' },
-    // { href: '#admissions', label: 'Admissions' },
-    // { href: '#research', label: 'Research' },
+    { href: '#calender_view', label: 'Updates' },
+    { href: '#campus_highlight', label: 'Highlights' },
     // { href: '#about', label: 'About' },
     // { href: '#contact', label: 'Contact' },
 ];

@@ -4,7 +4,7 @@ import Link from "next/link";
 
 export default function CampusHighlights() {
     return (
-        <section className="w-full py-16 px-6 min-h-[85vh] flex items-center">
+        <section id="campus_highlight" className="w-full py-16 px-6 min-h-[85vh] flex items-center">
             <div className="w-full max-w-7xl mx-auto text-center">
                 <div className="text-center mb-12">
                     <h2 className="text-3xl font-bold text-[#23608c] mb-4">Campus Highlights</h2>
