@@ -1,48 +1,56 @@
 "use client";
 
-import { FormField } from '@/components/layout/form';
 import { Button } from '@/components/ui/button';
+import {
+    FormField,
+    FormControl,
+    FormItem,
+    FormLabel,
+    FormMessage
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
 import { useResetPasswordForm } from '@/hooks/use-reset-password';
 import Link from 'next/link';
 import React from 'react'
-import { PasswordInput } from '../../signin/components/login-form';
 
-export const ResetPasswordForm = ({ verifyState }: { verifyState: boolean }) => {
+export const ResetPasswordForm = () => {
     const {
-        register,
-        handleSubmit,
-        formState: { errors, isValid },
+        form,
         onSubmit,
         isProcessing,
     } = useResetPasswordForm();
 
     return (
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 mt-7">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 mt-7">
             <div className="animate-in fade-in-50 duration-700 delay-300">
                 <FormField
-                    label="Password"
-                    error={errors.password?.message}
-                    required
-                >
-                    <PasswordInput
-                        register={register("password")}
-                        error={!!errors.password}
-                        placeholder="Enter your password"
-                    />
-                </FormField>
+                    control={form.control}
+                    name="password"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Enter your password</FormLabel>
+                            <FormControl>
+                                <Input type='password' placeholder="Password" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
             </div>
             <div className="animate-in fade-in-50 duration-700 delay-500">
                 <FormField
-                    label="Confirm Password"
-                    error={errors.confirmPassword?.message}
-                    required
-                >
-                    <PasswordInput
-                        register={register("confirmPassword")}
-                        error={!!errors.confirmPassword}
-                        placeholder="Confirm your password"
-                    />
-                </FormField>
+                    control={form.control}
+                    name="password_confirmation"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Enter your password</FormLabel>
+                            <FormControl>
+                                <Input type='password' placeholder="Confirm Password" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
             </div>
 
             <div className="animate-in fade-in-50 duration-700 delay-600">
@@ -52,7 +60,7 @@ export const ResetPasswordForm = ({ verifyState }: { verifyState: boolean }) => 
                     size="xl"
                     className="w-full"
                     loading={isProcessing}
-                    disabled={!isValid || isProcessing || !verifyState}
+                    disabled={!form.formState.isValid || isProcessing}
                 >
                     Sign in
                 </Button>

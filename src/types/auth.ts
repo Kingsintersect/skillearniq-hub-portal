@@ -67,6 +67,8 @@ export interface AuthenState {
     isAuthenticated: boolean;
     isLoading: boolean;
     error: string | null;
+
+    parentOTP: boolean;
 }
 
 export interface ApiResponse<T = unknown> { //or any
