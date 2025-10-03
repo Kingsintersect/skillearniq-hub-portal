@@ -50,7 +50,7 @@ export const useForgotPasswordForm = () => {
     };
 
     return {
-        ...form,
+        form,
         isProcessing: forgotPasswordMutation.isPending,
         message,
         onSubmit,
