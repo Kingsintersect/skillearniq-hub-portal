@@ -5,7 +5,6 @@ import { StatsOverview } from './StatsOverview';
 import { StudentPerformanceGrid } from './StudentPerformanceGrid';
 import { RecentActivityFeed } from './RecentActivityFeed';
 
-import { LiveClassSchedule } from './LiveClassSchedule';
 import { PerformanceTrendChart } from './charts/PerformanceTrendChart';
 import { ScoreDistributionChart } from './charts/ScoreDistributionChart';
 
@@ -83,7 +82,7 @@ export const Dashboard: React.FC = () => {
         </div>
 
         {/* Assignments & Live Classes */}
-        
+
 
         {/* Upcoming Deadlines Quick View */}
         <div className="bg-white rounded-xl shadow-sm p-6 mt-6">
@@ -97,9 +96,8 @@ export const Dashboard: React.FC = () => {
                     Due: {new Date(deadline.dueDate).toLocaleString()}
                   </p>
                 </div>
-                <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                  index === 0 ? 'bg-red-100 text-red-800' : 'bg-orange-100 text-orange-800'
-                }`}>
+                <span className={`px-3 py-1 rounded-full text-sm font-medium ${index === 0 ? 'bg-red-100 text-red-800' : 'bg-orange-100 text-orange-800'
+                  }`}>
                   {index === 0 ? 'Urgent' : 'Upcoming'}
                 </span>
               </div>

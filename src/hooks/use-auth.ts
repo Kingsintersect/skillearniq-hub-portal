@@ -159,7 +159,7 @@ export function useAuth() {
     const isAuthenticated = apiClient.isAuthenticated();
 
     // Loading state
-    const isLoading = loginMutation.isPending || isLoadingProfile || parentOTPRequestMutation.isPending;
+    const isLoading = loginMutation.isPending || isLoadingProfile;
 
     // Auth state object
     const authState: AuthenState = {
