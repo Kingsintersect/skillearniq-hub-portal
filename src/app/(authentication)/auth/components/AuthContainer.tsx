@@ -7,7 +7,7 @@ const AuthContauiner = ({ children }: { children: ReactNode }) => {
 
     return (
         <div className="min-h-screen flex items-center justify-center px-4 bg-gradient-to-br from-gray-50 to-gray-100">
-            <div className="w-full max-w-4xl bg-white rounded-2xl shadow-2xl overflow-hidden animate-in slide-in-from-bottom-4 duration-700">
+            <div className="w-full max-w-5xl bg-white rounded-2xl shadow-2xl overflow-hidden animate-in slide-in-from-bottom-4 duration-700">
                 <div className="grid md:grid-cols-2 min-h-[600px]">
                     {/* Left Panel - Branding */}
                     <BrandingPanel />

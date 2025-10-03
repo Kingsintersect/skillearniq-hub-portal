@@ -6,6 +6,9 @@ import { Card } from './HomeCard';
 import { FEATURES } from '@/lib/constants';
 import { useIntersectionObserver } from '@/hooks/animations/useScrollAnimation';
 
+import Lottie from "lottie-react";
+import animationData from "@/assets/Programming Computer.json"
+
 export const Features: React.FC = () => {
     const pRef = useRef<HTMLDivElement>(null);
     const isVisible = useIntersectionObserver(pRef as RefObject<HTMLElement>);
@@ -14,17 +17,22 @@ export const Features: React.FC = () => {
         <section
             ref={pRef}
             id="features"
-            className="py-20 px-6 bg-gray-50"
+            className="py-20 px-6 bg-gray-50 min-h-[85vh] flex items-center"
         >
-            <div className="max-w-7xl mx-auto">
-                <div className="text-center mb-16">
-                    <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4">
-                        Why Choose {SITE_TITLE}?
-                    </h2>
-                    <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-                        We provide comprehensive business education that combines theoretical knowledge
-                        with practical skills to prepare leaders for the global marketplace.
-                    </p>
+            <div className="w-full max-w-7xl mx-auto text-center">
+                <div className="flex items-center justify-end mb-16">
+                    <div className="relative h-auto w-[300px]">
+                        <Lottie animationData={animationData} />
+                    </div>
+                    <div className="text-left">
+                        <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4">
+                            Why Choose {SITE_TITLE}?
+                        </h2>
+                        <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+                            We provide comprehensive business education that combines theoretical knowledge
+                            with practical skills to prepare leaders for the global marketplace.
+                        </p>
+                    </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
