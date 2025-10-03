@@ -22,9 +22,8 @@ export const useForgotPasswordForm = () => {
 
     const forgotPasswordMutation = useMutation({
         mutationFn: async (forgotCredention: forgotPasswordFormData) => authApi.forgotPassword(forgotCredention),
-        onSuccess: async (res) => {
+        onSuccess: async () => {
             toast.success(`A reset password link has been sent to your email`)
-            console.log('response', res)
             setMessage("A reset password link has been sent to your email");
             form.reset();
         },

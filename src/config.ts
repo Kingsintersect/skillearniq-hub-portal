@@ -96,4 +96,5 @@ export const LOCAL_STORAGE_KEYS = {
     refreshToken: 'upi_refresh_token',
     user: 'upi_user',
     rememberMe: 'upi_remember_me',
+    parentOTP: 'false',
 } as const;

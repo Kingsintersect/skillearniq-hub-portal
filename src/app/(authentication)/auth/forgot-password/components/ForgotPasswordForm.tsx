@@ -1,18 +1,19 @@
 "use client";
 
-import { FormField, Input } from '@/components/layout/form';
 import { Button } from '@/components/ui/button';
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
 import { useForgotPasswordForm } from '@/hooks/use-forgot-password';
 import Link from 'next/link';
 import React from 'react'
 
 export const ForgotPasswordForm = () => {
     const {
-        register,
         handleSubmit,
         formState: { errors, isValid },
         onSubmit,
         message,
+        control,
         isProcessing,
     } = useForgotPasswordForm();
 
@@ -20,18 +21,18 @@ export const ForgotPasswordForm = () => {
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 mt-7">
             <div className="animate-in fade-in-50 duration-700 delay-300">
                 <FormField
-                    label="Email address"
-                    error={errors.email?.message}
-                    required
-                >
-                    <Input
-                        {...register("email")}
-                        type="text"
-                        placeholder="Enter your email address"
-                        error={!!errors.email}
-                        className="h-12"
-                    />
-                </FormField>
+                    control={control}
+                    name="email"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Email Address</FormLabel>
+                            <FormControl>
+                                <Input placeholder="Eneter email address" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
             </div>
 
             <div className="animate-in fade-in-50 duration-700 delay-600">
@@ -43,7 +44,7 @@ export const ForgotPasswordForm = () => {
                     loading={isProcessing}
                     disabled={!isValid || isProcessing}
                 >
-                    Sign in
+                    Request Token
                 </Button>
             </div>
 
