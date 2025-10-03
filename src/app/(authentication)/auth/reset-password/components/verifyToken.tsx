@@ -12,7 +12,7 @@ export const VerifyToken = () => {
                 <div className="flex justify-center mb-4">
                     <Lottie animationData={animationData} />
                 </div>
-                <div className="text-center text-primary text-xl">Enter new password to reset your old password</div>
+                <div className="text-center text-accent text-xl">Enter new password to reset your old password</div>
             </div>
         </div>
     )
