@@ -23,7 +23,7 @@ export function MainLayout({ children, requireAuth = false }: MainLayoutProps) {
                 router.push(ROUTES.login);
                 // } else if (!requireAuth && isAuthenticated && pathname === ROUTES.login) {
             } else if (!requireAuth && isAuthenticated && pathname === ROUTES.login) {
-                if (user?.role === "STUDENT") router.push(`/course-overview`)
+                if (user?.role === "STUDENT") router.push(`/enrollment`)
                 else router.push(`/${user?.role.toLocaleLowerCase() + ROUTES.dashboard}`);
             }
         }
