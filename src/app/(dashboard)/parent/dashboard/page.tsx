@@ -29,11 +29,11 @@ export default function ParentsDashboard() {
   const { data: statsResponse, isLoading: statsLoading } = useDashboardStats();
   const { data: childrenResponse, isLoading: childrenLoading } = useChildren();
 
-  // Set children data from API
+  
   useEffect(() => {
     if (childrenResponse?.data) {
       setChildren(childrenResponse.data);
-      // Auto-select first child if none selected
+      
       if (!selectedStudentId && childrenResponse.data.length > 0) {
         setSelectedStudentId(childrenResponse.data[0].id);
       }
