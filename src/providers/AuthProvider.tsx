@@ -11,6 +11,7 @@ interface AuthProviderProps {
 }
 interface AuthContextType extends AuthenState {
     login: (credentials: signInFormData) => void;
+    requestParentOTP: (credentials: signInFormData) => void;
     logout: (callbackUrl?: string) => void;
     isLoggingIn: boolean;
     isLoggingOut: boolean;
@@ -30,7 +31,6 @@ export default function AuthProvider({ children, session }: AuthProviderProps) {
         </SessionProvider>
     )
 }
-
 
 export function useAuthContext() {
     const context = useContext(AuthContext);

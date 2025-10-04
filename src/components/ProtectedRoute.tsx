@@ -17,28 +17,29 @@ export default function ProtectedRoute({ children, allowedRoles }: ProtectedRout
     const pathname = usePathname();
 
     useEffect(() => {
-        if (!isLoading && !isAuthenticated) {
+        if (isLoading) return;
+
+        if (!isAuthenticated) {
             router.push('/auth/signin');
-        } else if (!isLoading && user && !allowedRoles.includes(user.role)) {
-            if ([UserRole.ADMIN, UserRole.MANAGER].includes(user.role as UserRole)) {
-                if (pathname !== '/admin') {
-                    router.push('/admin/dashboard');
-                }
-            } else if ([UserRole.TEACHER].includes(user.role as UserRole)) {
-                if (pathname !== '/teacher') {
-                    router.push('/teacher/dashboard');
-                }
-            } else if ([UserRole.PARENT].includes(user.role as UserRole)) {
-                if (pathname !== '/parent') {
-                    router.push('/parent/dashboard');
-                }
-            } else {
-                if (pathname !== '/student') {
-                    router.push('/student/dashboard');
-                }
+            return;
+        }
+
+        if (user && !allowedRoles.includes(user.role)) {
+            const roleRoutes = {
+                [UserRole.ADMIN]: '/admin/dashboard',
+                [UserRole.MANAGER]: '/admin/dashboard',
+                [UserRole.TEACHER]: '/teacher/dashboard',
+                [UserRole.PARENT]: '/parent/dashboard',
+                [UserRole.STUDENT]: '/student/dashboard',
+            };
+
+            const redirectPath = roleRoutes[user.role as UserRole] || '/auth/signin';
+
+            if (!pathname.startsWith(redirectPath.replace('/dashboard', ''))) {
+                router.push(redirectPath);
             }
         }
-    }, [user, isLoading, router, allowedRoles, pathname]);
+    }, [user, isLoading, isAuthenticated, router, allowedRoles, pathname]);
 
     if (isLoading) {
         return <LoadingSpinner />;

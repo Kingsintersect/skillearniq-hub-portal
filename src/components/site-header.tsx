@@ -8,7 +8,6 @@ import {
 import { ModeToggle } from './ui/mood-toggle'
 import { ThemeSelector } from './theme-selector'
 import { DynamicBreadcrumb } from './ui/dynamic-breadcrumb'
-import Link from 'next/link'
 import SignOutButton from './core/signout-button'
 import { StudentSelector } from './StudentSelector'
 
@@ -32,7 +31,13 @@ const SiteHeader = () => {
                 />
             </div>
             <div className="flex items-center gap-4 px-4">
-                {isParentPage && <StudentSelector />}
+                {/* <Link href="/admission" className="text-sm font-medium text-gray-700 hover:text-gray-900">
+                    Admission
+                </Link>
+                <Separator
+                    orientation="vertical"
+                    className="data-[orientation=vertical]:h-4"
+                /> */}
                 <ThemeSelector />
                 <ModeToggle />
                 <SignOutButton />

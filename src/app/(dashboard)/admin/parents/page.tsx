@@ -36,7 +36,16 @@ export default function ParentsPage() {
     children: []
   });
 
-  const parents = parentsResponse?.data || [];
+  // Filter parents
+  const filteredParents = parents.filter(parent => {
+    const matchesSearch = parent.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         parent.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         parent.children.some(child => child.toLowerCase().includes(searchTerm.toLowerCase()));
+    
+    const matchesStatus = filters.status === 'all' || parent.status === filters.status;
+    
+    return matchesSearch && matchesStatus;
+  });
 
   const handleCreateParent = () => {
     createParentMutation.mutate(newParent, {
@@ -106,9 +115,9 @@ export default function ParentsPage() {
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
-              <Select 
-                value={filters.status} 
-                onValueChange={(value) => setFilters(prev => ({...prev, status: value}))}
+              <Select
+                value={filters.status}
+                onValueChange={(value) => setFilters(prev => ({ ...prev, status: value }))}
               >
                 <SelectTrigger className="w-full md:w-[200px]">
                   <SelectValue placeholder="Filter by status" />
@@ -166,12 +175,14 @@ export default function ParentsPage() {
                     </TableCell>
                     <TableCell>
                       <div className="flex space-x-2">
+                        {/* <Button variant="outline" size="sm">
+                          <Edit className="h-4 w-4" />
+                        </Button> */}
                         <Button 
                           variant="outline" 
                           size="sm"
                           onClick={() => handleDeleteParent(parent.id)}
-                          className='dark:text-white dark:border-white'
-                          disabled={deleteParentMutation.isPending}
+                           className='dark:text-white dark:border-white'
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -199,7 +210,7 @@ export default function ParentsPage() {
                 <Input
                   id="name"
                   value={newParent.name}
-                  onChange={(e) => setNewParent({...newParent, name: e.target.value})}
+                  onChange={(e) => setNewParent({ ...newParent, name: e.target.value })}
                 />
               </div>
               <div className="space-y-2">
@@ -208,7 +219,7 @@ export default function ParentsPage() {
                   id="email"
                   type="email"
                   value={newParent.email}
-                  onChange={(e) => setNewParent({...newParent, email: e.target.value})}
+                  onChange={(e) => setNewParent({ ...newParent, email: e.target.value })}
                 />
               </div>
               <div className="space-y-2">
@@ -216,7 +227,7 @@ export default function ParentsPage() {
                 <Input
                   id="phone"
                   value={newParent.phone}
-                  onChange={(e) => setNewParent({...newParent, phone: e.target.value})}
+                  onChange={(e) => setNewParent({ ...newParent, phone: e.target.value })}
                 />
               </div>
             </div>

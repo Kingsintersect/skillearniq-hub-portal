@@ -4,7 +4,7 @@ import UpcomingEvents from './UpcomingEvents'
 
 const CalenderView = () => {
     return (
-        <section className="w-full py-10 px-6 min-h-[85vh] bg-slate-100 flex items-center">
+        <section id="calender_view" className="w-full py-10 px-6 min-h-[85vh] bg-slate-100 flex items-center">
             <div className="w-full max-w-7xl mx-auto text-center">
                 <div className="text-center mb-16">
                     <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4">

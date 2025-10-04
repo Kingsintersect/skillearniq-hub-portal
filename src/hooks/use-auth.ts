@@ -21,6 +21,11 @@ export function useAuth() {
         null
     );
 
+    const [parentOTP, setparentOTP, removeparentOTP] = useLocalStorage<boolean>(
+        LOCAL_STORAGE_KEYS.parentOTP,
+        false
+    );
+
     // const [refreshToken, setRefreshToken, removeRefreshToken] = useLocalStorage<string | null>(
     //     LOCAL_STORAGE_KEYS.refreshToken,
     //     null
@@ -53,7 +58,6 @@ export function useAuth() {
 
     // Login mutation
     const loginMutation = useMutation({
-        // mutationFn: (credentials: signInFormData) => authApi.login(credentials),
         mutationFn: async (credentials: signInFormData) => {
             const result = await signIn('credentials', {
                 ...credentials,
@@ -78,10 +82,33 @@ export function useAuth() {
                 queryClient.invalidateQueries({ queryKey: QUERY_KEYS.auth.profile });
 
                 toast.success(`Welcome back, ${session.user.first_name}!`);
+                setparentOTP(false);
 
-                if (session.user?.role === "STUDENT") router.push(`/course-overview`)
+                if (session.user?.role === "STUDENT") router.push(`/enrollment`)
                 else router.push(`/${session.user?.role.toLocaleLowerCase() + ROUTES.dashboard}`)
             }
+        },
+        onError: (error: ApiError) => {
+            const message = error.message || "Login failed. Please try again.";
+            toast.error(message);
+
+            if (error.errors) {
+                // Handle validation errors
+                Object.values(error.errors).forEach((messages: unknown) => {
+                    if (Array.isArray(messages)) {
+                        messages.forEach((msg) => toast.error(msg));
+                    }
+                });
+            }
+        },
+    });
+
+    // Parent OPT request  mutation
+    const parentOTPRequestMutation = useMutation({
+        mutationFn: (credentials: signInFormData) => authApi.parentLoginOtpRequest(credentials),
+        onSuccess: async () => {
+            toast.success(`OTP has been sent to your email address!`);
+            setparentOTP(true);
         },
         onError: (error: ApiError) => {
             const message = error.message || "Login failed. Please try again.";
@@ -120,6 +147,7 @@ export function useAuth() {
     // Clear all auth data
     const clearAuthenticationData = () => {
         removeAccessToken();
+        removeparentOTP();
         // removeRefreshToken();
         removeUser();
         queryClient.removeQueries({ queryKey: QUERY_KEYS.auth.profile });
@@ -139,13 +167,15 @@ export function useAuth() {
         isAuthenticated,
         isLoading,
         error: profileError?.message || null,
+        parentOTP: parentOTP,
     };
 
     return {
         ...authState,
         login: loginMutation.mutate,
+        requestParentOTP: parentOTPRequestMutation.mutate,
         logout: logoutMutation.mutate,
-        isLoggingIn: loginMutation.isPending,
+        isLoggingIn: loginMutation.isPending || parentOTPRequestMutation.isPending,
         isLoggingOut: logoutMutation.isPending,
         clearAuthenticationData,
         loginError: loginMutation.error,

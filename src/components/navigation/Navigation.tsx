@@ -7,11 +7,15 @@ import { Button } from '@/components/ui/button';
 import { LogOut, User } from 'lucide-react';
 import Link from 'next/link';
 import { ModeToggle } from '../ui/mood-toggle';
+import { usePathname } from 'next/navigation';
 
 export const Navigation = () => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const { user, logout, isLoggingOut } = useAuthContext();
+    const pathname = usePathname();
     const role = user?.role.toLocaleLowerCase();
+
+    const isHomepage = pathname === '/'
 
     const handleNavClick = (href: string) => {
         const element = document.querySelector(href);
@@ -33,7 +37,7 @@ export const Navigation = () => {
                     <button
                         key={item.href}
                         onClick={() => handleNavClick(item.href)}
-                        className="text-gray-600 hover:text-blue-600 font-medium transition-colors duration-200 relative group cursor-pointer bg-transparent border-none"
+                        className={`text-gray-600 hover:text-blue-600 font-medium transition-colors duration-200 relative group cursor-pointer bg-transparent border-none ${!isHomepage ? " hidden" : ""}`}
                     >
                         {item.label}
                         <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-200 group-hover:w-full" />
@@ -89,7 +93,7 @@ export const Navigation = () => {
                         <button
                             key={item.href}
                             onClick={() => handleNavClick(item.href)}
-                            className="text-gray-600 hover:text-blue-600 font-medium transition-colors duration-200 text-left cursor-pointer bg-transparent border-none"
+                            className={`text-gray-600 hover:text-blue-600 font-medium transition-colors duration-200 text-left cursor-pointer bg-transparent border-none ${!isHomepage ? " hidden" : ""}`}
                         >
                             {item.label}
                         </button>

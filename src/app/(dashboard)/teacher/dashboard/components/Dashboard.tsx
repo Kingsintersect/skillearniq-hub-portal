@@ -1,45 +1,13 @@
 'use client'
 import React from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
-import { 
-  BookOpen, 
-  Users, 
-  FileText, 
-  Calendar,
-  TrendingUp,
-  Award,
-  Clock,
-  MessageSquare,
-  Bell,
-  Download,
-  Eye
-} from 'lucide-react';
-import { useTeacherQueries } from '@/hooks/useTeacherQueries';
+import { useDashboardStats } from '@/hooks/useDashboardStats';
+import { StatsOverview } from './StatsOverview';
+import { StudentPerformanceGrid } from './StudentPerformanceGrid';
+import { RecentActivityFeed } from './RecentActivityFeed';
 
-// Recharts components
-import {
-  LineChart,
-  Line,
-  BarChart,
-  Bar,
-  PieChart,
-  Pie,
-  Cell,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer
-} from 'recharts';
-
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
+import { LiveClassSchedule } from './LiveClassSchedule';
+import { PerformanceTrendChart } from './charts/PerformanceTrendChart';
+import { ScoreDistributionChart } from './charts/ScoreDistributionChart';
 
 export const Dashboard: React.FC = () => {
   const teacherId = 1; // This would come from auth context in real app
@@ -99,74 +67,25 @@ export const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          <Card className="">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Total Classes</p>
-                  <p className="text-2xl font-bold text-foreground">{dashboardData.totalClasses}</p>
-                  <div className="flex items-center space-x-1 mt-1">
-                    <TrendingUp className="h-4 w-4 text-green-500" />
-                    <span className="text-sm text-muted-foreground">Active this term</span>
-                  </div>
-                </div>
-                <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
-                  <BookOpen className="h-6 w-6 text-primary" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+        {/* Student Performance & Recent Activity */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+          <div className="lg:col-span-2">
+            <StudentPerformanceGrid students={stats.studentPerformance} />
+          </div>
+          <div>
+            <RecentActivityFeed activities={stats.recentActivity} />
+          </div>
+        </div>
 
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Total Students</p>
-                  <p className="text-2xl font-bold text-foreground">{dashboardData.totalStudents}</p>
-                  <div className="text-sm text-muted-foreground mt-1">Across all classes</div>
-                </div>
-                <div className="w-12 h-12 bg-green-500/10 rounded-lg flex items-center justify-center">
-                  <Users className="h-6 w-6 text-green-500" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+        {/* Assignments & Live Classes */}
+        
 
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Assessments</p>
-                  <p className="text-2xl font-bold text-foreground">{dashboardData.totalAssessments}</p>
-                  <div className="text-sm text-muted-foreground mt-1">This term</div>
-                </div>
-                <div className="w-12 h-12 bg-blue-500/10 rounded-lg flex items-center justify-center">
-                  <FileText className="h-6 w-6 text-blue-500" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Attendance Rate</p>
-                  <p className="text-2xl font-bold text-foreground">{dashboardData.averageAttendance}%</p>
-                  <Progress value={dashboardData.averageAttendance} className="w-full mt-2 h-2" />
-                </div>
-                <div className="w-12 h-12 bg-orange-500/10 rounded-lg flex items-center justify-center">
-                  <Calendar className="h-6 w-6 text-orange-500" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
+        {/* Upcoming Deadlines Quick View */}
+        <div className="bg-white rounded-xl shadow-sm p-6 mt-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Upcoming Deadlines</h3>
+          <div className="space-y-3">
+            {stats.upcomingDeadlines.map((deadline, index) => (
+              <div key={deadline.id} className="flex items-center justify-between p-3 border rounded-lg">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Pending Grading</p>
                   <p className="text-2xl font-bold text-foreground">{dashboardData.pendingGrading}</p>
@@ -175,6 +94,11 @@ export const Dashboard: React.FC = () => {
                 <div className="w-12 h-12 bg-purple-500/10 rounded-lg flex items-center justify-center">
                   <Clock className="h-6 w-6 text-purple-500" />
                 </div>
+                <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                  index === 0 ? 'bg-red-100 text-red-800' : 'bg-orange-100 text-orange-800'
+                }`}>
+                  {index === 0 ? 'Urgent' : 'Upcoming'}
+                </span>
               </div>
             </CardContent>
           </Card>
