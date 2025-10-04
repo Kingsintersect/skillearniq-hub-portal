@@ -58,7 +58,6 @@ export function useAuth() {
 
     // Login mutation
     const loginMutation = useMutation({
-        // mutationFn: (credentials: signInFormData) => authApi.login(credentials),
         mutationFn: async (credentials: signInFormData) => {
             const result = await signIn('credentials', {
                 ...credentials,
@@ -85,7 +84,7 @@ export function useAuth() {
                 toast.success(`Welcome back, ${session.user.first_name}!`);
                 setparentOTP(false);
 
-                if (session.user?.role === "STUDENT") router.push(`/course-overview`)
+                if (session.user?.role === "STUDENT") router.push(`/enrollment`)
                 else router.push(`/${session.user?.role.toLocaleLowerCase() + ROUTES.dashboard}`)
             }
         },

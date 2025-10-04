@@ -36,6 +36,7 @@ class ApiClient {
     private instance: AxiosInstance;
     private isRefreshing = false;
     private failedQueue: QueueItem[] = [];
+    private externalToken: string | null = null;
 
     constructor() {
         this.instance = axios.create({
@@ -50,15 +51,22 @@ class ApiClient {
         this.setupInterceptors();
     }
 
+    setExternalToken(token: string | null): void {
+        this.externalToken = token;
+    }
+
     private setupInterceptors(): void {
         // Request interceptor
         this.instance.interceptors.request.use(
             (config: InternalAxiosRequestConfig): InternalAxiosRequestConfig => {
-                if (typeof window !== "undefined") {
-                    const token = localStorage.getItem(LOCAL_STORAGE_KEYS.accessToken);
-                    if (token && config.headers) {
-                        config.headers.Authorization = `Bearer ${token}`;
-                    }
+                let token = this.externalToken || (typeof window !== "undefined" ? localStorage.getItem(LOCAL_STORAGE_KEYS.accessToken) : null);
+
+                if (token) {
+                    token = token.replace(/^"(.*)"$/, '$1'); // Remove surrounding quotes
+                    token = token.trim(); // Remove any extra spaces
+                }
+                if (token && config.headers) {
+                    config.headers.Authorization = `Bearer ${token}`;
                 }
                 return config;
             },
@@ -188,6 +196,19 @@ class ApiClient {
             // localStorage.removeItem(LOCAL_STORAGE_KEYS.refreshToken);
             localStorage.removeItem(LOCAL_STORAGE_KEYS.user);
         }
+    }
+
+    // API CALL SIMULATION
+    async simulate<T = unknown>(ms: number): Promise<ApiResponse<T>> {
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                resolve({
+                    status: 200,
+                    message: 'API request completed after 30 seconds',
+                    data: { authorizationUrl: "https://google.com" } as T,
+                });
+            }, ms);
+        });
     }
 
     async get<T = unknown>(

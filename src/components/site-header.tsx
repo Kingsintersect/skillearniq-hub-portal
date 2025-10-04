@@ -7,6 +7,7 @@ import { ModeToggle } from './ui/mood-toggle'
 import { ThemeSelector } from './theme-selector'
 import { DynamicBreadcrumb } from './ui/dynamic-breadcrumb'
 import SignOutButton from './core/signout-button'
+import Link from 'next/link'
 
 const SiteHeader = () => {
     return (
@@ -25,13 +26,20 @@ const SiteHeader = () => {
                 />
             </div>
             <div className="flex items-center gap-4 px-4">
-                {/* <Link href="/admission" className="text-sm font-medium text-gray-700 hover:text-gray-900">
-                    Admission
+                <Link href="/" className="text-sm font-medium text-gray-700 hover:text-gray-900">
+                    Home
                 </Link>
                 <Separator
                     orientation="vertical"
                     className="data-[orientation=vertical]:h-4"
-                /> */}
+                />
+                <Link href="/enrollment" className="text-sm font-medium text-gray-700 hover:text-gray-900">
+                    Courses
+                </Link>
+                <Separator
+                    orientation="vertical"
+                    className="data-[orientation=vertical]:h-4"
+                />
                 <ThemeSelector />
                 <ModeToggle />
                 <SignOutButton />

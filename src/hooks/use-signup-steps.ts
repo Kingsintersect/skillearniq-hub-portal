@@ -50,7 +50,7 @@ export const useSignupSteps = <T extends Record<string, unknown>>(
             return true;
         } catch (error) {
             // Trigger validation to show errors
-            console.log('error', error)
+            console.error('error', error)
             await form.trigger();
             return false;
         }
