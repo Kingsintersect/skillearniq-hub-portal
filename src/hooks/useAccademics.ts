@@ -55,7 +55,6 @@ export const useCategoriesCourse = () => {
         queryKey: ['categories-course', access_token, categoryId],
         queryFn: async () => {
             const response = await courseService.getCourses();
-            console.log('response', response)
             const filteredCourses = response.data.filter(course => Number(course.id) === Number(categoryId));
             return filteredCourses;
         },
