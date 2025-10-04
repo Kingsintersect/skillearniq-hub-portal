@@ -32,7 +32,6 @@ export function useLocalStorage<T>(
         try {
             setStoredValue(initialValue);
             if (typeof window !== "undefined") {
-                console.log('key inside', key)
                 window.localStorage.removeItem(key);
             }
         } catch (error) {

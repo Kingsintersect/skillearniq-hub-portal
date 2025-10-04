@@ -374,8 +374,7 @@
 		max-width: 100%;
 		background-color: hsl(var(--card));
 		border-radius: 0.5rem;
-		border: none;
-		/*1px solid hsl(var(--border));*/
+		border: 1px solid hsl(var(--border));
 		padding: 1.5rem;
 		box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
 	}
@@ -389,8 +388,7 @@
 		background: linear-gradient(to right, rgb(239 246 255), rgb(224 231 255));
 		padding: 1rem;
 		border-radius: 0.5rem;
-		border: none;
-		/* 1px solid rgb(219 234 254); */
+		border: 1px solid rgb(219 234 254);
 	}
 
 	/* Custom animations */
