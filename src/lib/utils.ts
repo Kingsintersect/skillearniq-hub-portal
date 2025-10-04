@@ -10,6 +10,23 @@ export function capitalize(str: string) {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
+export const stripHtml = (html: string) => {
+  const tmp = document.createElement('DIV');
+  tmp.innerHTML = html;
+  return tmp.textContent || tmp.innerText || '';
+};
+export const sanitizeHtml = (html: string) => {
+  // Simple sanitization - remove script tags and other dangerous elements
+  const cleanHtml = html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+  return cleanHtml;
+};
+export const getPlainText = (html: string) => {
+  if (typeof document === 'undefined') return html.replace(/<[^>]*>/g, ''); // For SSR
+  const tmp = document.createElement('DIV');
+  tmp.innerHTML = html;
+  return tmp.textContent || tmp.innerText || '';
+};
+
 export function debounce<T extends (...args: unknown[]) => void>(
   func: T,
   delay: number
