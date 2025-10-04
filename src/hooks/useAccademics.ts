@@ -52,13 +52,14 @@ export const useCategoriesCourse = () => {
     const categoryId = searchParams.get('category');
     const { access_token } = useAuthContext()
     return useQuery({
-        queryKey: ['categories-course', access_token],
+        queryKey: ['categories-course', access_token, categoryId],
         queryFn: async () => {
             const response = await courseService.getCourses();
+            console.log('response', response)
             const filteredCourses = response.data.filter(course => Number(course.id) === Number(categoryId));
             return filteredCourses;
         },
-        enabled: !!access_token,
+        enabled: !!access_token && !!categoryId,
         staleTime: Infinity,
         gcTime: Infinity,
         refetchOnWindowFocus: false,
