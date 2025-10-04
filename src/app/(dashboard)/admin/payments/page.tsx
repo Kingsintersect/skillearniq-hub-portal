@@ -1,4 +1,3 @@
-
 'use client'
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Search, Download } from 'lucide-react';
-import { toast } from 'sonner';
+import { useAdminQueries } from '@/hooks/useAdminQueries';
 
 export default function PaymentsPage() {
   const [filters, setFilters] = useState({
@@ -20,73 +19,43 @@ export default function PaymentsPage() {
   });
   const [searchTerm, setSearchTerm] = useState('');
 
-  const payments = [
-    {
-      id: 1,
-      student: 'Alex Johnson',
-      class: 'JSS 2A',
-      paymentFor: 'Term 1 Tuition Fee',
-      amount: 250000,
-      date: '2025-01-15',
-      dueDate: '2025-01-31',
-      status: 'paid',
-      method: 'Bank Transfer',
-      reference: 'REF2025001'
-    },
-    {
-      id: 2,
-      student: 'Sarah Johnson',
-      class: 'JSS 1B',
-      paymentFor: 'Term 1 Tuition Fee',
-      amount: 250000,
-      date: '2025-01-15',
-      dueDate: '2025-01-31',
-      status: 'paid',
-      method: 'Bank Transfer',
-      reference: 'REF2025002'
-    },
-    {
-      id: 3,
-      student: 'Michael Smith',
-      class: 'JSS 2A',
-      paymentFor: 'Term 1 Tuition Fee',
-      amount: 250000,
-      date: '',
-      dueDate: '2025-01-31',
-      status: 'pending',
-      method: '',
-      reference: ''
-    },
-    {
-      id: 4,
-      student: 'Emma Wilson',
-      class: 'JSS 1A',
-      paymentFor: 'Science Lab Fee',
-      amount: 50000,
-      date: '2025-01-20',
-      dueDate: '2025-02-15',
-      status: 'paid',
-      method: 'Online Payment',
-      reference: 'REF2025004'
-    }
-  ];
+  const { usePayments } = useAdminQueries();
 
-  // Filter payments
-  const filteredPayments = payments.filter(payment => {
-    const matchesSearch = payment.student.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         payment.class.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         payment.paymentFor.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesClass = filters.class === 'all' || payment.class === filters.class;
-    const matchesStatus = filters.status === 'all' || payment.status === filters.status;
-    const matchesStudent = filters.student === 'all' || payment.student === filters.student;
-    
-    return matchesSearch && matchesClass && matchesStatus && matchesStudent;
+  const { data: paymentsResponse, isLoading } = usePayments({
+    academicYear: filters.academicYear,
+    term: filters.term,
+    class: filters.class,
+    student: filters.student,
+    status: filters.status,
+    search: searchTerm
   });
 
+  const payments = paymentsResponse?.data || [];
+
   const handleExport = () => {
-    toast.success('Payment report exported successfully');
+    console.log('Export payments');
   };
+
+  // Calculate summary statistics
+  const totalCollected = payments
+    .filter(p => p.status === 'paid')
+    .reduce((sum, payment) => sum + payment.amount, 0);
+
+  const pendingPayments = payments
+    .filter(p => p.status === 'pending')
+    .reduce((sum, payment) => sum + payment.amount, 0);
+
+  const collectionRate = payments.length > 0 
+    ? Math.round((payments.filter(p => p.status === 'paid').length / payments.length) * 100)
+    : 0;
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen p-6 flex items-center justify-center">
+        <div className="text-center">Loading payments...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen p-6">
@@ -184,9 +153,9 @@ export default function PaymentsPage() {
 
             <div className="flex justify-between items-center">
               <div className="text-sm text-muted-foreground">
-                {filteredPayments.length} payments found
+                {payments.length} payments found
               </div>
-              <Button variant="outline" onClick={handleExport}  className='dark:text-white dark:border-white'>
+              <Button variant="outline" onClick={handleExport} className='dark:text-white dark:border-white'>
                 <Download className="h-4 w-4 mr-2" />
                 Export Report
               </Button>
@@ -216,7 +185,7 @@ export default function PaymentsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredPayments.map((payment) => (
+                {payments.map((payment) => (
                   <TableRow key={payment.id}>
                     <TableCell className="font-medium">{payment.student}</TableCell>
                     <TableCell>{payment.class}</TableCell>
@@ -243,19 +212,19 @@ export default function PaymentsPage() {
             <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
               <Card>
                 <CardContent className="p-4">
-                  <div className="text-2xl font-bold text-green-600">₦600,000</div>
+                  <div className="text-2xl font-bold text-green-600">₦{totalCollected.toLocaleString()}</div>
                   <div className="text-sm text-muted-foreground">Total Collected</div>
                 </CardContent>
               </Card>
               <Card>
                 <CardContent className="p-4">
-                  <div className="text-2xl font-bold text-orange-600">₦250,000</div>
+                  <div className="text-2xl font-bold text-orange-600">₦{pendingPayments.toLocaleString()}</div>
                   <div className="text-sm text-muted-foreground">Pending Payments</div>
                 </CardContent>
               </Card>
               <Card>
                 <CardContent className="p-4">
-                  <div className="text-2xl font-bold text-blue-600">71%</div>
+                  <div className="text-2xl font-bold text-blue-600">{collectionRate}%</div>
                   <div className="text-sm text-muted-foreground">Collection Rate</div>
                 </CardContent>
               </Card>

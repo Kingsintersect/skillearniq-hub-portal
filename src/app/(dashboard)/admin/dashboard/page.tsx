@@ -1,4 +1,3 @@
-
 'use client'
 import React from 'react';
 import Link from 'next/link';
@@ -16,8 +15,28 @@ import {
   TrendingUp,
   Calendar
 } from 'lucide-react';
+import { useAdminQueries } from '@/hooks/useAdminQueries';
 
 export default function AdminDashboard() {
+  const { useDashboardStats } = useAdminQueries();
+  const { data: stats, isLoading, error } = useDashboardStats();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen p-6 flex items-center justify-center">
+        <div className="text-center">Loading dashboard...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen p-6 flex items-center justify-center">
+        <div className="text-center text-destructive">Error loading dashboard</div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen p-6">
       <div className="max-w-7xl mx-auto">
@@ -33,7 +52,7 @@ export default function AdminDashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Total Students</p>
-                  <p className="text-2xl font-bold">1,247</p>
+                  <p className="text-2xl font-bold">{stats?.totalStudents || 0}</p>
                   <p className="text-xs text-green-600">+12 this month</p>
                 </div>
                 <Users className="h-8 w-8 text-blue-500" />
@@ -46,7 +65,7 @@ export default function AdminDashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Total Teachers</p>
-                  <p className="text-2xl font-bold">48</p>
+                  <p className="text-2xl font-bold">{stats?.totalTeachers || 0}</p>
                   <p className="text-xs text-green-600">+2 this month</p>
                 </div>
                 <UserCheck className="h-8 w-8 text-green-500" />
@@ -59,7 +78,7 @@ export default function AdminDashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Total Parents</p>
-                  <p className="text-2xl font-bold">893</p>
+                  <p className="text-2xl font-bold">{stats?.totalParents || 0}</p>
                   <p className="text-xs text-green-600">+8 this month</p>
                 </div>
                 <UserCog className="h-8 w-8 text-purple-500" />
@@ -72,7 +91,7 @@ export default function AdminDashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Active Classes</p>
-                  <p className="text-2xl font-bold">36</p>
+                  <p className="text-2xl font-bold">{stats?.activeClasses || 0}</p>
                   <p className="text-xs text-muted-foreground">Current term</p>
                 </div>
                 <BookOpen className="h-8 w-8 text-orange-500" />
@@ -88,7 +107,7 @@ export default function AdminDashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Attendance Rate</p>
-                  <p className="text-2xl font-bold">94.2%</p>
+                  <p className="text-2xl font-bold">{stats?.attendanceRate || 0}%</p>
                   <p className="text-xs text-muted-foreground">This week</p>
                 </div>
                 <TrendingUp className="h-8 w-8 text-green-500" />
@@ -101,7 +120,7 @@ export default function AdminDashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Fee Collection</p>
-                  <p className="text-2xl font-bold">82%</p>
+                  <p className="text-2xl font-bold">{stats?.feeCollection || 0}%</p>
                   <p className="text-xs text-muted-foreground">This term</p>
                 </div>
                 <CreditCard className="h-8 w-8 text-blue-500" />
@@ -114,7 +133,7 @@ export default function AdminDashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Academic Year</p>
-                  <p className="text-2xl font-bold">2025-2026</p>
+                  <p className="text-2xl font-bold">{stats?.academicYear || '2025-2026'}</p>
                   <p className="text-xs text-muted-foreground">1st Term</p>
                 </div>
                 <Calendar className="h-8 w-8 text-purple-500" />

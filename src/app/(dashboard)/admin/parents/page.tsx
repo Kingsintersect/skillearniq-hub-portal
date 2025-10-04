@@ -1,4 +1,3 @@
-
 'use client'
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,8 +8,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { Plus, Search, Download, Upload, Edit, Trash2 } from 'lucide-react';
-import { toast } from 'sonner';
+import { Plus, Search, Download, Upload, Trash2 } from 'lucide-react';
+import { useAdminQueries } from '@/hooks/useAdminQueries';
 
 export default function ParentsPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -20,24 +19,15 @@ export default function ParentsPage() {
     status: 'all'
   });
   
-  const [parents, setParents] = useState([
-    {
-      id: 1,
-      name: 'Mr. & Mrs. Johnson',
-      email: 'johnsons@email.com',
-      phone: '+1234567890',
-      children: ['Alex Johnson', 'Sarah Johnson'],
-      status: 'active'
-    },
-    {
-      id: 2,
-      name: 'Mr. & Mrs. Smith',
-      email: 'smiths@email.com',
-      phone: '+1234567891',
-      children: ['Michael Smith'],
-      status: 'active'
-    }
-  ]);
+  const { useParents, useCreateParent, useDeleteParent } = useAdminQueries();
+
+  const { data: parentsResponse, isLoading } = useParents({
+    search: searchTerm,
+    status: filters.status
+  });
+
+  const createParentMutation = useCreateParent();
+  const deleteParentMutation = useDeleteParent();
 
   const [newParent, setNewParent] = useState({
     name: '',
@@ -46,52 +36,44 @@ export default function ParentsPage() {
     children: []
   });
 
-  // Filter parents
-  const filteredParents = parents.filter(parent => {
-    const matchesSearch = parent.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         parent.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         parent.children.some(child => child.toLowerCase().includes(searchTerm.toLowerCase()));
-    
-    const matchesStatus = filters.status === 'all' || parent.status === filters.status;
-    
-    return matchesSearch && matchesStatus;
-  });
+  const parents = parentsResponse?.data || [];
 
   const handleCreateParent = () => {
-    const parent = {
-      ...newParent,
-      id: Math.max(...parents.map(p => p.id)) + 1,
-      status: 'active'
-    };
-    setParents([...parents, parent]);
-    setIsCreateDialogOpen(false);
-    setNewParent({
-      name: '',
-      email: '',
-      phone: '',
-      children: []
+    createParentMutation.mutate(newParent, {
+      onSuccess: () => {
+        setIsCreateDialogOpen(false);
+        setNewParent({
+          name: '',
+          email: '',
+          phone: '',
+          children: []
+        });
+      }
     });
-    toast.success('Parent created successfully');
   };
 
   const handleDeleteParent = (parentId: number) => {
-    setParents(parents.filter(parent => parent.id !== parentId));
-    toast.success('Parent deleted successfully');
+    deleteParentMutation.mutate(parentId);
   };
 
   const downloadTemplate = () => {
-    toast.success('Template downloaded successfully');
+    console.log('Download template');
   };
 
   const handleBulkUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      setTimeout(() => {
-        toast.success('Bulk upload completed successfully');
-        setIsBulkUploadDialogOpen(false);
-      }, 2000);
+      console.log('Bulk upload:', file);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen p-6 flex items-center justify-center">
+        <div className="text-center">Loading parents...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen p-6">
@@ -102,7 +84,7 @@ export default function ParentsPage() {
             <p className="text-muted-foreground">Manage all parents and their associations</p>
           </div>
           <div className="flex space-x-4">
-            <Button variant="outline" onClick={() => setIsBulkUploadDialogOpen(true)}  className='dark:text-white dark:border-white'>
+            <Button variant="outline" onClick={() => setIsBulkUploadDialogOpen(true)} className='dark:text-white dark:border-white'>
               <Upload className="h-4 w-4 mr-2" />
               Bulk Upload
             </Button>
@@ -145,7 +127,7 @@ export default function ParentsPage() {
         <Card>
           <CardHeader>
             <CardTitle>All Parents</CardTitle>
-            <CardDescription>{filteredParents.length} parents in the system</CardDescription>
+            <CardDescription>{parents.length} parents in the system</CardDescription>
           </CardHeader>
           <CardContent>
             <Table>
@@ -159,7 +141,7 @@ export default function ParentsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredParents.map((parent) => (
+                {parents.map((parent) => (
                   <TableRow key={parent.id}>
                     <TableCell className="font-medium">{parent.name}</TableCell>
                     <TableCell>
@@ -184,14 +166,12 @@ export default function ParentsPage() {
                     </TableCell>
                     <TableCell>
                       <div className="flex space-x-2">
-                        {/* <Button variant="outline" size="sm">
-                          <Edit className="h-4 w-4" />
-                        </Button> */}
                         <Button 
                           variant="outline" 
                           size="sm"
                           onClick={() => handleDeleteParent(parent.id)}
-                           className='dark:text-white dark:border-white'
+                          className='dark:text-white dark:border-white'
+                          disabled={deleteParentMutation.isPending}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -244,8 +224,11 @@ export default function ParentsPage() {
               <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
                 Cancel
               </Button>
-              <Button onClick={handleCreateParent}>
-                Add Parent
+              <Button 
+                onClick={handleCreateParent}
+                disabled={createParentMutation.isPending}
+              >
+                {createParentMutation.isPending ? 'Adding...' : 'Add Parent'}
               </Button>
             </div>
           </DialogContent>

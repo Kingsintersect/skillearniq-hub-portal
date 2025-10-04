@@ -1,4 +1,6 @@
+'use client'
 import React from 'react'
+import { usePathname } from 'next/navigation'
 import { Separator } from "@/components/ui/separator"
 import {
     SidebarTrigger,
@@ -8,8 +10,12 @@ import { ThemeSelector } from './theme-selector'
 import { DynamicBreadcrumb } from './ui/dynamic-breadcrumb'
 import Link from 'next/link'
 import SignOutButton from './core/signout-button'
+import { StudentSelector } from './StudentSelector'
 
 const SiteHeader = () => {
+    const pathname = usePathname()
+    const isParentPage = pathname?.includes('/parent')
+
     return (
         <header className="flex h-16 shrink-0 items-center justify-between gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
             <div className="flex items-center gap-2 px-4">
@@ -26,13 +32,7 @@ const SiteHeader = () => {
                 />
             </div>
             <div className="flex items-center gap-4 px-4">
-                {/* <Link href="/admission" className="text-sm font-medium text-gray-700 hover:text-gray-900">
-                    Admission
-                </Link>
-                <Separator
-                    orientation="vertical"
-                    className="data-[orientation=vertical]:h-4"
-                /> */}
+                {isParentPage && <StudentSelector />}
                 <ThemeSelector />
                 <ModeToggle />
                 <SignOutButton />

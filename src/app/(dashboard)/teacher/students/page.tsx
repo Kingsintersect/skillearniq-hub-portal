@@ -1,6 +1,6 @@
-'use client'
+'use client';
+
 import React, { useState, useMemo } from 'react';
-import { useStudentEnrollments, useGroups, useGroupMutation, useGroupDelete, useGroupStudentManagement } from '@/hooks/useStudents';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -26,19 +26,20 @@ import {
   Users, 
   UserPlus, 
   Search, 
-  Filter, 
   Download, 
   Mail, 
   Phone, 
   MoreVertical,
   Calendar,
-  BookOpen,
   Award,
   TrendingUp,
   Shield,
   MessageSquare,
   Send
 } from 'lucide-react';
+
+// Import the actual hooks and services
+import { useTeacherQueries } from '@/hooks/useTeacherQueries';
 
 const groupSchema = z.object({
   name: z.string().min(1, 'Group name is required'),
@@ -47,7 +48,30 @@ const groupSchema = z.object({
 
 type GroupFormData = z.infer<typeof groupSchema>;
 
+// Custom hooks for student management
+const useStudentManagement = (teacherId: number, filters: any) => {
+  const { useStudents, useClasses, useAttendance, useAcademicYears, useGroups } = useTeacherQueries();
+  
+  const studentsQuery = useStudents(teacherId, filters);
+  const classesQuery = useClasses(teacherId, filters);
+  const attendanceQuery = useAttendance(teacherId, filters);
+  const academicYearsQuery = useAcademicYears(teacherId);
+  const groupsQuery = useGroups(teacherId, filters.classId);
+
+  return {
+    students: studentsQuery.data?.data || [],
+    classes: classesQuery.data?.data || [],
+    groups: groupsQuery.data?.data || [],
+    attendance: attendanceQuery.data?.data || { daily: [], monthly: [] },
+    academicYears: academicYearsQuery.data?.data || [],
+    isLoading: studentsQuery.isLoading || classesQuery.isLoading || groupsQuery.isLoading,
+    isError: studentsQuery.isError || classesQuery.isError
+  };
+};
+
 const StudentManagementPage: React.FC = () => {
+  const teacherId = 1; // This should come from your auth context or props
+  
   const [activeTab, setActiveTab] = useState<'students' | 'groups' | 'attendance'>('students');
   const [dialogOpen, setDialogOpen] = useState<'createGroup' | 'manageGroup' | 'sendMessage' | null>(null);
   const [selectedGroup, setSelectedGroup] = useState<any>(null);
@@ -59,148 +83,94 @@ const StudentManagementPage: React.FC = () => {
     classId: 1,
   });
 
-  // Mock student data since hooks might not be returning data
-  const mockStudents = [
-    {
-      id: 1,
-      name: 'John Doe',
-      email: 'john.doe@school.edu',
-      phone: '+1234567890',
-      avatar: '',
-      status: 'active',
-      class: 'JSS1A',
-      enrollmentDate: '2024-01-15',
-      subjects: ['Mathematics', 'English', 'Science', 'Social Studies']
-    },
-    {
-      id: 2,
-      name: 'Jane Smith',
-      email: 'jane.smith@school.edu',
-      phone: '+1234567891',
-      avatar: '',
-      status: 'active',
-      class: 'JSS1A',
-      enrollmentDate: '2024-01-15',
-      subjects: ['Mathematics', 'English', 'Arts', 'Physical Education']
-    },
-    {
-      id: 3,
-      name: 'Mike Johnson',
-      email: 'mike.johnson@school.edu',
-      phone: '+1234567892',
-      avatar: '',
-      status: 'active',
-      class: 'JSS1A',
-      enrollmentDate: '2024-01-16',
-      subjects: ['Science', 'Mathematics', 'Technology', 'English']
-    },
-    {
-      id: 4,
-      name: 'Sarah Wilson',
-      email: 'sarah.wilson@school.edu',
-      phone: '+1234567893',
-      avatar: '',
-      status: 'active',
-      class: 'JSS1A',
-      enrollmentDate: '2024-01-14',
-      subjects: ['English', 'Arts', 'Social Studies', 'Mathematics']
-    },
-    {
-      id: 5,
-      name: 'David Brown',
-      email: 'david.brown@school.edu',
-      phone: '+1234567894',
-      avatar: '',
-      status: 'active',
-      class: 'JSS1A',
-      enrollmentDate: '2024-01-17',
-      subjects: ['Science', 'Technology', 'Mathematics', 'Physical Education']
-    }
-  ];
+  // Use actual service data
+  const { 
+    students, 
+    classes, 
+    groups, 
+    attendance, 
+    academicYears, 
+    isLoading 
+  } = useStudentManagement(teacherId, filters);
 
-  const mockGroups = [
-    {
-      id: 1,
-      name: 'Science Club',
-      description: 'Students interested in science projects',
-      studentIds: [1, 3, 5],
-      className: 'JSS1A',
-      createdBy: 1,
-      createdAt: '2024-01-20'
-    },
-    {
-      id: 2,
-      name: 'Math Olympiad',
-      description: 'Advanced mathematics competition team',
-      studentIds: [1, 2],
-      className: 'JSS1A',
-      createdBy: 1,
-      createdAt: '2024-01-22'
-    }
-  ];
-
-  const { data: enrollmentsData, isLoading } = useStudentEnrollments(filters);
-  const { data: groups = mockGroups } = useGroups(filters.classId);
-  const groupMutation = useGroupMutation();
-  const groupDelete = useGroupDelete();
-  const { addStudent, removeStudent } = useGroupStudentManagement();
+  // Group mutations
+  const { 
+    useCreateGroup, 
+    useDeleteGroup, 
+    useAddStudentToGroup, 
+    useRemoveStudentFromGroup 
+  } = useTeacherQueries();
+  
+  const createGroupMutation = useCreateGroup();
+  const deleteGroupMutation = useDeleteGroup();
+  const addStudentMutation = useAddStudentToGroup();
+  const removeStudentMutation = useRemoveStudentFromGroup();
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm<GroupFormData>({
     resolver: zodResolver(groupSchema),
   });
 
-  // Use mock data if hooks return empty
-  const students = enrollmentsData?.students || mockStudents;
-  const groupsData = groups || mockGroups;
+  // Available classes from service data
+  const availableClasses = classes.map(cls => ({
+    id: cls.id,
+    name: cls.shortName,
+    level: cls.level
+  }));
 
-  // Available classes for filter
-  const classes = [
-    { id: 1, name: 'JSS1A', level: 'JSS1' },
-    { id: 2, name: 'JSS1B', level: 'JSS1' },
-    { id: 3, name: 'JSS2A', level: 'JSS2' },
-    { id: 4, name: 'SSS1C', level: 'SSS1' },
-    { id: 5, name: 'SSS2D', level: 'SSS2' },
-    { id: 6, name: 'SSS3A', level: 'SSS3' },
-  ];
-
-  const academicYears = ['2023-2024', '2024-2025', '2025-2026'];
   const terms = ['1st', '2nd', '3rd'];
 
   // Filter students based on search term
   const filteredStudents = useMemo(() => {
     if (!students) return [];
-    return students.filter(student =>
+    return students.filter((student) =>
       student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      student.email.toLowerCase().includes(searchTerm.toLowerCase()) 
-      //student.class.toLowerCase().includes(searchTerm.toLowerCase())
+      student.email.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [students, searchTerm]);
 
+  // Properly define the onSubmitGroup function
   const onSubmitGroup = async (data: GroupFormData) => {
     try {
-      await groupMutation.mutateAsync({
+      await createGroupMutation.mutateAsync({
         ...data,
         classId: filters.classId,
-        className: classes.find(c => c.id === filters.classId)?.name || '',
+        className: availableClasses.find(c => c.id === filters.classId)?.name || '',
         studentIds: [],
-        createdAt: new Date().toISOString(),
-        createdBy: 1,
+        createdBy: teacherId,
       });
 
       toast.success(`"${data.name}" group created successfully!`);
       reset();
       setDialogOpen(null);
-    } catch (error) {
+    } catch(error) {
       toast.error('Failed to create group. Please try again.');
     }
   };
 
   const handleDeleteGroup = async (groupId: number) => {
     try {
-      await groupDelete.mutateAsync(groupId);
+      await deleteGroupMutation.mutateAsync(groupId);
       toast.success('Group deleted successfully!');
     } catch (error) {
       toast.error('Failed to delete group. Please try again.');
+    }
+  };
+
+  const handleAddStudentToGroup = async (groupId: number, studentId: number) => {
+    try {
+      await addStudentMutation.mutateAsync({ groupId, studentId });
+      toast.success('Student added to group!');
+    } catch (error) {
+      toast.error('Failed to add student to group.');
+    }
+  };
+
+  const handleRemoveStudentFromGroup = async (groupId: number, studentId: number) => {
+    try {
+      await removeStudentMutation.mutateAsync({ groupId, studentId });
+      toast.success('Student removed from group!');
+    } catch (error) {
+      toast.error('Failed to remove student from group.');
     }
   };
 
@@ -225,7 +195,7 @@ const StudentManagementPage: React.FC = () => {
     if (selectedStudents.length === students.length) {
       setSelectedStudents([]);
     } else {
-      setSelectedStudents(students.map(student => student.id));
+      setSelectedStudents(students.map((student) => student.id));
     }
   };
 
@@ -273,7 +243,7 @@ const StudentManagementPage: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Active Groups</p>
-                  <p className="text-2xl font-bold text-foreground">{groupsData.length}</p>
+                  <p className="text-2xl font-bold text-foreground">{groups.length}</p>
                 </div>
                 <div className="w-12 h-12 bg-green-500/10 rounded-lg flex items-center justify-center">
                   <Shield className="h-6 w-6 text-green-500" />
@@ -287,7 +257,12 @@ const StudentManagementPage: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Attendance Rate</p>
-                  <p className="text-2xl font-bold text-foreground">94.2%</p>
+                  <p className="text-2xl font-bold text-foreground">
+                    {attendance.monthly.length > 0 
+                      ? `${attendance.monthly[attendance.monthly.length - 1].rate}%` 
+                      : '0%'
+                    }
+                  </p>
                 </div>
                 <div className="w-12 h-12 bg-orange-500/10 rounded-lg flex items-center justify-center">
                   <TrendingUp className="h-6 w-6 text-orange-500" />
@@ -301,7 +276,12 @@ const StudentManagementPage: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Avg Performance</p>
-                  <p className="text-2xl font-bold text-foreground">85.6%</p>
+                  <p className="text-2xl font-bold text-foreground">
+                    {students.length > 0 
+                      ? `${(students.reduce((acc, student) => acc + student.averageScore, 0) / students.length).toFixed(1)}%` 
+                      : '0%'
+                    }
+                  </p>
                 </div>
                 <div className="w-12 h-12 bg-purple-500/10 rounded-lg flex items-center justify-center">
                   <Award className="h-6 w-6 text-purple-500" />
@@ -360,7 +340,7 @@ const StudentManagementPage: React.FC = () => {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {classes.map(cls => (
+                      {availableClasses.map(cls => (
                         <SelectItem key={cls.id} value={cls.id.toString()}>
                           {cls.name}
                         </SelectItem>
@@ -446,14 +426,14 @@ const StudentManagementPage: React.FC = () => {
               students={filteredStudents}
               selectedStudents={selectedStudents}
               onStudentSelect={toggleStudentSelection}
-              className={classes.find(c => c.id === filters.classId)?.name || ''}
+              className={availableClasses.find(c => c.id === filters.classId)?.name || ''}
             />
           </TabsContent>
 
           {/* Groups Tab */}
           <TabsContent value="groups">
             <GroupsOverview
-              groups={groupsData}
+              groups={groups}
               students={students}
               onManageGroup={(group) => {
                 setSelectedGroup(group);
@@ -466,7 +446,7 @@ const StudentManagementPage: React.FC = () => {
           {/* Attendance Tab */}
           <TabsContent value="attendance">
             <AttendanceOverview 
-              classId={filters.classId}
+              attendance={attendance}
               academicYear={filters.academicYear}
               term={filters.term}
             />
@@ -506,8 +486,8 @@ const StudentManagementPage: React.FC = () => {
                 <Button type="button" variant="outline" onClick={() => setDialogOpen(null)}>
                   Cancel
                 </Button>
-                <Button type="submit" disabled={groupMutation.isPending}>
-                  {groupMutation.isPending ? 'Creating...' : 'Create Group'}
+                <Button type="submit" disabled={createGroupMutation.isPending}>
+                  {createGroupMutation.isPending ? 'Creating...' : 'Create Group'}
                 </Button>
               </DialogFooter>
             </form>
@@ -528,8 +508,8 @@ const StudentManagementPage: React.FC = () => {
                 <GroupManagement
                   group={selectedGroup}
                   students={students}
-                  onAddStudent={addStudent.mutateAsync}
-                  onRemoveStudent={removeStudent.mutateAsync}
+                  onAddStudent={handleAddStudentToGroup}
+                  onRemoveStudent={handleRemoveStudentFromGroup}
                   onDelete={() => {
                     handleDeleteGroup(selectedGroup.id);
                     setDialogOpen(null);
@@ -664,8 +644,8 @@ const StudentsOverview: React.FC<{
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center space-x-2">
-                      <Progress value={85} className="w-20 h-2" />
-                      <span className="text-sm font-medium">85%</span>
+                      <Progress value={student.averageScore || 0} className="w-20 h-2" />
+                      <span className="text-sm font-medium">{student.averageScore || 0}%</span>
                     </div>
                   </TableCell>
                   <TableCell>
@@ -769,19 +749,24 @@ const GroupsOverview: React.FC<{
 };
 
 // Attendance Overview Component
-const AttendanceOverview: React.FC<{ classId: number; academicYear: string; term: string }> = ({ 
-  classId, 
+const AttendanceOverview: React.FC<{ 
+  attendance: any; 
+  academicYear: string; 
+  term: string 
+}> = ({ 
+  attendance, 
   academicYear, 
   term 
 }) => {
-  // Mock attendance data
-  const attendanceData = [
-    { date: '2024-01-15', present: 28, absent: 2, late: 1, rate: 93.3 },
-    { date: '2024-01-16', present: 29, absent: 1, late: 1, rate: 96.7 },
-    { date: '2024-01-17', present: 27, absent: 3, late: 1, rate: 90.0 },
-    { date: '2024-01-18', present: 30, absent: 0, late: 1, rate: 100.0 },
-    { date: '2024-01-19', present: 28, absent: 2, late: 1, rate: 93.3 },
-  ];
+  const attendanceData = attendance.daily || [];
+
+  // Calculate average attendance rate
+  const averageRate = attendanceData.length > 0 
+    ? attendanceData.reduce((acc: number, day: any) => acc + day.rate, 0) / attendanceData.length
+    : 0;
+
+  const totalPresent = attendanceData.reduce((acc: number, day: any) => acc + day.present, 0);
+  const totalAbsent = attendanceData.reduce((acc: number, day: any) => acc + day.absent, 0);
 
   return (
     <Card>
@@ -796,15 +781,15 @@ const AttendanceOverview: React.FC<{ classId: number; academicYear: string; term
           {/* Attendance Summary */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="p-4 rounded-lg border border-green-200 bg-green-50">
-              <div className="text-2xl font-bold text-green-600">94.2%</div>
+              <div className="text-2xl font-bold text-green-600">{averageRate.toFixed(1)}%</div>
               <div className="text-sm text-green-700">Average Attendance Rate</div>
             </div>
             <div className="p-4 rounded-lg border border-blue-200 bg-blue-50">
-              <div className="text-2xl font-bold text-blue-600">142</div>
+              <div className="text-2xl font-bold text-blue-600">{totalPresent}</div>
               <div className="text-sm text-blue-700">Total Present Days</div>
             </div>
             <div className="p-4 rounded-lg border border-orange-200 bg-orange-50">
-              <div className="text-2xl font-bold text-orange-600">8</div>
+              <div className="text-2xl font-bold text-orange-600">{totalAbsent}</div>
               <div className="text-sm text-orange-700">Absent Days</div>
             </div>
           </div>
@@ -822,7 +807,7 @@ const AttendanceOverview: React.FC<{ classId: number; academicYear: string; term
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {attendanceData.map((day) => (
+                {attendanceData.map((day: any) => (
                   <TableRow key={day.date}>
                     <TableCell className="font-medium">
                       {new Date(day.date).toLocaleDateString('en-US', { 
@@ -867,8 +852,8 @@ const AttendanceOverview: React.FC<{ classId: number; academicYear: string; term
 const GroupManagement: React.FC<{
   group: any;
   students: any[];
-  onAddStudent: (data: { groupId: number; studentId: number }) => Promise<any>;
-  onRemoveStudent: (data: { groupId: number; studentId: number }) => Promise<any>;
+  onAddStudent: (groupId: number, studentId: number) => Promise<void>;
+  onRemoveStudent: (groupId: number, studentId: number) => Promise<void>;
   onDelete: () => void;
 }> = ({ group, students, onAddStudent, onRemoveStudent, onDelete }) => {
   const availableStudents = students.filter(s => !group.studentIds.includes(s.id));
@@ -892,16 +877,15 @@ const GroupManagement: React.FC<{
                     <div>
                       <div className="text-sm font-medium">{student.name}</div>
                       <div className="text-xs text-muted-foreground">{student.email}</div>
-                       <Button
+                    </div>
+                  </div>
+                  <Button
                     size="sm"
-                    onClick={() => onAddStudent({ groupId: group.id, studentId: student.id })}
+                    onClick={() => onAddStudent(group.id, student.id)}
                     className="px-3 py-1 text-xs"
                   >
                     Add
                   </Button>
-                    </div>
-                  </div>
-                 
                 </div>
               ))}
             </div>
@@ -923,17 +907,16 @@ const GroupManagement: React.FC<{
                     <div>
                       <div className="text-sm font-medium">{student.name}</div>
                       <div className="text-xs text-muted-foreground">{student.email}</div>
-                       <Button
+                    </div>
+                  </div>
+                  <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => onRemoveStudent({ groupId: group.id, studentId: student.id })}
+                    onClick={() => onRemoveStudent(group.id, student.id)}
                     className="text-red-600 border-red-200 hover:bg-red-50 px-3 py-1 text-xs"
                   >
                     Remove
                   </Button>
-                    </div>
-                  </div>
-                 
                 </div>
               ))}
             </div>
@@ -947,7 +930,7 @@ const GroupManagement: React.FC<{
         <Button variant="outline" onClick={onDelete} className="text-red-600 border-red-200 hover:bg-red-50">
           Delete Group
         </Button>
-        <Button variant="outline">
+        <Button variant="outline" onClick={() => window.location.reload()}>
           Done
         </Button>
       </div>
