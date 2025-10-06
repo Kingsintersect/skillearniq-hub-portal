@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { StudentGroup, teacherService } from '@/lib/services/teacherService';
+import { NotificationSettings, Preferences, StudentGroup, TeacherProfile, teacherService } from '@/lib/services/teacherService';
 import { toast } from 'sonner';
 
 export const useTeacherQueries = () => {
@@ -203,6 +203,98 @@ const useRemoveStudentFromGroup = () => {
   });
 };
 
+// Profile
+const useProfile = (teacherId: number) => {
+  return useQuery({
+    queryKey: ['teacher', 'profile', teacherId],
+    queryFn: () => teacherService.getProfile(teacherId),
+    staleTime: 30 * 60 * 1000, // 30 minutes
+  });
+};
+
+const useUpdateProfile = () => {
+  return useMutation({
+    mutationFn: ({ teacherId, data }: { teacherId: number; data: Partial<TeacherProfile> }) =>
+      teacherService.updateProfile(teacherId, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['teacher', 'profile'] });
+      toast.success('Profile updated successfully');
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Failed to update profile');
+    }
+  });
+};
+
+// Notification Settings
+const useNotificationSettings = (teacherId: number) => {
+  return useQuery({
+    queryKey: ['teacher', 'notifications', teacherId],
+    queryFn: () => teacherService.getNotificationSettings(teacherId),
+    staleTime: 30 * 60 * 1000,
+  });
+};
+
+const useUpdateNotificationSettings = () => {
+  return useMutation({
+    mutationFn: ({ teacherId, data }: { teacherId: number; data: NotificationSettings }) =>
+      teacherService.updateNotificationSettings(teacherId, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['teacher', 'notifications'] });
+      toast.success('Notification settings updated');
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Failed to update notification settings');
+    }
+  });
+};
+
+// Security Settings
+const useSecuritySettings = (teacherId: number) => {
+  return useQuery({
+    queryKey: ['teacher', 'security', teacherId],
+    queryFn: () => teacherService.getSecuritySettings(teacherId),
+    staleTime: 30 * 60 * 1000,
+  });
+};
+
+// Preferences
+const usePreferences = (teacherId: number) => {
+  return useQuery({
+    queryKey: ['teacher', 'preferences', teacherId],
+    queryFn: () => teacherService.getPreferences(teacherId),
+    staleTime: 30 * 60 * 1000,
+  });
+};
+
+const useUpdatePreferences = () => {
+  return useMutation({
+    mutationFn: ({ teacherId, data }: { teacherId: number; data: Preferences }) =>
+      teacherService.updatePreferences(teacherId, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['teacher', 'preferences'] });
+      toast.success('Preferences updated');
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Failed to update preferences');
+    }
+  });
+};
+
+// Change Password
+const useChangePassword = () => {
+  return useMutation({
+    mutationFn: ({ teacherId, data }: { teacherId: number; data: any }) =>
+      teacherService.changePassword(teacherId, data),
+    onSuccess: () => {
+      toast.success('Password changed successfully');
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Failed to change password');
+    }
+  });
+};
+
   return {
     // Queries
     useDashboardData,
@@ -226,5 +318,13 @@ const useRemoveStudentFromGroup = () => {
   useDeleteGroup,
   useAddStudentToGroup,
   useRemoveStudentFromGroup,
+  useUpdateProfile,
+  useUpdateNotificationSettings,
+  useUpdatePreferences,
+  useChangePassword,
+  usePreferences, 
+  useProfile,
+  useNotificationSettings,
+  useSecuritySettings,
   };
 };
