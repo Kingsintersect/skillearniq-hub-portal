@@ -1,20 +1,7 @@
 import { ApiResponse, PaginationParams } from '@/types/auth';
 
 // Types for teacher data
-export interface TeacherProfile {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  department: string;
-  teacherId: string;
-  bio: string;
-  avatar: string;
-  subjects: string[];
-  classes: number;
-  totalStudents: number;
-  joinDate: string;
-}
+
 
 export interface TeacherClass {
   id: number;
@@ -31,6 +18,58 @@ export interface TeacherClass {
   room: string;
   progress: number;
   averageGrade: string;
+}
+
+export interface TeacherProfile {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  department: string;
+  teacherId: string;
+  bio: string;
+  avatar: string;
+  subjects: string[];
+  classes: number;
+  totalStudents: number;
+  joinDate: string;
+}
+
+export interface NotificationSettings {
+  emailNotifications: boolean;
+  pushNotifications: boolean;
+  smsNotifications: boolean;
+  assessmentReminders: boolean;
+  attendanceAlerts: boolean;
+  parentMessages: boolean;
+  systemUpdates: boolean;
+  deadlineReminders: boolean;
+}
+
+export interface SecuritySettings {
+  twoFactorEnabled: boolean;
+  loginAlerts: boolean;
+  passwordLastChanged: string;
+  activeSessions: ActiveSession[];
+}
+
+export interface ActiveSession {
+  id: string;
+  device: string;
+  browser: string;
+  location: string;
+  lastActive: string;
+  ipAddress: string;
+}
+
+export interface Preferences {
+  theme: 'light' | 'dark' | 'system';
+  language: string;
+  timezone: string;
+  dateFormat: string;
+  defaultView: 'dashboard' | 'classes' | 'assessments';
+  autoSave: boolean;
+  exportFormat: 'pdf' | 'excel' | 'csv';
 }
 
 export interface Assessment {
@@ -841,6 +880,179 @@ removeStudentFromGroup: async (operation: GroupStudentOperation): Promise<ApiRes
     status: 200,
     data: mockGroup,
     message: 'Student removed from group successfully'
+  };
+},
+
+
+// Profile
+getProfile: async (teacherId: number): Promise<ApiResponse<TeacherProfile>> => {
+  await new Promise(resolve => setTimeout(resolve, 500));
+  
+  const profile: TeacherProfile = {
+    id: teacherId.toString(),
+    name: 'Dr. Sarah Johnson',
+    email: 'sarah.johnson@school.edu',
+    phone: '+1234567890',
+    department: 'Science & Mathematics',
+    teacherId: 'TCH-2024-001',
+    bio: 'Passionate educator with 8 years of experience in teaching Science and Mathematics. Committed to student success and innovative teaching methods.',
+    avatar: '',
+    subjects: ['Mathematics', 'Science', 'Physics'],
+    classes: 6,
+    totalStudents: 180,
+    joinDate: '2020-08-15'
+  };
+
+  return {
+    status: 200,
+    data: profile,
+    message: 'Profile fetched successfully'
+  };
+},
+
+updateProfile: async (teacherId: number, profileData: Partial<TeacherProfile>): Promise<ApiResponse<TeacherProfile>> => {
+  await new Promise(resolve => setTimeout(resolve, 600));
+  
+  const updatedProfile: TeacherProfile = {
+    id: teacherId.toString(),
+    name: profileData.name || 'Dr. Sarah Johnson',
+    email: profileData.email || 'sarah.johnson@school.edu',
+    phone: profileData.phone || '+1234567890',
+    department: profileData.department || 'Science & Mathematics',
+    teacherId: 'TCH-2024-001',
+    bio: profileData.bio || 'Passionate educator with 8 years of experience...',
+    avatar: profileData.avatar || '',
+    subjects: profileData.subjects || ['Mathematics', 'Science', 'Physics'],
+    classes: 6,
+    totalStudents: 180,
+    joinDate: '2020-08-15'
+  };
+
+  return {
+    status: 200,
+    data: updatedProfile,
+    message: 'Profile updated successfully'
+  };
+},
+
+// Notification Settings
+getNotificationSettings: async (teacherId: number): Promise<ApiResponse<NotificationSettings>> => {
+  await new Promise(resolve => setTimeout(resolve, 400));
+  
+  const settings: NotificationSettings = {
+    emailNotifications: true,
+    pushNotifications: true,
+    smsNotifications: false,
+    assessmentReminders: true,
+    attendanceAlerts: true,
+    parentMessages: true,
+    systemUpdates: false,
+    deadlineReminders: true
+  };
+
+  return {
+    status: 200,
+    data: settings,
+    message: 'Notification settings fetched successfully'
+  };
+},
+
+updateNotificationSettings: async (teacherId: number, settings: NotificationSettings): Promise<ApiResponse<NotificationSettings>> => {
+  await new Promise(resolve => setTimeout(resolve, 500));
+  
+  return {
+    status: 200,
+    data: settings,
+    message: 'Notification settings updated successfully'
+  };
+},
+
+// Security Settings
+getSecuritySettings: async (teacherId: number): Promise<ApiResponse<SecuritySettings>> => {
+  await new Promise(resolve => setTimeout(resolve, 400));
+  
+  const security: SecuritySettings = {
+    twoFactorEnabled: true,
+    loginAlerts: true,
+    passwordLastChanged: '2024-01-15',
+    activeSessions: [
+      {
+        id: '1',
+        device: 'Windows PC',
+        browser: 'Chrome 120.0',
+        location: 'Lagos, Nigeria',
+        lastActive: '2024-01-25T10:30:00Z',
+        ipAddress: '192.168.1.100'
+      },
+      {
+        id: '2',
+        device: 'iPhone 14',
+        browser: 'Safari 17.0',
+        location: 'Lagos, Nigeria',
+        lastActive: '2024-01-25T09:15:00Z',
+        ipAddress: '192.168.1.101'
+      }
+    ]
+  };
+
+  return {
+    status: 200,
+    data: security,
+    message: 'Security settings fetched successfully'
+  };
+},
+
+// Preferences
+getPreferences: async (teacherId: number): Promise<ApiResponse<Preferences>> => {
+  await new Promise(resolve => setTimeout(resolve, 400));
+  
+  const preferences: Preferences = {
+    theme: 'system',
+    language: 'en',
+    timezone: 'Africa/Lagos',
+    dateFormat: 'DD/MM/YYYY',
+    defaultView: 'dashboard',
+    autoSave: true,
+    exportFormat: 'pdf'
+  };
+
+  return {
+    status: 200,
+    data: preferences,
+    message: 'Preferences fetched successfully'
+  };
+},
+
+updatePreferences: async (teacherId: number, preferences: Preferences): Promise<ApiResponse<Preferences>> => {
+  await new Promise(resolve => setTimeout(resolve, 500));
+  
+  return {
+    status: 200,
+    data: preferences,
+    message: 'Preferences updated successfully'
+  };
+},
+
+// Change Password
+changePassword: async (teacherId: number, passwordData: {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}): Promise<ApiResponse<void>> => {
+  await new Promise(resolve => setTimeout(resolve, 800));
+  
+  if (passwordData.newPassword !== passwordData.confirmPassword) {
+    throw new Error('New passwords do not match');
+  }
+
+  if (passwordData.newPassword.length < 8) {
+    throw new Error('Password must be at least 8 characters long');
+  }
+
+  return {
+    status: 200,
+    data: undefined,
+    message: 'Password changed successfully'
   };
 },
 };
