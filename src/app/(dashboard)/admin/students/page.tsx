@@ -1,4 +1,3 @@
-
 'use client'
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,7 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Plus, Search, Download, Upload, Edit, Trash2, Ban } from 'lucide-react';
-import { toast } from 'sonner';
+import { useAdminQueries } from '@/hooks/useAdminQueries';
 
 export default function StudentsPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -21,44 +20,22 @@ export default function StudentsPage() {
     status: 'all'
   });
 
-  const [students, setStudents] = useState([
-    {
-      id: 1,
-      name: 'Alex Johnson',
-      studentId: 'STU2025001',
-      class: 'JSS 2A',
-      gender: 'Male',
-      dateOfBirth: '2010-05-15',
-      parentName: 'Mr. & Mrs. Johnson',
-      status: 'active',
-      email: 'alex.j@school.edu',
-      phone: '+1234567890'
-    },
-    {
-      id: 2,
-      name: 'Sarah Johnson',
-      studentId: 'STU2025002',
-      class: 'JSS 1B',
-      gender: 'Female',
-      dateOfBirth: '2011-08-22',
-      parentName: 'Mr. & Mrs. Johnson',
-      status: 'active',
-      email: 'sarah.j@school.edu',
-      phone: '+1234567891'
-    },
-    {
-      id: 3,
-      name: 'Michael Brown',
-      studentId: 'STU2025003',
-      class: 'JSS 2A',
-      gender: 'Male',
-      dateOfBirth: '2010-11-30',
-      parentName: 'Mr. & Mrs. Brown',
-      status: 'suspended',
-      email: 'michael.b@school.edu',
-      phone: '+1234567892'
-    }
-  ]);
+  const { 
+    useStudents, 
+    useCreateStudent, 
+    useUpdateStudentStatus, 
+    useDeleteStudent 
+  } = useAdminQueries();
+
+  const { data: studentsResponse, isLoading } = useStudents({
+    search: searchTerm,
+    class: filters.class,
+    status: filters.status
+  });
+
+  const createStudentMutation = useCreateStudent();
+  const updateStudentStatusMutation = useUpdateStudentStatus();
+  const deleteStudentMutation = useDeleteStudent();
 
   const [newStudent, setNewStudent] = useState({
     name: '',
@@ -71,68 +48,55 @@ export default function StudentsPage() {
     phone: ''
   });
 
-  // Filter students based on search term and filters
-  const filteredStudents = students.filter(student => {
-    const matchesSearch = student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         student.studentId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         student.class.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesClass = filters.class === 'all' || student.class === filters.class;
-    const matchesStatus = filters.status === 'all' || student.status === filters.status;
-    
-    return matchesSearch && matchesClass && matchesStatus;
-  });
+  const students = studentsResponse?.data || [];
 
   const handleCreateStudent = () => {
-    const student = {
-      ...newStudent,
-      id: Math.max(...students.map(s => s.id)) + 1,
-      status: 'active'
-    };
-    setStudents([...students, student]);
-    setIsCreateDialogOpen(false);
-    setNewStudent({
-      name: '',
-      studentId: '',
-      class: '',
-      gender: '',
-      dateOfBirth: '',
-      parentName: '',
-      email: '',
-      phone: ''
+    createStudentMutation.mutate(newStudent, {
+      onSuccess: () => {
+        setIsCreateDialogOpen(false);
+        setNewStudent({
+          name: '',
+          studentId: '',
+          class: '',
+          gender: '',
+          dateOfBirth: '',
+          parentName: '',
+          email: '',
+          phone: ''
+        });
+      }
     });
-    toast.success('Student created successfully');
   };
 
-  const handleSuspendStudent = (studentId: number) => {
-    setStudents(students.map(student => 
-      student.id === studentId 
-        ? { ...student, status: student.status === 'active' ? 'suspended' : 'active' }
-        : student
-    ));
-    toast.success('Student status updated');
+  const handleSuspendStudent = (studentId: number, currentStatus: string) => {
+    const newStatus = currentStatus === 'active' ? 'suspended' : 'active';
+    updateStudentStatusMutation.mutate({ studentId, status: newStatus as 'active' | 'suspended' });
   };
 
   const handleDeleteStudent = (studentId: number) => {
-    setStudents(students.filter(student => student.id !== studentId));
-    toast.success('Student deleted successfully');
+    deleteStudentMutation.mutate(studentId);
   };
 
   const downloadTemplate = () => {
-    toast.success('Template downloaded successfully');
-    // In real implementation, this would download a CSV file
+    // Implement template download
+    console.log('Download template');
   };
 
   const handleBulkUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      // Simulate file processing
-      setTimeout(() => {
-        toast.success('Bulk upload completed successfully');
-        setIsBulkUploadDialogOpen(false);
-      }, 2000);
+      // Implement bulk upload
+      console.log('Bulk upload:', file);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen p-6 flex items-center justify-center">
+        <div className="text-center">Loading students...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen p-6">
@@ -143,7 +107,7 @@ export default function StudentsPage() {
             <p className="text-muted-foreground">Manage all students in the school</p>
           </div>
           <div className="flex space-x-4">
-            <Button variant="outline" onClick={() => setIsBulkUploadDialogOpen(true)}  className='dark:text-white dark:border-white'>
+            <Button variant="outline" onClick={() => setIsBulkUploadDialogOpen(true)} className='dark:text-white dark:border-white'>
               <Upload className="h-4 w-4 mr-2" />
               Bulk Upload
             </Button>
@@ -202,7 +166,7 @@ export default function StudentsPage() {
         <Card>
           <CardHeader>
             <CardTitle>All Students</CardTitle>
-            <CardDescription>{filteredStudents.length} students found</CardDescription>
+            <CardDescription>{students.length} students found</CardDescription>
           </CardHeader>
           <CardContent>
             <Table>
@@ -218,7 +182,7 @@ export default function StudentsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredStudents.map((student) => (
+                {students.map((student) => (
                   <TableRow key={student.id}>
                     <TableCell className="font-medium">{student.studentId}</TableCell>
                     <TableCell>
@@ -237,14 +201,12 @@ export default function StudentsPage() {
                     </TableCell>
                     <TableCell>
                       <div className="flex space-x-2">
-                        {/* <Button variant="outline" size="sm">
-                          <Edit className="h-4 w-4" />
-                        </Button> */}
                         <Button 
                           variant="outline" 
                           size="sm"
-                          onClick={() => handleSuspendStudent(student.id)}
+                          onClick={() => handleSuspendStudent(student.id, student.status)}
                           className='dark:text-white dark:border-white'
+                          disabled={updateStudentStatusMutation.isPending}
                         >
                           <Ban className="h-4 w-4" />
                         </Button>
@@ -252,7 +214,8 @@ export default function StudentsPage() {
                           variant="outline" 
                           size="sm"
                           onClick={() => handleDeleteStudent(student.id)}
-                           className='dark:text-white dark:border-white'
+                          className='dark:text-white dark:border-white'
+                          disabled={deleteStudentMutation.isPending}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -356,8 +319,11 @@ export default function StudentsPage() {
               <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
                 Cancel
               </Button>
-              <Button onClick={handleCreateStudent}>
-                Add Student
+              <Button 
+                onClick={handleCreateStudent}
+                disabled={createStudentMutation.isPending}
+              >
+                {createStudentMutation.isPending ? 'Adding...' : 'Add Student'}
               </Button>
             </div>
           </DialogContent>

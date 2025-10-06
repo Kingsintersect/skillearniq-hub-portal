@@ -25,75 +25,84 @@ import {
   Gem,
   Lightbulb
 } from 'lucide-react';
+import { useStudentQueries } from '@/hooks/useStudentQueries';
 
 export const GamificationPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'overview' | 'badges' | 'leaderboard' | 'rewards'>('overview');
   const [showCongratulation, setShowCongratulation] = useState(false);
   const [newBadge, setNewBadge] = useState<any>(null);
 
-  // Student gamification data
-  const studentData = {
-    name: 'Alex Johnson',
-    points: 1250,
-    level: 3,
-    nextLevelPoints: 1500,
-    streak: 7,
-    rank: 3,
-    totalStudents: 150
-  };
+  const { useGamificationData, useRedeemReward } = useStudentQueries();
+  const { data: gamificationResponse, isLoading, error } = useGamificationData();
+  const redeemRewardMutation = useRedeemReward();
 
-  // Badges data
-  const badges = [
-    { id: 1, name: 'Math Whiz', icon: '🧮', description: 'Score 90%+ in 5 math assessments', earned: true, points: 100, category: 'academic' },
-    { id: 2, name: 'Bookworm', icon: '📚', description: 'Read 10 assigned books', earned: true, points: 50, category: 'reading' },
-    { id: 3, name: 'Science Explorer', icon: '🔬', description: 'Complete all lab experiments', earned: false, points: 75, category: 'academic' },
-    { id: 4, name: 'Perfect Attendance', icon: '⭐', description: 'No absences for one term', earned: true, points: 100, category: 'attendance' },
-    { id: 5, name: 'Homework Hero', icon: '💪', description: 'Submit all assignments on time', earned: false, points: 80, category: 'homework' },
-    { id: 6, name: 'Group Leader', icon: '👥', description: 'Lead a study group project', earned: false, points: 120, category: 'social' },
-    { id: 7, name: 'Early Bird', icon: '🐦', description: 'Submit 5 assignments early', earned: true, points: 60, category: 'homework' },
-    { id: 8, name: 'Quiz Master', icon: '🎯', description: 'Score 100% on 3 quizzes', earned: false, points: 90, category: 'academic' }
-  ];
-
-  // Leaderboard data
-  const leaderboard = [
-    { rank: 1, name: 'Sarah Wilson', points: 1450, level: 4, avatar: '' },
-    { rank: 2, name: 'Mike Johnson', points: 1320, level: 3, avatar: '' },
-    { rank: 3, name: studentData.name, points: studentData.points, level: studentData.level, avatar: '' },
-    { rank: 4, name: 'Emma Davis', points: 1180, level: 3, avatar: '' },
-    { rank: 5, name: 'Tom Brown', points: 1050, level: 3, avatar: '' }
-  ];
-
-  // Rewards data
-  const rewards = [
-    { id: 1, name: 'Homework Pass', cost: 200, description: 'Skip one homework assignment', available: true },
-    { id: 2, name: 'Extra Credit', cost: 500, description: 'Get 5% extra credit on next test', available: true },
-    { id: 3, name: 'Study Session', cost: 300, description: 'Private study session with teacher', available: false },
-    { id: 4, name: 'Library Privileges', cost: 400, description: 'Extended library access', available: true }
-  ];
+  const gamificationData = gamificationResponse?.data;
+  const { profile, badges, leaderboard, rewards, recentActivities } = gamificationData || {};
 
   // Simulate earning a new badge
   useEffect(() => {
-    const unearnedBadges = badges.filter(badge => !badge.earned);
-    if (unearnedBadges.length > 0 && Math.random() > 0.7) {
-      const randomBadge = unearnedBadges[Math.floor(Math.random() * unearnedBadges.length)];
-      setTimeout(() => {
-        setNewBadge(randomBadge);
-        setShowCongratulation(true);
-        toast.success(`Congratulations! You earned the ${randomBadge.name} badge!`);
-      }, 2000);
+    if (badges) {
+      const unearnedBadges = badges.filter((badge: any) => !badge.earned);
+      if (unearnedBadges.length > 0 && Math.random() > 0.7) {
+        const randomBadge = unearnedBadges[Math.floor(Math.random() * unearnedBadges.length)];
+        setTimeout(() => {
+          setNewBadge(randomBadge);
+          setShowCongratulation(true);
+          toast.success(`Congratulations! You earned the ${randomBadge.name} badge!`);
+        }, 2000);
+      }
     }
-  }, []);
+  }, [badges]);
 
   const handleRedeemReward = (reward: any) => {
-    if (studentData.points >= reward.cost) {
-      toast.success(`Successfully redeemed ${reward.name}!`);
+    if (profile && profile.points >= reward.cost) {
+      redeemRewardMutation.mutate(reward.id);
     } else {
-      toast.error(`Not enough points for ${reward.name}. Need ${reward.cost - studentData.points} more points.`);
+      toast.error(`Not enough points for ${reward.name}. Need ${reward.cost - (profile?.points || 0)} more points.`);
     }
   };
 
-  const earnedBadges = badges.filter(badge => badge.earned);
-  const pointsToNextLevel = studentData.nextLevelPoints - studentData.points;
+  if (isLoading) {
+    return (
+      <div className="min-h-screen p-6 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <div>Loading gamification data...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen p-6 flex items-center justify-center">
+        <Card>
+          <CardContent className="text-center py-12">
+            <Trophy className="h-12 w-12 text-red-500 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-foreground mb-2">Error Loading Data</h3>
+            <p className="text-muted-foreground">Failed to load gamification data. Please try again later.</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!gamificationData) {
+    return (
+      <div className="min-h-screen p-6 flex items-center justify-center">
+        <Card>
+          <CardContent className="text-center py-12">
+            <Trophy className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-foreground mb-2">No Data Available</h3>
+            <p className="text-muted-foreground">No gamification data available at the moment.</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  const earnedBadges = badges?.filter((badge: any) => badge.earned) || [];
+  const pointsToNextLevel = (profile?.nextLevelPoints || 0) - (profile?.points || 0);
 
   return (
     <div className="min-h-screen p-6">
@@ -136,8 +145,8 @@ export const GamificationPage: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Level</p>
-                  <p className="text-2xl font-bold text-foreground">#{studentData.level}</p>
-                  <Progress value={(studentData.points / studentData.nextLevelPoints) * 100} className="mt-2" />
+                  <p className="text-2xl font-bold text-foreground">#{profile?.level}</p>
+                  <Progress value={((profile?.points || 0) / (profile?.nextLevelPoints || 1)) * 100} className="mt-2" />
                   <div className="text-xs text-muted-foreground mt-1">
                     {pointsToNextLevel} points to next level
                   </div>
@@ -154,10 +163,10 @@ export const GamificationPage: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Total Points</p>
-                  <p className="text-2xl font-bold text-foreground">{studentData.points}</p>
+                  <p className="text-2xl font-bold text-foreground">{profile?.points}</p>
                   <div className="flex items-center space-x-1 mt-1">
                     <Zap className="h-4 w-4 text-yellow-500" />
-                    <span className="text-sm text-muted-foreground">Active streak: {studentData.streak} days</span>
+                    <span className="text-sm text-muted-foreground">Active streak: {profile?.streak} days</span>
                   </div>
                 </div>
                 <div className="w-12 h-12 bg-gradient-to-r from-green-400 to-teal-500 rounded-lg flex items-center justify-center">
@@ -172,7 +181,7 @@ export const GamificationPage: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Badges Earned</p>
-                  <p className="text-2xl font-bold text-foreground">{earnedBadges.length}/{badges.length}</p>
+                  <p className="text-2xl font-bold text-foreground">{earnedBadges.length}/{badges?.length || 0}</p>
                   <div className="text-sm text-muted-foreground mt-1">Collection progress</div>
                 </div>
                 <div className="w-12 h-12 bg-gradient-to-r from-blue-400 to-cyan-500 rounded-lg flex items-center justify-center">
@@ -187,8 +196,8 @@ export const GamificationPage: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Class Rank</p>
-                  <p className="text-2xl font-bold text-foreground">#{studentData.rank}</p>
-                  <div className="text-sm text-muted-foreground mt-1">Top {Math.round((studentData.rank / studentData.totalStudents) * 100)}%</div>
+                  <p className="text-2xl font-bold text-foreground">#{profile?.rank}</p>
+                  <div className="text-sm text-muted-foreground mt-1">Top {Math.round(((profile?.rank || 0) / (profile?.totalStudents || 1)) * 100)}%</div>
                 </div>
                 <div className="w-12 h-12 bg-gradient-to-r from-purple-400 to-pink-500 rounded-lg flex items-center justify-center">
                   <Crown className="h-6 w-6 text-white" />
@@ -221,22 +230,27 @@ export const GamificationPage: React.FC = () => {
 
           <TabsContent value="overview">
             <GamificationOverview 
-              studentData={studentData} 
-              badges={badges}
-              leaderboard={leaderboard}
+              profile={profile}
+              badges={badges ?? []}
+              leaderboard={leaderboard ?? []}
+              recentActivities={recentActivities ?? []}
             />
           </TabsContent>
 
           <TabsContent value="badges">
-            <BadgesView badges={badges} />
+            <BadgesView badges={badges ?? []} />
           </TabsContent>
 
           <TabsContent value="leaderboard">
-            <LeaderboardView leaderboard={leaderboard} studentData={studentData} />
+            <LeaderboardView leaderboard={leaderboard ?? []} currentStudentName={profile?.name ?? ''} />
           </TabsContent>
 
           <TabsContent value="rewards">
-            <RewardsView rewards={rewards} studentPoints={studentData.points} onRedeem={handleRedeemReward} />
+            <RewardsView 
+              rewards={rewards ?? []} 
+              studentPoints={profile?.points || 0} 
+              onRedeem={handleRedeemReward} 
+            />
           </TabsContent>
         </Tabs>
       </div>
@@ -245,18 +259,13 @@ export const GamificationPage: React.FC = () => {
 };
 
 // Overview Component
-const GamificationOverview: React.FC<{ studentData: any; badges: any[]; leaderboard: any[] }> = ({ 
-  studentData, 
-  badges, 
-  leaderboard 
-}) => {
-  const earnedBadges = badges.filter(badge => badge.earned);
-  const recentActivities = [
-    { type: 'badge', title: 'Earned Math Whiz Badge', points: 100, time: '2 hours ago' },
-    { type: 'assignment', title: 'Completed Science Homework', points: 50, time: '1 day ago' },
-    { type: 'streak', title: '7-day login streak', points: 25, time: '2 days ago' },
-    { type: 'quiz', title: 'Perfect score on English Quiz', points: 30, time: '3 days ago' }
-  ];
+const GamificationOverview: React.FC<{ 
+  profile: any; 
+  badges: any[]; 
+  leaderboard: any[];
+  recentActivities: any[];
+}> = ({ profile, badges, leaderboard, recentActivities }) => {
+  const earnedBadges = badges?.filter((badge: any) => badge.earned) || [];
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -270,9 +279,9 @@ const GamificationOverview: React.FC<{ studentData: any; badges: any[]; leaderbo
           <div>
             <div className="flex justify-between text-sm mb-1">
               <span>Level Progress</span>
-              <span>{studentData.points}/{studentData.nextLevelPoints} points</span>
+              <span>{profile?.points}/{profile?.nextLevelPoints} points</span>
             </div>
-            <Progress value={(studentData.points / studentData.nextLevelPoints) * 100} className="h-3" />
+            <Progress value={((profile?.points || 0) / (profile?.nextLevelPoints || 1)) * 100} className="h-3" />
           </div>
           
           <div className="grid grid-cols-2 gap-4 text-center">
@@ -281,7 +290,7 @@ const GamificationOverview: React.FC<{ studentData: any; badges: any[]; leaderbo
               <div className="text-sm text-muted-foreground">Badges Earned</div>
             </div>
             <div className="p-3 bg-green-50 rounded-lg">
-              <div className="text-2xl font-bold text-green-600">{studentData.streak}</div>
+              <div className="text-2xl font-bold text-green-600">{profile?.streak}</div>
               <div className="text-sm text-muted-foreground">Day Streak</div>
             </div>
           </div>
@@ -303,7 +312,7 @@ const GamificationOverview: React.FC<{ studentData: any; badges: any[]; leaderbo
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            {recentActivities.map((activity, index) => (
+            {recentActivities?.map((activity: any, index: number) => (
               <div key={index} className="flex items-center justify-between p-2 rounded-lg bg-muted/50">
                 <div className="flex items-center space-x-3">
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
@@ -336,8 +345,8 @@ const GamificationOverview: React.FC<{ studentData: any; badges: any[]; leaderbo
 
 // Badges Component
 const BadgesView: React.FC<{ badges: any[] }> = ({ badges }) => {
-  const earnedBadges = badges.filter(badge => badge.earned);
-  const availableBadges = badges.filter(badge => !badge.earned);
+  const earnedBadges = badges?.filter((badge: any) => badge.earned) || [];
+  const availableBadges = badges?.filter((badge: any) => !badge.earned) || [];
 
   return (
     <div className="space-y-6">
@@ -349,7 +358,7 @@ const BadgesView: React.FC<{ badges: any[] }> = ({ badges }) => {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {earnedBadges.map((badge) => (
+            {earnedBadges.map((badge: any) => (
               <div key={badge.id} className="text-center p-4 border-2 border-yellow-400 rounded-lg bg-yellow-50">
                 <div className="text-4xl mb-2">{badge.icon}</div>
                 <div className="font-semibold mb-1">{badge.name}</div>
@@ -371,7 +380,7 @@ const BadgesView: React.FC<{ badges: any[] }> = ({ badges }) => {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {availableBadges.map((badge) => (
+            {availableBadges.map((badge: any) => (
               <div key={badge.id} className="text-center p-4 border-2 border-gray-200 rounded-lg bg-gray-50 opacity-60">
                 <div className="text-4xl mb-2">{badge.icon}</div>
                 <div className="font-semibold mb-1">{badge.name}</div>
@@ -387,7 +396,10 @@ const BadgesView: React.FC<{ badges: any[] }> = ({ badges }) => {
 };
 
 // Leaderboard Component
-const LeaderboardView: React.FC<{ leaderboard: any[]; studentData: any }> = ({ leaderboard, studentData }) => {
+const LeaderboardView: React.FC<{ leaderboard: any[]; currentStudentName: string }> = ({ 
+  leaderboard, 
+  currentStudentName 
+}) => {
   return (
     <Card>
       <CardHeader>
@@ -396,9 +408,9 @@ const LeaderboardView: React.FC<{ leaderboard: any[]; studentData: any }> = ({ l
       </CardHeader>
       <CardContent>
         <div className="space-y-3">
-          {leaderboard.map((student) => (
+          {leaderboard?.map((student: any) => (
             <div key={student.rank} className={`flex items-center justify-between p-3 rounded-lg ${
-              student.name === studentData.name ? 'bg-primary/10 border border-primary/20' : 'bg-muted/50'
+              student.name === currentStudentName ? 'bg-primary/10 border border-primary/20' : 'bg-muted/50'
             }`}>
               <div className="flex items-center space-x-3">
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
@@ -434,14 +446,14 @@ const LeaderboardView: React.FC<{ leaderboard: any[]; studentData: any }> = ({ l
 };
 
 // Rewards Component
-const RewardsView: React.FC<{ rewards: any[]; studentPoints: number; onRedeem: (reward: any) => void }> = ({ 
-  rewards, 
-  studentPoints, 
-  onRedeem 
-}) => {
+const RewardsView: React.FC<{ 
+  rewards: any[]; 
+  studentPoints: number; 
+  onRedeem: (reward: any) => void 
+}> = ({ rewards, studentPoints, onRedeem }) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      {rewards.map((reward) => (
+      {rewards?.map((reward: any) => (
         <Card key={reward.id} className={reward.available ? '' : 'opacity-50'}>
           <CardHeader>
             <CardTitle className="text-lg">{reward.name}</CardTitle>

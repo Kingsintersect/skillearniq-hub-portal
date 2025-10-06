@@ -22,22 +22,20 @@ import {
   MessageSquare, 
   Download, 
   Search,
-  Filter,
   Award,
   TrendingUp,
-  BarChart3,
   Clock,
   CheckCircle,
   XCircle,
   User,
-  BookMarked,
-  GraduationCap
+  BookMarked
 } from 'lucide-react';
+import { useStudentQueries } from '@/hooks/useStudentQueries';
 
 export const StudentClassesPage: React.FC = () => {
   const [filters, setFilters] = useState({
-    academicYear: '2025-2026', // Default to current academic year
-    term: '1st', // Default to current term
+    academicYear: '2025-2026',
+    term: '1st',
     teacher: 'all',
     subject: 'all'
   });
@@ -45,137 +43,13 @@ export const StudentClassesPage: React.FC = () => {
   const [selectedClass, setSelectedClass] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Mock data - current academic year 2024-2025, current term 1st
-  const classes = [
-    {
-      id: 1,
-      name: 'Mathematics',
-      code: 'MATH202',
-      subject: 'Mathematics',
-      teacher: {
-        id: 1,
-        name: 'Mr. Smith',
-        email: 'smith@school.edu',
-        phone: '+1234567890',
-        avatar: '',
-        department: 'Mathematics'
-      },
-      schedule: 'Mon, Wed, Fri - 9:00 AM',
-      room: 'Room 201',
-      academicYear: '2025-2026',
-      term: '1st',
-      progress: 75,
-      currentGrade: 'A',
-      attendance: 95,
-      nextTopic: 'Algebraic Expressions',
-      materials: 12,
-      assignments: 8,
-      students: 28,
-      assessments: [
-        { type: 'test', title: 'Algebra Test 1', score: 28, maxScore: 30, date: '2025-01-15' },
-        { type: 'quiz', title: 'Geometry Quiz', score: 9, maxScore: 10, date: '2025-01-22' },
-        { type: 'exam', title: 'Mid-Term Exam', score: 55, maxScore: 60, date: '2025-02-01' }
-      ],
-      studyGroups: [
-        { id: 1, name: 'Math Study Group', members: 8, description: 'Algebra focus group' }
-      ]
-    },
-    {
-      id: 2,
-      name: 'English Language',
-      code: 'ENG201',
-      subject: 'English',
-      teacher: {
-        id: 2,
-        name: 'Mrs. Johnson',
-        email: 'johnson@school.edu',
-        phone: '+1234567891',
-        avatar: '',
-        department: 'Languages'
-      },
-      schedule: 'Tue, Thu - 10:30 AM',
-      room: 'Room 105',
-      academicYear: '2025-2026',
-      term: '1st',
-      progress: 60,
-      currentGrade: 'B+',
-      attendance: 92,
-      nextTopic: 'Essay Writing Techniques',
-      materials: 8,
-      assignments: 6,
-      students: 25,
-      assessments: [
-        { type: 'test', title: 'Grammar Test', score: 26, maxScore: 30, date: '2025-01-18' },
-        { type: 'quiz', title: 'Vocabulary Quiz', score: 8, maxScore: 10, date: '2025-01-25' },
-        { type: 'exam', title: 'Literature Exam', score: 54, maxScore: 60, date: '2025-02-05' }
-      ],
-      studyGroups: []
-    },
-    {
-      id: 3,
-      name: 'Science',
-      code: 'SCI301',
-      subject: 'Science',
-      teacher: {
-        id: 3,
-        name: 'Dr. Brown',
-        email: 'brown@school.edu',
-        phone: '+1234567892',
-        avatar: '',
-        department: 'Sciences'
-      },
-      schedule: 'Mon, Wed - 2:00 PM',
-      room: 'Lab 301',
-      academicYear: '2025-2026',
-      term: '1st',
-      progress: 85,
-      currentGrade: 'A-',
-      attendance: 98,
-      nextTopic: 'Chemical Reactions',
-      materials: 15,
-      assignments: 10,
-      students: 30,
-      assessments: [
-        { type: 'test', title: 'Physics Test', score: 25, maxScore: 30, date: '2025-01-20' },
-        { type: 'quiz', title: 'Chemistry Quiz', score: 8, maxScore: 10, date: '2025-01-27' },
-        { type: 'exam', title: 'Science Mid-Term', score: 52, maxScore: 60, date: '2025-02-08' }
-      ],
-      studyGroups: [
-        { id: 2, name: 'Science Club', members: 12, description: 'Lab experiments group' }
-      ]
-    },
-    // Previous academic year data for filtering demo
-    {
-      id: 4,
-      name: 'Mathematics',
-      code: 'MATH201',
-      subject: 'Mathematics',
-      teacher: {
-        id: 1,
-        name: 'Mr. Smith',
-        email: 'smith@school.edu',
-        phone: '+1234567890',
-        avatar: '',
-        department: 'Mathematics'
-      },
-      schedule: 'Mon, Wed, Fri - 9:00 AM',
-      room: 'Room 201',
-      academicYear: '2024-2025',
-      term: '3rd',
-      progress: 100,
-      currentGrade: 'A',
-      attendance: 94,
-      nextTopic: 'Completed',
-      materials: 10,
-      assignments: 12,
-      students: 28,
-      assessments: [],
-      studyGroups: []
-    }
-  ];
+  const { useClasses } = useStudentQueries();
+  const { data: classesResponse, isLoading, error } = useClasses(filters);
+
+  const classes = classesResponse?.data || [];
 
   // Get unique values for filters
-  const academicYears = [...new Set(classes.map(c => c.academicYear))];
+  const academicYears = ['2024-2025', '2025-2026'];
   const terms = ['1st', '2nd', '3rd'];
   const teachers = [...new Set(classes.map(c => c.teacher.name))];
   const subjects = [...new Set(classes.map(c => c.subject))];
@@ -183,21 +57,44 @@ export const StudentClassesPage: React.FC = () => {
   // Filter classes based on current filters
   const filteredClasses = useMemo(() => {
     return classes.filter(cls =>
-      cls.academicYear === filters.academicYear &&
-      cls.term === filters.term &&
       (filters.teacher === 'all' || cls.teacher.name === filters.teacher) &&
       (filters.subject === 'all' || cls.subject === filters.subject) &&
       (cls.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
        cls.teacher.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
        cls.subject.toLowerCase().includes(searchTerm.toLowerCase()))
     );
-  }, [filters, searchTerm]);
+  }, [classes, filters, searchTerm]);
 
   const selectedClassData = classes.find(cls => cls.id === selectedClass);
 
   const handleExportClassData = (classId: number) => {
     toast.success(`Class data exported for class ${classId}`);
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen p-6 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <div>Loading classes...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen p-6 flex items-center justify-center">
+        <Card>
+          <CardContent className="text-center py-12">
+            <BookOpen className="h-12 w-12 text-red-500 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-foreground mb-2">Error Loading Classes</h3>
+            <p className="text-muted-foreground">Failed to load classes data. Please try again later.</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen p-6">
@@ -452,234 +349,223 @@ const ClassDetailsDialog: React.FC<{
   const totalMax = testMax + quizMax + examMax;
   const overallPercentage = totalMax > 0 ? (totalScore / totalMax) * 100 : 0;
 
-  
-   return (
-  <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
-    <DialogContent className="max-w-4xl max-h-[95vh] h-[85vh] flex flex-col overflow-hidden min-h-0">
-      <DialogHeader>
-        <DialogTitle className="flex justify-between items-center">
-          <span>
-            {classItem.name} - {classItem.academicYear} {classItem.term} Term
-          </span>
-          <Badge variant="secondary">{classItem.currentGrade}</Badge>
-        </DialogTitle>
-        <DialogDescription>
-          {classItem.code} • {classItem.room} • Teacher: {classItem.teacher.name}
-        </DialogDescription>
-      </DialogHeader>
+  return (
+    <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
+      <DialogContent className="max-w-4xl max-h-[95vh] h-[85vh] flex flex-col overflow-hidden min-h-0">
+        <DialogHeader>
+          <DialogTitle className="flex justify-between items-center">
+            <span>
+              {classItem.name} - {classItem.academicYear} {classItem.term} Term
+            </span>
+            <Badge variant="secondary">{classItem.currentGrade}</Badge>
+          </DialogTitle>
+          <DialogDescription>
+            {classItem.code} • {classItem.room} • Teacher: {classItem.teacher.name}
+          </DialogDescription>
+        </DialogHeader>
 
-      {/* Tabs container */}
-      <Tabs
-        value={activeTab}
-        onValueChange={(value: any) => setActiveTab(value)}
-        className="flex-1 flex flex-col overflow-hidden min-h-0"
-      >
-        {/* keep the tab list from growing */}
-        <TabsList className="grid grid-cols-4 shrink-0">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="assessments">Assessments</TabsTrigger>
-          <TabsTrigger value="attendance">Attendance</TabsTrigger>
-          <TabsTrigger value="groups">Study Groups</TabsTrigger>
-        </TabsList>
+        <Tabs
+          value={activeTab}
+          onValueChange={(value: any) => setActiveTab(value)}
+          className="flex-1 flex flex-col overflow-hidden min-h-0"
+        >
+          <TabsList className="grid grid-cols-4 shrink-0">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="assessments">Assessments</TabsTrigger>
+            <TabsTrigger value="attendance">Attendance</TabsTrigger>
+            <TabsTrigger value="groups">Study Groups</TabsTrigger>
+          </TabsList>
 
-        {/* wrapper that gives tabs a bounded area */}
-        <div className="flex-1 min-h-0 overflow-hidden">
-          {/* ---------------- FULL OVERVIEW TAB (unchanged content, only class tweaks) ---------------- */}
-          <TabsContent value="overview" className="flex-1 flex flex-col min-h-0 p-4">
-            {/* This is the actual vertical scroller for Overview */}
-            <div className="flex-1 min-h-0 overflow-auto pr-2">
-              <div className="space-y-6">
-                {/* Grade Breakdown */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Grade Breakdown</CardTitle>
-                    <CardDescription>Test (30%), Quiz (10%), Exam (60%)</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-3 gap-4 text-center">
-                        <div className="p-4 bg-blue-50 rounded-lg">
-                          <div className="text-2xl font-bold text-blue-600">
-                            {testTotal}/{testMax}
-                          </div>
-                          <div className="text-sm text-muted-foreground">Tests (30%)</div>
-                          <Progress value={(testTotal / testMax) * 100} className="mt-2" />
-                        </div>
-                        <div className="p-4 bg-green-50 rounded-lg">
-                          <div className="text-2xl font-bold text-green-600">
-                            {quizTotal}/{quizMax}
-                          </div>
-                          <div className="text-sm text-muted-foreground">Quizzes (10%)</div>
-                          <Progress value={(quizTotal / quizMax) * 100} className="mt-2" />
-                        </div>
-                        <div className="p-4 bg-purple-50 rounded-lg">
-                          <div className="text-2xl font-bold text-purple-600">
-                            {examTotal}/{examMax}
-                          </div>
-                          <div className="text-sm text-muted-foreground">Exams (60%)</div>
-                          <Progress value={(examTotal / examMax) * 100} className="mt-2" />
-                        </div>
-                      </div>
-                      <Separator />
-                      <div className="text-center">
-                        <div className="text-3xl font-bold">
-                          {overallPercentage.toFixed(1)}%
-                        </div>
-                        <div className="text-muted-foreground">Overall Score</div>
-                        <Badge variant="default" className="mt-2">
-                          {classItem.currentGrade}
-                        </Badge>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Teacher Information */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Teacher Information</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex items-center space-x-4">
-                      <Avatar className="h-16 w-16">
-                        <AvatarImage src={classItem.teacher.avatar} />
-                        <AvatarFallback>{classItem.teacher.name[0]}</AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1">
-                        <h4 className="font-semibold">{classItem.teacher.name}</h4>
-                        <p className="text-muted-foreground">
-                          {classItem.teacher.department} Department
-                        </p>
-                        <div className="flex items-center space-x-4 mt-2 text-sm">
-                          <span className="flex items-center space-x-1">
-                            <User className="h-4 w-4" />
-                            <span>{classItem.teacher.email}</span>
-                          </span>
-                        </div>
-                      </div>
-                      <Button>
-                        <MessageSquare className="h-4 w-4 mr-2" />
-                        Contact
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-          </TabsContent>
-
-          {/* ---------------- ASSESSMENTS TAB ---------------- */}
-          <TabsContent value="assessments" className="flex-1 flex flex-col min-h-0 p-4">
-            <Card className="flex-1 flex flex-col min-h-0">
-              <CardHeader>
-                <CardTitle>All Assessments</CardTitle>
-                <CardDescription>Tests, quizzes, and exams for this class</CardDescription>
-              </CardHeader>
-
-              <CardContent className="flex-1 p-0 overflow-hidden min-h-0">
-                <div className="flex-1 min-h-0 overflow-auto">
-                  <div className="p-6">
-                    <div className="rounded-md border overflow-x-auto">
-                      <Table className="min-w-[900px] w-full">
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead className="whitespace-nowrap px-4 py-2">Type</TableHead>
-                            <TableHead className="whitespace-nowrap px-4 py-2">Title</TableHead>
-                            <TableHead className="whitespace-nowrap px-4 py-2">Date</TableHead>
-                            <TableHead className="whitespace-nowrap px-4 py-2">Score</TableHead>
-                            <TableHead className="whitespace-nowrap px-4 py-2">Percentage</TableHead>
-                            <TableHead className="whitespace-nowrap px-4 py-2">Grade</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {(classItem.assessments ?? []).map((assessment: any, index: number) => (
-                            <TableRow key={index}>
-                              <TableCell className="whitespace-nowrap px-4 py-2">
-                                <Badge
-                                  variant={
-                                    assessment.type === "test"
-                                      ? "default"
-                                      : assessment.type === "quiz"
-                                      ? "secondary"
-                                      : "outline"
-                                  }
-                                >
-                                  {assessment.type}
-                                </Badge>
-                              </TableCell>
-                              <TableCell className="font-medium whitespace-nowrap px-4 py-2">
-                                {assessment.title}
-                              </TableCell>
-                              <TableCell className="whitespace-nowrap px-4 py-2">
-                                {new Date(assessment.date).toLocaleDateString()}
-                              </TableCell>
-                              <TableCell className="whitespace-nowrap px-4 py-2">
-                                {assessment.score}/{assessment.maxScore}
-                              </TableCell>
-                              <TableCell className="whitespace-nowrap px-4 py-2">
-                                {((assessment.score / assessment.maxScore) * 100).toFixed(1)}%
-                              </TableCell>
-                              <TableCell className="whitespace-nowrap px-4 py-2">
-                                <Badge variant="default">
-                                  {getGradeFromPercentage((assessment.score / assessment.maxScore) * 100)}
-                                </Badge>
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* ---------------- GROUPS TAB ---------------- */}
-          <TabsContent value="groups" className="flex-1 flex flex-col min-h-0 p-4">
-            <div className="flex-1 min-h-0 overflow-auto p-6">
-              <div className="space-y-4">
-                {classItem.studyGroups.length === 0 ? (
+          <div className="flex-1 min-h-0 overflow-hidden">
+            <TabsContent value="overview" className="flex-1 flex flex-col min-h-0 p-4">
+              <div className="flex-1 min-h-0 overflow-auto pr-2">
+                <div className="space-y-6">
+                  {/* Grade Breakdown */}
                   <Card>
-                    <CardContent className="text-center py-8">
-                      <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                      <h4 className="font-semibold text-foreground mb-2">No Study Groups</h4>
-                      <p className="text-muted-foreground">
-                        You haven't been added to any study groups for this class
-                      </p>
+                    <CardHeader>
+                      <CardTitle>Grade Breakdown</CardTitle>
+                      <CardDescription>Test (30%), Quiz (10%), Exam (60%)</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-3 gap-4 text-center">
+                          <div className="p-4 bg-blue-50 rounded-lg">
+                            <div className="text-2xl font-bold text-blue-600">
+                              {testTotal}/{testMax}
+                            </div>
+                            <div className="text-sm text-muted-foreground">Tests (30%)</div>
+                            <Progress value={(testTotal / testMax) * 100} className="mt-2" />
+                          </div>
+                          <div className="p-4 bg-green-50 rounded-lg">
+                            <div className="text-2xl font-bold text-green-600">
+                              {quizTotal}/{quizMax}
+                            </div>
+                            <div className="text-sm text-muted-foreground">Quizzes (10%)</div>
+                            <Progress value={(quizTotal / quizMax) * 100} className="mt-2" />
+                          </div>
+                          <div className="p-4 bg-purple-50 rounded-lg">
+                            <div className="text-2xl font-bold text-purple-600">
+                              {examTotal}/{examMax}
+                            </div>
+                            <div className="text-sm text-muted-foreground">Exams (60%)</div>
+                            <Progress value={(examTotal / examMax) * 100} className="mt-2" />
+                          </div>
+                        </div>
+                        <Separator />
+                        <div className="text-center">
+                          <div className="text-3xl font-bold">
+                            {overallPercentage.toFixed(1)}%
+                          </div>
+                          <div className="text-muted-foreground">Overall Score</div>
+                          <Badge variant="default" className="mt-2">
+                            {classItem.currentGrade}
+                          </Badge>
+                        </div>
+                      </div>
                     </CardContent>
                   </Card>
-                ) : (
-                  classItem.studyGroups.map((group: any) => (
-                    <Card key={group.id}>
-                      <CardContent className="p-4">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <h4 className="font-semibold">{group.name}</h4>
-                            <p className="text-sm text-muted-foreground">{group.description}</p>
-                            <div className="flex items-center space-x-4 mt-2 text-sm">
-                              <span>{group.members} members</span>
-                            </div>
+
+                  {/* Teacher Information */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Teacher Information</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex items-center space-x-4">
+                        <Avatar className="h-16 w-16">
+                          <AvatarImage src={classItem.teacher.avatar} />
+                          <AvatarFallback>{classItem.teacher.name[0]}</AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1">
+                          <h4 className="font-semibold">{classItem.teacher.name}</h4>
+                          <p className="text-muted-foreground">
+                            {classItem.teacher.department} Department
+                          </p>
+                          <div className="flex items-center space-x-4 mt-2 text-sm">
+                            <span className="flex items-center space-x-1">
+                              <User className="h-4 w-4" />
+                              <span>{classItem.teacher.email}</span>
+                            </span>
                           </div>
-                          <Button>
-                            <MessageSquare className="h-4 w-4 mr-2" />
-                            Join Chat
-                          </Button>
                         </div>
+                        <Button>
+                          <MessageSquare className="h-4 w-4 mr-2" />
+                          Contact
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="assessments" className="flex-1 flex flex-col min-h-0 p-4">
+              <Card className="flex-1 flex flex-col min-h-0">
+                <CardHeader>
+                  <CardTitle>All Assessments</CardTitle>
+                  <CardDescription>Tests, quizzes, and exams for this class</CardDescription>
+                </CardHeader>
+                <CardContent className="flex-1 p-0 overflow-hidden min-h-0">
+                  <div className="flex-1 min-h-0 overflow-auto">
+                    <div className="p-6">
+                      <div className="rounded-md border overflow-x-auto">
+                        <Table className="min-w-[900px] w-full">
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead className="whitespace-nowrap px-4 py-2">Type</TableHead>
+                              <TableHead className="whitespace-nowrap px-4 py-2">Title</TableHead>
+                              <TableHead className="whitespace-nowrap px-4 py-2">Date</TableHead>
+                              <TableHead className="whitespace-nowrap px-4 py-2">Score</TableHead>
+                              <TableHead className="whitespace-nowrap px-4 py-2">Percentage</TableHead>
+                              <TableHead className="whitespace-nowrap px-4 py-2">Grade</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {(classItem.assessments ?? []).map((assessment: any, index: number) => (
+                              <TableRow key={index}>
+                                <TableCell className="whitespace-nowrap px-4 py-2">
+                                  <Badge
+                                    variant={
+                                      assessment.type === "test"
+                                        ? "default"
+                                        : assessment.type === "quiz"
+                                        ? "secondary"
+                                        : "outline"
+                                    }
+                                  >
+                                    {assessment.type}
+                                  </Badge>
+                                </TableCell>
+                                <TableCell className="font-medium whitespace-nowrap px-4 py-2">
+                                  {assessment.title}
+                                </TableCell>
+                                <TableCell className="whitespace-nowrap px-4 py-2">
+                                  {new Date(assessment.date).toLocaleDateString()}
+                                </TableCell>
+                                <TableCell className="whitespace-nowrap px-4 py-2">
+                                  {assessment.score}/{assessment.maxScore}
+                                </TableCell>
+                                <TableCell className="whitespace-nowrap px-4 py-2">
+                                  {((assessment.score / assessment.maxScore) * 100).toFixed(1)}%
+                                </TableCell>
+                                <TableCell className="whitespace-nowrap px-4 py-2">
+                                  <Badge variant="default">
+                                    {getGradeFromPercentage((assessment.score / assessment.maxScore) * 100)}
+                                  </Badge>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="groups" className="flex-1 flex flex-col min-h-0 p-4">
+              <div className="flex-1 min-h-0 overflow-auto p-6">
+                <div className="space-y-4">
+                  {classItem.studyGroups.length === 0 ? (
+                    <Card>
+                      <CardContent className="text-center py-8">
+                        <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                        <h4 className="font-semibold text-foreground mb-2">No Study Groups</h4>
+                        <p className="text-muted-foreground">
+                          You haven't been added to any study groups for this class
+                        </p>
                       </CardContent>
                     </Card>
-                  ))
-                )}
+                  ) : (
+                    classItem.studyGroups.map((group: any) => (
+                      <Card key={group.id}>
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <h4 className="font-semibold">{group.name}</h4>
+                              <p className="text-sm text-muted-foreground">{group.description}</p>
+                              <div className="flex items-center space-x-4 mt-2 text-sm">
+                                <span>{group.members} members</span>
+                              </div>
+                            </div>
+                            <Button>
+                              <MessageSquare className="h-4 w-4 mr-2" />
+                              Join Chat
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))
+                  )}
+                </div>
               </div>
-            </div>
-          </TabsContent>
-        </div>
-      </Tabs>
-    </DialogContent>
-  </Dialog>
-);
-
-
+            </TabsContent>
+          </div>
+        </Tabs>
+      </DialogContent>
+    </Dialog>
+  );
 };
 
 // Helper function to get grade from percentage

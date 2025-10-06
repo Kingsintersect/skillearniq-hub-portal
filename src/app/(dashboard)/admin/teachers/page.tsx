@@ -1,4 +1,3 @@
-
 'use client'
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,10 +8,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { Plus, Search, Download, Upload, Edit, Trash2, BookOpen } from 'lucide-react';
-import { toast } from 'sonner';
-
-
+import { Plus, Search, Download, Upload, Trash2, BookOpen } from 'lucide-react';
+import { useAdminQueries } from '@/hooks/useAdminQueries';
 
 type Assignment = {
   academicYear: string;
@@ -32,28 +29,22 @@ export default function TeachersPage() {
     status: 'all'
   });
   
-  const [teachers, setTeachers] = useState([
-    {
-      id: 1,
-      name: 'Mr. Smith',
-      teacherId: 'TCH2025001',
-      email: 'smith@school.edu',
-      phone: '+1234567890',
-      subjects: ['Mathematics', 'Physics'],
-      classes: ['JSS 2A', 'JSS 3A'],
-      status: 'active'
-    },
-    {
-      id: 2,
-      name: 'Mrs. Johnson',
-      teacherId: 'TCH2025002',
-      email: 'johnson@school.edu',
-      phone: '+1234567891',
-      subjects: ['English', 'Literature'],
-      classes: ['JSS 1A', 'JSS 2B'],
-      status: 'active'
-    }
-  ]);
+  const { 
+    useTeachers, 
+    useCreateTeacher, 
+    useAssignTeacher, 
+    useDeleteTeacher 
+  } = useAdminQueries();
+
+  const { data: teachersResponse, isLoading } = useTeachers({
+    search: searchTerm,
+    subject: filters.subject,
+    status: filters.status
+  });
+
+  const createTeacherMutation = useCreateTeacher();
+  const assignTeacherMutation = useAssignTeacher();
+  const deleteTeacherMutation = useDeleteTeacher();
 
   const [newTeacher, setNewTeacher] = useState({
     name: '',
@@ -65,85 +56,72 @@ export default function TeachersPage() {
   });
 
   const [assignment, setAssignment] = useState<Assignment>({
-  academicYear: '2025-2026',
-  term: '1st',
-  class: '',
-  subjects: []
-});
-
-  // Filter teachers
-  const filteredTeachers = teachers.filter(teacher => {
-    const matchesSearch = teacher.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         teacher.teacherId.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesSubject = filters.subject === 'all' || 
-                          teacher.subjects.includes(filters.subject);
-    const matchesStatus = filters.status === 'all' || teacher.status === filters.status;
-    
-    return matchesSearch && matchesSubject && matchesStatus;
+    academicYear: '2025-2026',
+    term: '1st',
+    class: '',
+    subjects: []
   });
 
+  const teachers = teachersResponse?.data || [];
+
   const handleCreateTeacher = () => {
-    const teacher = {
-      ...newTeacher,
-      id: Math.max(...teachers.map(t => t.id)) + 1,
-      status: 'active'
-    };
-    setTeachers([...teachers, teacher]);
-    setIsCreateDialogOpen(false);
-    setNewTeacher({
-      name: '',
-      teacherId: '',
-      email: '',
-      phone: '',
-      subjects: [],
-      classes: []
+    createTeacherMutation.mutate(newTeacher, {
+      onSuccess: () => {
+        setIsCreateDialogOpen(false);
+        setNewTeacher({
+          name: '',
+          teacherId: '',
+          email: '',
+          phone: '',
+          subjects: [],
+          classes: []
+        });
+      }
     });
-    toast.success('Teacher created successfully');
   };
 
   const handleAssignTeacher = () => {
     if (selectedTeacher && assignment.class && assignment.subjects.length > 0) {
-      setTeachers(teachers.map(teacher => 
-        teacher.id === selectedTeacher.id 
-          ? {
-              ...teacher,
-              classes: [...new Set([...teacher.classes, assignment.class])],
-              subjects: [...new Set([...teacher.subjects, ...assignment.subjects])]
-            }
-          : teacher
-      ));
-      setIsAssignDialogOpen(false);
-      setAssignment({
-        academicYear: '2025-2026',
-        term: '1st',
-        class: '',
-        subjects: []
+      assignTeacherMutation.mutate({
+        teacherId: selectedTeacher.id,
+        class: assignment.class,
+        subjects: assignment.subjects
+      }, {
+        onSuccess: () => {
+          setIsAssignDialogOpen(false);
+          setAssignment({
+            academicYear: '2025-2026',
+            term: '1st',
+            class: '',
+            subjects: []
+          });
+        }
       });
-      toast.success(`Teacher assigned to ${assignment.class} for ${assignment.subjects.join(', ')}`);
-    } else {
-      toast.error('Please select both class and subjects');
     }
   };
 
   const handleDeleteTeacher = (teacherId: number) => {
-    setTeachers(teachers.filter(teacher => teacher.id !== teacherId));
-    toast.success('Teacher deleted successfully');
+    deleteTeacherMutation.mutate(teacherId);
   };
 
   const downloadTemplate = () => {
-    toast.success('Template downloaded successfully');
+    console.log('Download template');
   };
 
   const handleBulkUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      setTimeout(() => {
-        toast.success('Bulk upload completed successfully');
-        setIsBulkUploadDialogOpen(false);
-      }, 2000);
+      console.log('Bulk upload:', file);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen p-6 flex items-center justify-center">
+        <div className="text-center">Loading teachers...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen p-6">
@@ -154,7 +132,7 @@ export default function TeachersPage() {
             <p className="text-muted-foreground">Manage all teachers and their assignments</p>
           </div>
           <div className="flex space-x-4">
-            <Button variant="outline" onClick={() => setIsBulkUploadDialogOpen(true)}  className='dark:text-white dark:border-white'>
+            <Button variant="outline" onClick={() => setIsBulkUploadDialogOpen(true)} className='dark:text-white dark:border-white'>
               <Upload className="h-4 w-4 mr-2" />
               Bulk Upload
             </Button>
@@ -212,7 +190,7 @@ export default function TeachersPage() {
         <Card>
           <CardHeader>
             <CardTitle>All Teachers</CardTitle>
-            <CardDescription>{filteredTeachers.length} teachers in the system</CardDescription>
+            <CardDescription>{teachers.length} teachers in the system</CardDescription>
           </CardHeader>
           <CardContent>
             <Table>
@@ -227,7 +205,7 @@ export default function TeachersPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredTeachers.map((teacher) => (
+                {teachers.map((teacher) => (
                   <TableRow key={teacher.id}>
                     <TableCell className="font-medium">{teacher.teacherId}</TableCell>
                     <TableCell>
@@ -268,18 +246,16 @@ export default function TeachersPage() {
                             setSelectedTeacher(teacher);
                             setIsAssignDialogOpen(true);
                           }}
-                           className='dark:text-white dark:border-white'
+                          className='dark:text-white dark:border-white'
                         >
                           <BookOpen className="h-4 w-4" />
                         </Button>
-                        {/* <Button variant="outline" size="sm">
-                          <Edit className="h-4 w-4" />
-                        </Button> */}
                         <Button 
                           variant="outline" 
                           size="sm"
                           onClick={() => handleDeleteTeacher(teacher.id)}
-                           className='dark:text-white dark:border-white'
+                          className='dark:text-white dark:border-white'
+                          disabled={deleteTeacherMutation.isPending}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -340,8 +316,11 @@ export default function TeachersPage() {
               <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
                 Cancel
               </Button>
-              <Button onClick={handleCreateTeacher}>
-                Add Teacher
+              <Button 
+                onClick={handleCreateTeacher}
+                disabled={createTeacherMutation.isPending}
+              >
+                {createTeacherMutation.isPending ? 'Adding...' : 'Add Teacher'}
               </Button>
             </div>
           </DialogContent>
@@ -479,8 +458,11 @@ export default function TeachersPage() {
               <Button variant="outline" onClick={() => setIsAssignDialogOpen(false)}>
                 Cancel
               </Button>
-              <Button onClick={handleAssignTeacher}>
-                Assign Teacher
+              <Button 
+                onClick={handleAssignTeacher}
+                disabled={assignTeacherMutation.isPending || !assignment.class || assignment.subjects.length === 0}
+              >
+                {assignTeacherMutation.isPending ? 'Assigning...' : 'Assign Teacher'}
               </Button>
             </div>
           </DialogContent>

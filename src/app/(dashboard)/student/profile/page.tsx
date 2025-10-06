@@ -26,25 +26,32 @@ import {
   Download,
   Upload
 } from 'lucide-react';
+import { useStudentQueries } from '@/hooks/useStudentQueries';
 
 export const StudentSettingsPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'profile' | 'notifications' | 'privacy' | 'appearance'>('profile');
   const [showPassword, setShowPassword] = useState(false);
 
-  // Student data
-  const [studentData, setStudentData] = useState({
-    name: 'Alex Johnson',
-    email: 'alex.johnson@school.edu',
-    phone: '+1 (555) 123-4567',
-    grade: 'JSS 2A',
-    studentId: 'STU2024001',
-    bio: 'Passionate about mathematics and science. Love coding and robotics.',
-    avatar: '',
-    password: '••••••••'
+  const { useSettings, useUpdateSettings, useUpdateProfile, useChangePassword, useExportData } = useStudentQueries();
+  const { data: settingsResponse, isLoading, error } = useSettings();
+  const updateSettingsMutation = useUpdateSettings();
+  const updateProfileMutation = useUpdateProfile();
+  const changePasswordMutation = useChangePassword();
+  const exportDataMutation = useExportData();
+
+  const settingsData = settingsResponse?.data;
+  const { profile, notifications, privacy, appearance } = settingsData || {};
+
+  // Form states
+  const [profileData, setProfileData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    bio: '',
+    avatar: ''
   });
 
-  // Notification settings
-  const [notifications, setNotifications] = useState({
+  const [notificationSettings, setNotificationSettings] = useState({
     emailNotifications: true,
     pushNotifications: false,
     assignmentReminders: true,
@@ -53,8 +60,7 @@ export const StudentSettingsPage: React.FC = () => {
     eventReminders: false
   });
 
-  // Privacy settings
-  const [privacy, setPrivacy] = useState({
+  const [privacySettings, setPrivacySettings] = useState({
     showProfile: true,
     showGrades: false,
     showAttendance: true,
@@ -63,24 +69,74 @@ export const StudentSettingsPage: React.FC = () => {
     dataSharing: false
   });
 
-  // Appearance settings
-  const [appearance, setAppearance] = useState({
+  const [appearanceSettings, setAppearanceSettings] = useState({
     theme: 'system',
     fontSize: 'medium',
     density: 'comfortable',
     reducedMotion: false
   });
 
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+
+  // Initialize form data when settings are loaded
+  React.useEffect(() => {
+    if (profile) {
+      setProfileData({
+        name: profile.name || '',
+        email: profile.email || '',
+        phone: profile.phone || '',
+        bio: profile.bio || '',
+        avatar: profile.avatar || ''
+      });
+    }
+    if (notifications) {
+      setNotificationSettings(notifications);
+    }
+    if (privacy) {
+      setPrivacySettings(privacy);
+    }
+    if (appearance) {
+      setAppearanceSettings(appearance);
+    }
+  }, [profile, notifications, privacy, appearance]);
+
   const handleSaveSettings = () => {
-    toast.success('Settings saved successfully!');
+    updateSettingsMutation.mutate({
+      profile: profileData,
+      notifications: notificationSettings,
+      privacy: privacySettings,
+      appearance: appearanceSettings
+    });
   };
 
   const handleResetSettings = () => {
+    if (profile) {
+      setProfileData({
+        name: profile.name || '',
+        email: profile.email || '',
+        phone: profile.phone || '',
+        bio: profile.bio || '',
+        avatar: profile.avatar || ''
+      });
+    }
+    if (notifications) {
+      setNotificationSettings(notifications);
+    }
+    if (privacy) {
+      setPrivacySettings(privacy);
+    }
+    if (appearance) {
+      setAppearanceSettings(appearance);
+    }
     toast.info('Settings reset to defaults');
   };
 
   const handleExportData = () => {
-    toast.success('Data exported successfully!');
+    exportDataMutation.mutate();
   };
 
   const handleImportData = () => {
@@ -88,8 +144,65 @@ export const StudentSettingsPage: React.FC = () => {
   };
 
   const handlePasswordChange = () => {
-    toast.success('Password changed successfully!');
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      toast.error('New passwords do not match');
+      return;
+    }
+
+    changePasswordMutation.mutate({
+      currentPassword: passwordData.currentPassword,
+      newPassword: passwordData.newPassword
+    });
+
+    setPasswordData({
+      currentPassword: '',
+      newPassword: '',
+      confirmPassword: ''
+    });
   };
+
+  const handleProfileUpdate = () => {
+    updateProfileMutation.mutate(profileData);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen p-6 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <div>Loading settings...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen p-6 flex items-center justify-center">
+        <Card>
+          <CardContent className="text-center py-12">
+            <Settings className="h-12 w-12 text-red-500 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-foreground mb-2">Error Loading Settings</h3>
+            <p className="text-muted-foreground">Failed to load settings data. Please try again later.</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!settingsData) {
+    return (
+      <div className="min-h-screen p-6 flex items-center justify-center">
+        <Card>
+          <CardContent className="text-center py-12">
+            <Settings className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-foreground mb-2">No Settings Available</h3>
+            <p className="text-muted-foreground">Settings data is not available at the moment.</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen p-6">
@@ -163,32 +276,36 @@ export const StudentSettingsPage: React.FC = () => {
           <div className="lg:col-span-3">
             {activeTab === 'profile' && (
               <ProfileSettings 
-                studentData={studentData}
-                onUpdate={setStudentData}
+                profileData={profileData}
+                onUpdate={setProfileData}
+                studentProfile={profile}
                 showPassword={showPassword}
                 onShowPasswordChange={setShowPassword}
+                passwordData={passwordData}
+                onPasswordDataChange={setPasswordData}
                 onChangePassword={handlePasswordChange}
+                onUpdateProfile={handleProfileUpdate}
               />
             )}
 
             {activeTab === 'notifications' && (
               <NotificationSettings 
-                notifications={notifications}
-                onUpdate={setNotifications}
+                notifications={notificationSettings}
+                onUpdate={setNotificationSettings}
               />
             )}
 
             {activeTab === 'privacy' && (
               <PrivacySettings 
-                privacy={privacy}
-                onUpdate={setPrivacy}
+                privacy={privacySettings}
+                onUpdate={setPrivacySettings}
               />
             )}
 
             {activeTab === 'appearance' && (
               <AppearanceSettings 
-                appearance={appearance}
-                onUpdate={setAppearance}
+                appearance={appearanceSettings}
+                onUpdate={setAppearanceSettings}
               />
             )}
 
@@ -200,9 +317,9 @@ export const StudentSettingsPage: React.FC = () => {
                     <RotateCcw className="h-4 w-4 mr-2" />
                     Reset to Defaults
                   </Button>
-                  <Button onClick={handleSaveSettings}>
+                  <Button onClick={handleSaveSettings} disabled={updateSettingsMutation.isPending}>
                     <Save className="h-4 w-4 mr-2" />
-                    Save Changes
+                    {updateSettingsMutation.isPending ? 'Saving...' : 'Save Changes'}
                   </Button>
                 </div>
               </CardContent>
@@ -216,12 +333,26 @@ export const StudentSettingsPage: React.FC = () => {
 
 // Profile Settings Component
 const ProfileSettings: React.FC<{
-  studentData: any;
+  profileData: any;
   onUpdate: (data: any) => void;
+  studentProfile: any;
   showPassword: boolean;
   onShowPasswordChange: (show: boolean) => void;
+  passwordData: any;
+  onPasswordDataChange: (data: any) => void;
   onChangePassword: () => void;
-}> = ({ studentData, onUpdate, showPassword, onShowPasswordChange, onChangePassword }) => {
+  onUpdateProfile: () => void;
+}> = ({ 
+  profileData, 
+  onUpdate, 
+  studentProfile,
+  showPassword, 
+  onShowPasswordChange, 
+  passwordData, 
+  onPasswordDataChange, 
+  onChangePassword,
+  onUpdateProfile
+}) => {
   return (
     <Card>
       <CardHeader>
@@ -232,8 +363,8 @@ const ProfileSettings: React.FC<{
         {/* Avatar Section */}
         <div className="flex items-center space-x-4">
           <Avatar className="h-16 w-16">
-            <AvatarImage src={studentData.avatar} />
-            <AvatarFallback>{studentData.name[0]}</AvatarFallback>
+            <AvatarImage src={profileData.avatar} />
+            <AvatarFallback>{(profileData.name || studentProfile?.name || '').split(' ').map((n: string) => n[0]).join('')}</AvatarFallback>
           </Avatar>
           <div>
             <Button variant="outline">Change Avatar</Button>
@@ -247,8 +378,8 @@ const ProfileSettings: React.FC<{
             <Label htmlFor="name">Full Name</Label>
             <Input
               id="name"
-              value={studentData.name}
-              onChange={(e) => onUpdate({ ...studentData, name: e.target.value })}
+              value={profileData.name}
+              onChange={(e) => onUpdate({ ...profileData, name: e.target.value })}
             />
           </div>
           <div className="space-y-2">
@@ -256,23 +387,23 @@ const ProfileSettings: React.FC<{
             <Input
               id="email"
               type="email"
-              value={studentData.email}
-              onChange={(e) => onUpdate({ ...studentData, email: e.target.value })}
+              value={profileData.email}
+              onChange={(e) => onUpdate({ ...profileData, email: e.target.value })}
             />
           </div>
           <div className="space-y-2">
             <Label htmlFor="phone">Phone Number</Label>
             <Input
               id="phone"
-              value={studentData.phone}
-              onChange={(e) => onUpdate({ ...studentData, phone: e.target.value })}
+              value={profileData.phone}
+              onChange={(e) => onUpdate({ ...profileData, phone: e.target.value })}
             />
           </div>
           <div className="space-y-2">
             <Label htmlFor="grade">Grade/Class</Label>
             <Input
               id="grade"
-              value={studentData.grade}
+              value={studentProfile?.grade || ''}
               disabled
             />
           </div>
@@ -283,46 +414,71 @@ const ProfileSettings: React.FC<{
           <Label htmlFor="bio">Bio</Label>
           <Textarea
             id="bio"
-            value={studentData.bio}
-            onChange={(e) => onUpdate({ ...studentData, bio: e.target.value })}
+            value={profileData.bio}
+            onChange={(e) => onUpdate({ ...profileData, bio: e.target.value })}
             placeholder="Tell us about yourself..."
             rows={3}
           />
         </div>
 
+        <Button onClick={onUpdateProfile}>
+          Update Profile
+        </Button>
+
         {/* Password Section */}
         <Separator />
-        <div>
-          <Label htmlFor="password">Password</Label>
-          <div className="flex space-x-2 mt-1">
-            <div className="relative flex-1">
-              <Input
-                id="password"
-                type={showPassword ? "text" : "password"}
-                value={studentData.password}
-                onChange={(e) => onUpdate({ ...studentData, password: e.target.value })}
-              />
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                onClick={() => onShowPasswordChange(!showPassword)}
-              >
-                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </Button>
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold">Change Password</h3>
+          <div className="grid grid-cols-1 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="currentPassword">Current Password</Label>
+              <div className="relative">
+                <Input
+                  id="currentPassword"
+                  type={showPassword ? "text" : "password"}
+                  value={passwordData.currentPassword}
+                  onChange={(e) => onPasswordDataChange({ ...passwordData, currentPassword: e.target.value })}
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                  onClick={() => onShowPasswordChange(!showPassword)}
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </Button>
+              </div>
             </div>
-            <Button variant="outline" onClick={onChangePassword}>
-              Change Password
-            </Button>
+            <div className="space-y-2">
+              <Label htmlFor="newPassword">New Password</Label>
+              <Input
+                id="newPassword"
+                type={showPassword ? "text" : "password"}
+                value={passwordData.newPassword}
+                onChange={(e) => onPasswordDataChange({ ...passwordData, newPassword: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">Confirm New Password</Label>
+              <Input
+                id="confirmPassword"
+                type={showPassword ? "text" : "password"}
+                value={passwordData.confirmPassword}
+                onChange={(e) => onPasswordDataChange({ ...passwordData, confirmPassword: e.target.value })}
+              />
+            </div>
           </div>
+          <Button onClick={onChangePassword} variant="outline">
+            Change Password
+          </Button>
         </div>
 
         {/* Read-only Info */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
           <div className="p-3 bg-muted/50 rounded-lg">
             <div className="font-semibold">Student ID</div>
-            <div className="text-muted-foreground">{studentData.studentId}</div>
+            <div className="text-muted-foreground">{studentProfile?.studentId}</div>
           </div>
           <div className="p-3 bg-muted/50 rounded-lg">
             <div className="font-semibold">Account Status</div>

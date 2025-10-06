@@ -19,6 +19,7 @@ import {
   Calendar,
   Filter
 } from 'lucide-react';
+import { useStudentQueries } from '@/hooks/useStudentQueries';
 
 export const StudentResultsPage: React.FC = () => {
   const [filters, setFilters] = useState({
@@ -26,76 +27,19 @@ export const StudentResultsPage: React.FC = () => {
     term: '1st'
   });
 
-  // Mock results data
-  const resultsData = [
-    {
-      academicYear: '2024-2025',
-      term: '1st',
-      subjects: [
-        {
-          name: 'Mathematics',
-          code: 'MATH202',
-          teacher: 'Mr. Smith',
-          assessments: [
-            { type: 'test', title: 'Algebra Test 1', score: 28, maxScore: 30, weight: 30 },
-            { type: 'quiz', title: 'Geometry Quiz', score: 9, maxScore: 10, weight: 10 },
-            { type: 'exam', title: 'Mid-Term Exam', score: 55, maxScore: 60, weight: 60 }
-          ],
-          attendance: 95
-        },
-        {
-          name: 'English Language',
-          code: 'ENG201',
-          teacher: 'Mrs. Johnson',
-          assessments: [
-            { type: 'test', title: 'Grammar Test', score: 26, maxScore: 30, weight: 30 },
-            { type: 'quiz', title: 'Vocabulary Quiz', score: 8, maxScore: 10, weight: 10 },
-            { type: 'exam', title: 'Literature Exam', score: 54, maxScore: 60, weight: 60 }
-          ],
-          attendance: 92
-        },
-        {
-          name: 'Science',
-          code: 'SCI301',
-          teacher: 'Dr. Brown',
-          assessments: [
-            { type: 'test', title: 'Physics Test', score: 25, maxScore: 30, weight: 30 },
-            { type: 'quiz', title: 'Chemistry Quiz', score: 8, maxScore: 10, weight: 10 },
-            { type: 'exam', title: 'Science Mid-Term', score: 52, maxScore: 60, weight: 60 }
-          ],
-          attendance: 98
-        }
-      ]
-    },
-    {
-      academicYear: '2023-2024',
-      term: '3rd',
-      subjects: [
-        {
-          name: 'Mathematics',
-          code: 'MATH201',
-          teacher: 'Mr. Smith',
-          assessments: [
-            { type: 'test', title: 'Final Test', score: 27, maxScore: 30, weight: 30 },
-            { type: 'quiz', title: 'Advanced Quiz', score: 9, maxScore: 10, weight: 10 },
-            { type: 'exam', title: 'Final Exam', score: 56, maxScore: 60, weight: 60 }
-          ],
-          attendance: 94
-        }
-      ]
-    }
-  ];
+  const { useResults } = useStudentQueries();
+  const { data: resultsResponse, isLoading, error } = useResults(filters);
 
-  const academicYears = [...new Set(resultsData.map(r => r.academicYear))];
+  const academicYears = ['2024-2025', '2023-2024'];
   const terms = ['1st', '2nd', '3rd'];
 
   // Get filtered results
   const currentResults = useMemo(() => {
-    return resultsData.find(r => 
+    return resultsResponse?.data?.find(r => 
       r.academicYear === filters.academicYear && 
       r.term === filters.term
     );
-  }, [filters]);
+  }, [resultsResponse, filters]);
 
   // Calculate overall statistics
   const overallStats = useMemo(() => {
@@ -106,8 +50,8 @@ export const StudentResultsPage: React.FC = () => {
     let subjectCount = 0;
 
     currentResults.subjects.forEach(subject => {
-      const subjectTotal = subject.assessments.reduce((sum, a) => sum + a.score, 0);
-      const subjectMax = subject.assessments.reduce((sum, a) => sum + a.maxScore, 0);
+      const subjectTotal = subject.assessments.reduce((sum: number, a: any) => sum + a.score, 0);
+      const subjectMax = subject.assessments.reduce((sum: number, a: any) => sum + a.maxScore, 0);
       
       totalScore += subjectTotal;
       totalMax += subjectMax;
@@ -115,7 +59,7 @@ export const StudentResultsPage: React.FC = () => {
     });
 
     const averagePercentage = totalMax > 0 ? (totalScore / totalMax) * 100 : 0;
-    const averageAttendance = currentResults.subjects.reduce((sum, s) => sum + s.attendance, 0) / subjectCount;
+    const averageAttendance = currentResults.subjects.reduce((sum: number, s: any) => sum + s.attendance, 0) / subjectCount;
 
     return {
       averagePercentage,
@@ -133,10 +77,10 @@ export const StudentResultsPage: React.FC = () => {
     
     const csvContent = [
       headers.join(','),
-      ...currentResults.subjects.map(subject => {
-        const testScore = subject.assessments.find(a => a.type === 'test')?.score || 0;
-        const quizScore = subject.assessments.find(a => a.type === 'quiz')?.score || 0;
-        const examScore = subject.assessments.find(a => a.type === 'exam')?.score || 0;
+      ...currentResults.subjects.map((subject: any) => {
+        const testScore = subject.assessments.find((a: any) => a.type === 'test')?.score || 0;
+        const quizScore = subject.assessments.find((a: any) => a.type === 'quiz')?.score || 0;
+        const examScore = subject.assessments.find((a: any) => a.type === 'exam')?.score || 0;
         const totalScore = testScore + quizScore + examScore;
         const totalMax = 100; // 30 + 10 + 60
         const percentage = (totalScore / totalMax) * 100;
@@ -187,6 +131,31 @@ export const StudentResultsPage: React.FC = () => {
       exportToPDF();
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen p-6 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <div>Loading results...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen p-6 flex items-center justify-center">
+        <Card>
+          <CardContent className="text-center py-12">
+            <Award className="h-12 w-12 text-red-500 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-foreground mb-2">Error Loading Results</h3>
+            <p className="text-muted-foreground">Failed to load results data. Please try again later.</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   if (!currentResults) {
     return (
@@ -321,14 +290,14 @@ export const StudentResultsPage: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-6">
-              {currentResults.subjects.map((subject, index) => {
-                const testScore = subject.assessments.find(a => a.type === 'test')?.score || 0;
-                const quizScore = subject.assessments.find(a => a.type === 'quiz')?.score || 0;
-                const examScore = subject.assessments.find(a => a.type === 'exam')?.score || 0;
+              {currentResults.subjects.map((subject: any, index: number) => {
+                const testScore = subject.assessments.find((a: any) => a.type === 'test')?.score || 0;
+                const quizScore = subject.assessments.find((a: any) => a.type === 'quiz')?.score || 0;
+                const examScore = subject.assessments.find((a: any) => a.type === 'exam')?.score || 0;
                 
-                const testMax = subject.assessments.find(a => a.type === 'test')?.maxScore || 0;
-                const quizMax = subject.assessments.find(a => a.type === 'quiz')?.maxScore || 0;
-                const examMax = subject.assessments.find(a => a.type === 'exam')?.maxScore || 0;
+                const testMax = subject.assessments.find((a: any) => a.type === 'test')?.maxScore || 0;
+                const quizMax = subject.assessments.find((a: any) => a.type === 'quiz')?.maxScore || 0;
+                const examMax = subject.assessments.find((a: any) => a.type === 'exam')?.maxScore || 0;
 
                 const totalScore = testScore + quizScore + examScore;
                 const totalMax = testMax + quizMax + examMax;
@@ -360,7 +329,7 @@ export const StudentResultsPage: React.FC = () => {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {subject.assessments.map((assessment, assIndex) => {
+                        {subject.assessments.map((assessment: any, assIndex: number) => {
                           const assPercentage = (assessment.score / assessment.maxScore) * 100;
                           const assGrade = getGradeFromPercentage(assPercentage);
                           
