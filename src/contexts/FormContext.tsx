@@ -13,6 +13,8 @@ interface FormContextType {
     onSubmit: (data: signInFormData) => Promise<void>;
     isLoggingIn: boolean;
     userType: 'general' | 'parent' | 'parentotprequest';
+    clearOTP: () => void;
+    parentOTP: boolean;
 }
 
 const FormContext = createContext<FormContextType | undefined>(undefined)
@@ -22,7 +24,7 @@ export const FormProvider: React.FC<{
 }> = ({ children }) => {
     const searchParams = useSearchParams()
     const referenceNumber = searchParams.get('email') || ''
-    const { login, requestParentOTP, isLoggingIn, parentOTP } = useAuthContext()
+    const { login, requestParentOTP, isLoggingIn, parentOTP, removeparentOTP } = useAuthContext()
 
     const form = useForm<signInFormData>({
         resolver: zodResolver(signInSchema) as Resolver<signInFormData>,
@@ -59,12 +61,19 @@ export const FormProvider: React.FC<{
         else return login(data)
     }
 
+
+    const clearOTP = () => {
+        removeparentOTP();
+        form.setValue('userType', 'parentotprequest')
+    }
+
     const value = {
         form,
         onSubmit,
         isLoggingIn,
         userType,
         parentOTP,
+        clearOTP,
     }
 
     return (

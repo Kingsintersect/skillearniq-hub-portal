@@ -15,11 +15,11 @@ export default function ReportsPage() {
 
   return (
     <div className="min-h-screen p-6">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl font-bold">Reports</h1>
           <p className="text-muted-foreground">
-            {selectedStudent 
+            {selectedStudent
               ? `Download academic reports for ${selectedStudent.name}`
               : 'Download academic reports for your children'
             }

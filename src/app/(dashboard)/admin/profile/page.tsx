@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 export default function AdminProfile() {
   return (
     <div className="min-h-screen p-6">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl font-bold">Admin Profile</h1>
           <p className="text-muted-foreground">Manage your admin profile and account settings</p>

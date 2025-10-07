@@ -11,13 +11,13 @@ import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { 
-  Settings, 
-  Bell, 
-  Shield, 
-  Palette, 
-  User, 
-  Mail, 
+import {
+  Settings,
+  Bell,
+  Shield,
+  Palette,
+  User,
+  Mail,
   Phone,
   Save,
   RotateCcw,
@@ -206,7 +206,7 @@ export const StudentSettingsPage: React.FC = () => {
 
   return (
     <div className="min-h-screen p-6">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-8 text-center">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-primary rounded-2xl mb-4">
@@ -275,7 +275,7 @@ export const StudentSettingsPage: React.FC = () => {
           {/* Main Content */}
           <div className="lg:col-span-3">
             {activeTab === 'profile' && (
-              <ProfileSettings 
+              <ProfileSettings
                 profileData={profileData}
                 onUpdate={setProfileData}
                 studentProfile={profile}
@@ -289,21 +289,21 @@ export const StudentSettingsPage: React.FC = () => {
             )}
 
             {activeTab === 'notifications' && (
-              <NotificationSettings 
+              <NotificationSettings
                 notifications={notificationSettings}
                 onUpdate={setNotificationSettings}
               />
             )}
 
             {activeTab === 'privacy' && (
-              <PrivacySettings 
+              <PrivacySettings
                 privacy={privacySettings}
                 onUpdate={setPrivacySettings}
               />
             )}
 
             {activeTab === 'appearance' && (
-              <AppearanceSettings 
+              <AppearanceSettings
                 appearance={appearanceSettings}
                 onUpdate={setAppearanceSettings}
               />
@@ -342,153 +342,153 @@ const ProfileSettings: React.FC<{
   onPasswordDataChange: (data: any) => void;
   onChangePassword: () => void;
   onUpdateProfile: () => void;
-}> = ({ 
-  profileData, 
-  onUpdate, 
+}> = ({
+  profileData,
+  onUpdate,
   studentProfile,
-  showPassword, 
-  onShowPasswordChange, 
-  passwordData, 
-  onPasswordDataChange, 
+  showPassword,
+  onShowPasswordChange,
+  passwordData,
+  onPasswordDataChange,
   onChangePassword,
   onUpdateProfile
 }) => {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Profile Settings</CardTitle>
-        <CardDescription>Update your personal information and account details</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        {/* Avatar Section */}
-        <div className="flex items-center space-x-4">
-          <Avatar className="h-16 w-16">
-            <AvatarImage src={profileData.avatar} />
-            <AvatarFallback>{(profileData.name || studentProfile?.name || '').split(' ').map((n: string) => n[0]).join('')}</AvatarFallback>
-          </Avatar>
-          <div>
-            <Button variant="outline">Change Avatar</Button>
-            <p className="text-sm text-muted-foreground mt-1">JPG, GIF or PNG. Max size 2MB</p>
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Profile Settings</CardTitle>
+          <CardDescription>Update your personal information and account details</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Avatar Section */}
+          <div className="flex items-center space-x-4">
+            <Avatar className="h-16 w-16">
+              <AvatarImage src={profileData.avatar} />
+              <AvatarFallback>{(profileData.name || studentProfile?.name || '').split(' ').map((n: string) => n[0]).join('')}</AvatarFallback>
+            </Avatar>
+            <div>
+              <Button variant="outline">Change Avatar</Button>
+              <p className="text-sm text-muted-foreground mt-1">JPG, GIF or PNG. Max size 2MB</p>
+            </div>
           </div>
-        </div>
 
-        {/* Personal Information */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">Full Name</Label>
-            <Input
-              id="name"
-              value={profileData.name}
-              onChange={(e) => onUpdate({ ...profileData, name: e.target.value })}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="email">Email Address</Label>
-            <Input
-              id="email"
-              type="email"
-              value={profileData.email}
-              onChange={(e) => onUpdate({ ...profileData, email: e.target.value })}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="phone">Phone Number</Label>
-            <Input
-              id="phone"
-              value={profileData.phone}
-              onChange={(e) => onUpdate({ ...profileData, phone: e.target.value })}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="grade">Grade/Class</Label>
-            <Input
-              id="grade"
-              value={studentProfile?.grade || ''}
-              disabled
-            />
-          </div>
-        </div>
-
-        {/* Bio */}
-        <div className="space-y-2">
-          <Label htmlFor="bio">Bio</Label>
-          <Textarea
-            id="bio"
-            value={profileData.bio}
-            onChange={(e) => onUpdate({ ...profileData, bio: e.target.value })}
-            placeholder="Tell us about yourself..."
-            rows={3}
-          />
-        </div>
-
-        <Button onClick={onUpdateProfile}>
-          Update Profile
-        </Button>
-
-        {/* Password Section */}
-        <Separator />
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold">Change Password</h3>
-          <div className="grid grid-cols-1 gap-4">
+          {/* Personal Information */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="currentPassword">Current Password</Label>
-              <div className="relative">
+              <Label htmlFor="name">Full Name</Label>
+              <Input
+                id="name"
+                value={profileData.name}
+                onChange={(e) => onUpdate({ ...profileData, name: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="email">Email Address</Label>
+              <Input
+                id="email"
+                type="email"
+                value={profileData.email}
+                onChange={(e) => onUpdate({ ...profileData, email: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="phone">Phone Number</Label>
+              <Input
+                id="phone"
+                value={profileData.phone}
+                onChange={(e) => onUpdate({ ...profileData, phone: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="grade">Grade/Class</Label>
+              <Input
+                id="grade"
+                value={studentProfile?.grade || ''}
+                disabled
+              />
+            </div>
+          </div>
+
+          {/* Bio */}
+          <div className="space-y-2">
+            <Label htmlFor="bio">Bio</Label>
+            <Textarea
+              id="bio"
+              value={profileData.bio}
+              onChange={(e) => onUpdate({ ...profileData, bio: e.target.value })}
+              placeholder="Tell us about yourself..."
+              rows={3}
+            />
+          </div>
+
+          <Button onClick={onUpdateProfile}>
+            Update Profile
+          </Button>
+
+          {/* Password Section */}
+          <Separator />
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold">Change Password</h3>
+            <div className="grid grid-cols-1 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="currentPassword">Current Password</Label>
+                <div className="relative">
+                  <Input
+                    id="currentPassword"
+                    type={showPassword ? "text" : "password"}
+                    value={passwordData.currentPassword}
+                    onChange={(e) => onPasswordDataChange({ ...passwordData, currentPassword: e.target.value })}
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                    onClick={() => onShowPasswordChange(!showPassword)}
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </Button>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="newPassword">New Password</Label>
                 <Input
-                  id="currentPassword"
+                  id="newPassword"
                   type={showPassword ? "text" : "password"}
-                  value={passwordData.currentPassword}
-                  onChange={(e) => onPasswordDataChange({ ...passwordData, currentPassword: e.target.value })}
+                  value={passwordData.newPassword}
+                  onChange={(e) => onPasswordDataChange({ ...passwordData, newPassword: e.target.value })}
                 />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                  onClick={() => onShowPasswordChange(!showPassword)}
-                >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </Button>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                <Input
+                  id="confirmPassword"
+                  type={showPassword ? "text" : "password"}
+                  value={passwordData.confirmPassword}
+                  onChange={(e) => onPasswordDataChange({ ...passwordData, confirmPassword: e.target.value })}
+                />
               </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="newPassword">New Password</Label>
-              <Input
-                id="newPassword"
-                type={showPassword ? "text" : "password"}
-                value={passwordData.newPassword}
-                onChange={(e) => onPasswordDataChange({ ...passwordData, newPassword: e.target.value })}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm New Password</Label>
-              <Input
-                id="confirmPassword"
-                type={showPassword ? "text" : "password"}
-                value={passwordData.confirmPassword}
-                onChange={(e) => onPasswordDataChange({ ...passwordData, confirmPassword: e.target.value })}
-              />
-            </div>
+            <Button onClick={onChangePassword} variant="outline">
+              Change Password
+            </Button>
           </div>
-          <Button onClick={onChangePassword} variant="outline">
-            Change Password
-          </Button>
-        </div>
 
-        {/* Read-only Info */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-          <div className="p-3 bg-muted/50 rounded-lg">
-            <div className="font-semibold">Student ID</div>
-            <div className="text-muted-foreground">{studentProfile?.studentId}</div>
+          {/* Read-only Info */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+            <div className="p-3 bg-muted/50 rounded-lg">
+              <div className="font-semibold">Student ID</div>
+              <div className="text-muted-foreground">{studentProfile?.studentId}</div>
+            </div>
+            <div className="p-3 bg-muted/50 rounded-lg">
+              <div className="font-semibold">Account Status</div>
+              <Badge variant="default">Active</Badge>
+            </div>
           </div>
-          <div className="p-3 bg-muted/50 rounded-lg">
-            <div className="font-semibold">Account Status</div>
-            <Badge variant="default">Active</Badge>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
+        </CardContent>
+      </Card>
+    );
+  };
 
 // Notification Settings Component
 const NotificationSettings: React.FC<{

@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from '@/components/ui/button';
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { useLoginFormContext } from '@/contexts/FormContext';
@@ -9,43 +10,48 @@ import React from 'react'
 import { UseFormRegister } from 'react-hook-form';
 
 const RoleSelector = () => {
-    const { form } = useLoginFormContext()
+    const { form, clearOTP, parentOTP } = useLoginFormContext()
 
     return (
-        <FormField
-            control={form.control}
-            name="userType"
-            render={({ field }) => (
-                <FormItem className="space-y-3">
-                    <FormLabel className='text-accent'>I Am A...</FormLabel>
-                    <FormControl>
-                        <RadioGroup
-                            onValueChange={field.onChange}
-                            defaultValue={field.value}
-                            className="flex items-center gap-5"
-                        >
-                            <FormItem className="flex items-center gap-3">
-                                <FormControl className='rounded-none'>
-                                    <RadioGroupItem value="general" />
-                                </FormControl>
-                                <FormLabel className="font-normal">
-                                    GENERAL LOGIN
-                                </FormLabel>
-                            </FormItem>
-                            <FormItem className="flex items-center gap-3">
-                                <FormControl className='rounded-none'>
-                                    <RadioGroupItem value="parentotprequest" />
-                                </FormControl>
-                                <FormLabel className="font-normal">
-                                    PARENT LOGIN
-                                </FormLabel>
-                            </FormItem>
-                        </RadioGroup>
-                    </FormControl>
-                    <FormMessage />
-                </FormItem>
-            )}
-        />
+        <div className="mb-5 text-center">
+            <FormField
+                control={form.control}
+                name="userType"
+                render={({ field }) => (
+                    <FormItem className="space-y-3">
+                        <FormLabel className='text-accent'>I Am A...</FormLabel>
+                        <FormControl>
+                            <RadioGroup
+                                onValueChange={field.onChange}
+                                defaultValue={field.value}
+                                className="flex items-center gap-5"
+                            >
+                                <FormItem className="flex items-center gap-3">
+                                    <FormControl className='rounded-none'>
+                                        <RadioGroupItem value="general" />
+                                    </FormControl>
+                                    <FormLabel className="font-normal">
+                                        GENERAL LOGIN
+                                    </FormLabel>
+                                </FormItem>
+                                <FormItem className="flex items-center gap-3">
+                                    <FormControl className='rounded-none'>
+                                        <RadioGroupItem value="parentotprequest" />
+                                    </FormControl>
+                                    <FormLabel className="font-normal">
+                                        PARENT LOGIN
+                                    </FormLabel>
+                                </FormItem>
+                            </RadioGroup>
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
+                )}
+            />
+            {parentOTP && <div className="w-full my-2 text-right">
+                <Button onClick={clearOTP}>Clear OTP</Button>
+            </div>}
+        </div>
     )
 }
 

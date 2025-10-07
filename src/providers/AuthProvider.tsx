@@ -16,6 +16,7 @@ interface AuthContextType extends AuthenState {
     isLoggingIn: boolean;
     isLoggingOut: boolean;
     clearAuthenticationData: () => void;
+    removeparentOTP: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
