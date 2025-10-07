@@ -8,7 +8,6 @@ import {
 import { ModeToggle } from './ui/mood-toggle'
 import { ThemeSelector } from './theme-selector'
 import { DynamicBreadcrumb } from './ui/dynamic-breadcrumb'
-import Link from 'next/link'
 import SignOutButton from './core/signout-button'
 import { StudentSelector } from './StudentSelector'
 

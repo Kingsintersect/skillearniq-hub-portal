@@ -40,7 +40,7 @@ export default function SettingsPage() {
 
   return (
     <div className="min-h-screen p-6">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl font-bold">Parent Settings</h1>
           <p className="text-muted-foreground">Manage your account preferences and notifications</p>
@@ -60,7 +60,7 @@ export default function SettingsPage() {
                   id="email"
                   type="email"
                   value={settings.email}
-                  onChange={(e) => setSettings({...settings, email: e.target.value})}
+                  onChange={(e) => setSettings({ ...settings, email: e.target.value })}
                 />
               </div>
               <div className="space-y-2">
@@ -68,7 +68,7 @@ export default function SettingsPage() {
                 <Input
                   id="phone"
                   value={settings.phone}
-                  onChange={(e) => setSettings({...settings, phone: e.target.value})}
+                  onChange={(e) => setSettings({ ...settings, phone: e.target.value })}
                 />
               </div>
             </div>
@@ -144,7 +144,7 @@ export default function SettingsPage() {
 
         <div className="flex justify-end space-x-4 mt-6">
           <Button variant="outline">Cancel</Button>
-          <Button 
+          <Button
             onClick={handleSaveSettings}
             disabled={isSaving}
           >
