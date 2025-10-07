@@ -13,7 +13,7 @@ import { StudentSelector } from './StudentSelector'
 
 const SiteHeader = () => {
     const pathname = usePathname()
-    const isParentPage = pathname?.includes('/parents')
+    const isParentPage = pathname?.includes('/parent')
 
     return (
         <header className="flex h-16 shrink-0 items-center justify-between gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
