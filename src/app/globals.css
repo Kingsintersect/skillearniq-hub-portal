@@ -358,6 +358,12 @@
 @layer components {
 
 	/* Your custom component styles */
+	button {
+		font-weight: 500;
+		transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+		cursor: pointer;
+	}
+
 	.btn-primary {
 		background-color: hsl(var(--primary));
 		color: hsl(var(--primary-foreground));

@@ -180,5 +180,6 @@ export function useAuth() {
         clearAuthenticationData,
         loginError: loginMutation.error,
         logoutError: logoutMutation.error,
+        removeparentOTP: removeparentOTP,
     };
 }

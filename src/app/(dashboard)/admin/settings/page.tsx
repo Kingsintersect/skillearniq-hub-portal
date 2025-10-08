@@ -73,7 +73,7 @@ export default function SettingsPage() {
 
   return (
     <div className="min-h-screen p-6">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl font-bold">Admin Settings</h1>
           <p className="text-muted-foreground">Manage school settings and configuration</p>
@@ -92,14 +92,14 @@ export default function SettingsPage() {
                 <Input
                   id="schoolName"
                   value={settings.schoolName}
-                  onChange={(e) => setSettings({...settings, schoolName: e.target.value})}
+                  onChange={(e) => setSettings({ ...settings, schoolName: e.target.value })}
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="academicYear">Academic Year</Label>
-                <Select 
-                  value={settings.academicYear} 
-                  onValueChange={(value) => setSettings({...settings, academicYear: value})}
+                <Select
+                  value={settings.academicYear}
+                  onValueChange={(value) => setSettings({ ...settings, academicYear: value })}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -117,9 +117,9 @@ export default function SettingsPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <Label htmlFor="currentTerm">Current Term</Label>
-                <Select 
-                  value={settings.currentTerm} 
-                  onValueChange={(value) => setSettings({...settings, currentTerm: value})}
+                <Select
+                  value={settings.currentTerm}
+                  onValueChange={(value) => setSettings({ ...settings, currentTerm: value })}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -136,7 +136,7 @@ export default function SettingsPage() {
                 <Input
                   id="phone"
                   value={settings.phone}
-                  onChange={(e) => setSettings({...settings, phone: e.target.value})}
+                  onChange={(e) => setSettings({ ...settings, phone: e.target.value })}
                 />
               </div>
             </div>
@@ -146,7 +146,7 @@ export default function SettingsPage() {
               <Textarea
                 id="address"
                 value={settings.address}
-                onChange={(e) => setSettings({...settings, address: e.target.value})}
+                onChange={(e) => setSettings({ ...settings, address: e.target.value })}
                 rows={3}
               />
             </div>
@@ -158,7 +158,7 @@ export default function SettingsPage() {
                   id="email"
                   type="email"
                   value={settings.email}
-                  onChange={(e) => setSettings({...settings, email: e.target.value})}
+                  onChange={(e) => setSettings({ ...settings, email: e.target.value })}
                 />
               </div>
               <div className="space-y-2">
@@ -166,7 +166,7 @@ export default function SettingsPage() {
                 <Input
                   id="website"
                   value={settings.website}
-                  onChange={(e) => setSettings({...settings, website: e.target.value})}
+                  onChange={(e) => setSettings({ ...settings, website: e.target.value })}
                   placeholder="https://example.com"
                 />
               </div>
@@ -184,8 +184,8 @@ export default function SettingsPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <Label>Grading System</Label>
-                <Select 
-                  value={systemConfig.gradingSystem} 
+                <Select
+                  value={systemConfig.gradingSystem}
                   onValueChange={(value) => handleSystemConfigChange('gradingSystem', value)}
                 >
                   <SelectTrigger>
@@ -200,8 +200,8 @@ export default function SettingsPage() {
               </div>
               <div className="space-y-2">
                 <Label>Attendance Tracking</Label>
-                <Select 
-                  value={systemConfig.attendanceTracking} 
+                <Select
+                  value={systemConfig.attendanceTracking}
                   onValueChange={(value) => handleSystemConfigChange('attendanceTracking', value)}
                 >
                   <SelectTrigger>
@@ -218,8 +218,8 @@ export default function SettingsPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <Label>Result Publication</Label>
-                <Select 
-                  value={systemConfig.resultPublication} 
+                <Select
+                  value={systemConfig.resultPublication}
                   onValueChange={(value) => handleSystemConfigChange('resultPublication', value)}
                 >
                   <SelectTrigger>
@@ -234,8 +234,8 @@ export default function SettingsPage() {
               </div>
               <div className="space-y-2">
                 <Label>Parent Access</Label>
-                <Select 
-                  value={systemConfig.parentAccess} 
+                <Select
+                  value={systemConfig.parentAccess}
                   onValueChange={(value) => handleSystemConfigChange('parentAccess', value)}
                 >
                   <SelectTrigger>
