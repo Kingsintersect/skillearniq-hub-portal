@@ -2,7 +2,6 @@
 import React, { useState } from 'react';
 import { useTeacherClasses, useClassAssessments } from '@/hooks/use-classes';
 
-
 import { Button } from '@/components/ui/button';
 import { Card, CardContent} from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -14,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 import { toast } from 'sonner';
 import { 
@@ -25,8 +25,214 @@ import {
   Award,
   BarChart3,
   Edit,
-  Trash2
+  Trash2,
+  Sheet,
+  FileDown
 } from 'lucide-react';
+
+type ExportFormat = 'csv' | 'excel' | 'pdf';
+
+// Custom hook for assessments export functionality
+const useExportAssessments = () => {
+  const exportToCSV = (assessments: any[], filename: string = 'assessments') => {
+    if (!assessments.length) return;
+    
+    const headers = ['ID', 'Title', 'Class', 'Type', 'Due Date', 'Max Score', 'Submissions', 'Total Students', 'Average Score', 'Status'];
+    
+    const csvContent = [
+      headers.join(','),
+      ...assessments.map(assessment => [
+        assessment.id,
+        `"${assessment.title.replace(/"/g, '""')}"`,
+        `"${assessment.class}"`,
+        assessment.type,
+        `"${new Date(assessment.dueDate).toLocaleDateString()}"`,
+        assessment.maxScore,
+        assessment.submissions,
+        assessment.totalStudents,
+        assessment.averageScore || 'N/A',
+        assessment.status
+      ].join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `${filename}_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+  };
+
+  const exportToExcel = (assessments: any[], filename: string = 'assessments') => {
+    if (!assessments.length) return;
+    
+    const headers = ['ID', 'Title', 'Class', 'Type', 'Due Date', 'Max Score', 'Submissions', 'Total Students', 'Average Score', 'Status'];
+    
+    const csvContent = [
+      headers.join(','),
+      ...assessments.map(assessment => [
+        assessment.id,
+        `"${assessment.title.replace(/"/g, '""')}"`,
+        `"${assessment.class}"`,
+        assessment.type,
+        `"${new Date(assessment.dueDate).toLocaleDateString()}"`,
+        assessment.maxScore,
+        assessment.submissions,
+        assessment.totalStudents,
+        assessment.averageScore || 'N/A',
+        assessment.status
+      ].join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'application/vnd.ms-excel;charset=utf-8' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `${filename}_${new Date().toISOString().split('T')[0]}.xls`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+  };
+
+  const exportToPDF = (assessments: any[], filename: string = 'assessments') => {
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      const assessmentData = assessments.map(assessment => `
+        <tr>
+          <td>${assessment.id}</td>
+          <td>${assessment.title}</td>
+          <td>${assessment.class}</td>
+          <td>${assessment.type}</td>
+          <td>${new Date(assessment.dueDate).toLocaleDateString()}</td>
+          <td>${assessment.maxScore}</td>
+          <td>${assessment.submissions}/${assessment.totalStudents}</td>
+          <td>${assessment.averageScore || 'N/A'}%</td>
+          <td>${assessment.status}</td>
+        </tr>
+      `).join('');
+
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>${filename}</title>
+            <style>
+              body { 
+                font-family: Arial, sans-serif; 
+                margin: 20px; 
+                color: #333;
+              }
+              .header { 
+                text-align: center; 
+                margin-bottom: 30px; 
+                border-bottom: 2px solid #333;
+                padding-bottom: 20px;
+              }
+              .header h1 { 
+                margin: 0; 
+                color: #1a365d;
+                font-size: 24px;
+              }
+              .header p { 
+                margin: 5px 0; 
+                color: #666;
+              }
+              table { 
+                width: 100%; 
+                border-collapse: collapse; 
+                margin-top: 20px;
+                font-size: 11px;
+              }
+              th, td { 
+                border: 1px solid #ddd; 
+                padding: 8px; 
+                text-align: left; 
+              }
+              th { 
+                background-color: #f5f5f5; 
+                font-weight: bold;
+                color: #333;
+              }
+              tr:nth-child(even) {
+                background-color: #f9f9f9;
+              }
+              .summary {
+                margin-top: 20px;
+                padding: 15px;
+                background-color: #f0f9ff;
+                border-radius: 5px;
+              }
+              .footer {
+                margin-top: 30px;
+                text-align: center;
+                color: #666;
+                font-size: 11px;
+              }
+              @media print {
+                body { margin: 0; }
+                .no-print { display: none; }
+              }
+            </style>
+          </head>
+          <body>
+            <div class="header">
+              <h1>Assessments Report - ${filename}</h1>
+              <p>Generated on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}</p>
+              <p>Total Assessments: ${assessments.length}</p>
+            </div>
+
+            <div class="summary">
+              <strong>Summary:</strong> Showing ${assessments.length} assessment(s) with complete records.
+            </div>
+
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Title</th>
+                  <th>Class</th>
+                  <th>Type</th>
+                  <th>Due Date</th>
+                  <th>Max Score</th>
+                  <th>Submissions</th>
+                  <th>Avg Score</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${assessmentData}
+              </tbody>
+            </table>
+
+            <div class="footer">
+              <p>Confidential Assessment Data - For Educational Use Only</p>
+              <p>Page generated by School Management System</p>
+            </div>
+
+            <div class="no-print" style="margin-top: 20px; text-align: center;">
+              <button onclick="window.print()" style="padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                Print PDF
+              </button>
+              <button onclick="window.close()" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 5px; cursor: pointer; margin-left: 10px;">
+                Close
+              </button>
+            </div>
+
+            <script>
+              setTimeout(() => {
+                window.print();
+              }, 500);
+            </script>
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
+    }
+  };
+
+  return {
+    exportToCSV,
+    exportToExcel,
+    exportToPDF
+  };
+};
 
 export const AssessmentsPage: React.FC = () => {
   const [filters, setFilters] = useState({
@@ -40,9 +246,10 @@ export const AssessmentsPage: React.FC = () => {
 
   const currentTeacherId = 1;
   const { data: classes, isLoading } = useTeacherClasses(currentTeacherId);
-  //const { data: assessments } = useClassAssessments(filters.classId);
+  
+  const { exportToCSV, exportToExcel, exportToPDF } = useExportAssessments();
 
-  // Mock assessments data
+  // Mock assessments data with results
   const assessmentsData = {
     upcoming: [
       {
@@ -54,7 +261,8 @@ export const AssessmentsPage: React.FC = () => {
         maxScore: 20,
         status: 'scheduled',
         submissions: 0,
-        totalStudents: 30
+        totalStudents: 30,
+        results: []
       }
     ],
     completed: [
@@ -68,12 +276,34 @@ export const AssessmentsPage: React.FC = () => {
         status: 'graded',
         submissions: 28,
         totalStudents: 30,
-        averageScore: 85.5
+        averageScore: 85.5,
+        results: [
+          { studentId: 1, studentName: 'John Doe', score: 92, grade: 'A' },
+          { studentId: 2, studentName: 'Jane Smith', score: 88, grade: 'B+' },
+          { studentId: 3, studentName: 'Mike Johnson', score: 76, grade: 'C+' }
+        ]
+      },
+      {
+        id: 3,
+        title: 'Science Mid-term Exam',
+        class: 'JSS 1A',
+        type: 'exam',
+        dueDate: '2024-01-15',
+        maxScore: 100,
+        status: 'graded',
+        submissions: 30,
+        totalStudents: 30,
+        averageScore: 78.2,
+        results: [
+          { studentId: 1, studentName: 'John Doe', score: 85, grade: 'B+' },
+          { studentId: 2, studentName: 'Jane Smith', score: 92, grade: 'A' },
+          { studentId: 3, studentName: 'Mike Johnson', score: 67, grade: 'C' }
+        ]
       }
     ],
     drafts: [
       {
-        id: 3,
+        id: 4,
         title: 'Science Project',
         class: 'JSS 1A',
         type: 'project',
@@ -81,7 +311,8 @@ export const AssessmentsPage: React.FC = () => {
         maxScore: 50,
         status: 'draft',
         submissions: 0,
-        totalStudents: 30
+        totalStudents: 30,
+        results: []
       }
     ]
   };
@@ -92,6 +323,66 @@ export const AssessmentsPage: React.FC = () => {
 
   const handleCreateAssessment = () => {
     toast.success('New assessment created successfully!');
+  };
+
+  const handleExportAssessments = (format: ExportFormat, assessmentsToExport: any[]) => {
+    if (assessmentsToExport.length === 0) {
+      toast.error('No assessments to export');
+      return;
+    }
+
+    const className = classes?.find(c => c.id === filters.classId)?.shortName || 'assessments';
+    const filename = `${className}_${filters.academicYear}_${filters.term}_assessments`;
+
+    try {
+      switch (format) {
+        case 'csv':
+          exportToCSV(assessmentsToExport, filename);
+          toast.success(`Exported ${assessmentsToExport.length} assessments as CSV`);
+          break;
+        case 'excel':
+          exportToExcel(assessmentsToExport, filename);
+          toast.success(`Exported ${assessmentsToExport.length} assessments as Excel`);
+          break;
+        case 'pdf':
+          exportToPDF(assessmentsToExport, filename);
+          toast.success(`Exported ${assessmentsToExport.length} assessments as PDF`);
+          break;
+        default:
+          toast.error('Unsupported export format');
+      }
+    } catch (error) {
+      toast.error('Failed to export data. Please try again.');
+      console.error('Export error:', error);
+    }
+  };
+
+  const handleExportResults = (assessment: any) => {
+    if (!assessment.results || assessment.results.length === 0) {
+      toast.error('No results available for this assessment');
+      return;
+    }
+
+    const headers = ['Student ID', 'Student Name', 'Score', 'Grade', 'Percentage'];
+    const csvContent = [
+      headers.join(','),
+      ...assessment.results.map((result: any) => [
+        result.studentId,
+        `"${result.studentName}"`,
+        result.score,
+        result.grade,
+        `${((result.score / assessment.maxScore) * 100).toFixed(1)}%`
+      ].join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `${assessment.title.replace(/[^a-z0-9]/gi, '_')}_results_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+
+    toast.success(`Exported results for ${assessment.title}`);
   };
 
   if (isLoading) {
@@ -262,10 +553,37 @@ export const AssessmentsPage: React.FC = () => {
                   </DialogTrigger>
                   <CreateAssessmentDialog onCreate={handleCreateAssessment} classes={classes || []} />
                 </Dialog>
-                <Button variant="outline">
-                  <Download className="h-4 w-4 mr-2" />
-                  Export
-                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline">
+                      <Download className="h-4 w-4 mr-2" />
+                      Export
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem 
+                      onClick={() => handleExportAssessments('csv', assessmentsData[view])}
+                      className="flex items-center space-x-2"
+                    >
+                      <Sheet className="h-4 w-4" />
+                      <span>Export as CSV</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => handleExportAssessments('excel', assessmentsData[view])}
+                      className="flex items-center space-x-2"
+                    >
+                      <FileDown className="h-4 w-4" />
+                      <span>Export as Excel</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => handleExportAssessments('pdf', assessmentsData[view])}
+                      className="flex items-center space-x-2"
+                    >
+                      <FileText className="h-4 w-4" />
+                      <span>Export as PDF</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </div>
           </CardContent>
@@ -298,15 +616,27 @@ export const AssessmentsPage: React.FC = () => {
           </TabsList>
 
           <TabsContent value="upcoming">
-            <AssessmentsListView data={assessmentsData.upcoming} type="upcoming" />
+            <AssessmentsListView 
+              data={assessmentsData.upcoming} 
+              type="upcoming" 
+              onExportResults={handleExportResults}
+            />
           </TabsContent>
 
           <TabsContent value="completed">
-            <AssessmentsListView data={assessmentsData.completed} type="completed" />
+            <AssessmentsListView 
+              data={assessmentsData.completed} 
+              type="completed" 
+              onExportResults={handleExportResults}
+            />
           </TabsContent>
 
           <TabsContent value="drafts">
-            <AssessmentsListView data={assessmentsData.drafts} type="drafts" />
+            <AssessmentsListView 
+              data={assessmentsData.drafts} 
+              type="drafts" 
+              onExportResults={handleExportResults}
+            />
           </TabsContent>
         </Tabs>
       </div>
@@ -315,7 +645,11 @@ export const AssessmentsPage: React.FC = () => {
 };
 
 // Assessments List View Component
-const AssessmentsListView: React.FC<{ data: any[]; type: string }> = ({ data, type }) => {
+const AssessmentsListView: React.FC<{ 
+  data: any[]; 
+  type: string;
+  onExportResults: (assessment: any) => void;
+}> = ({ data, type, onExportResults }) => {
   if (data.length === 0) {
     return (
       <Card>
@@ -386,6 +720,15 @@ const AssessmentsListView: React.FC<{ data: any[]; type: string }> = ({ data, ty
               )}
               <TableCell>
                 <div className="flex space-x-2">
+                  {type === 'completed' && assessment.results && assessment.results.length > 0 && (
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => onExportResults(assessment)}
+                    >
+                      <Download className="h-4 w-4" />
+                    </Button>
+                  )}
                   <Button variant="outline" size="sm">
                     <Edit className="h-4 w-4" />
                   </Button>
