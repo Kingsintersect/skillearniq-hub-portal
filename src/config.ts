@@ -61,9 +61,9 @@ export const APP_CONFIG = {
     institution: INSTITUTION,
     version: SITE_VERSION,
     apiUrl: externalApiUrl,
-    description: "Nnamdi Azikiwe University Business School Student Portal System",
-    keywords: ["UNIZIK", "Business School", "Student Portal", "University", "Nigeria"],
-    authors: [{ name: "UNIZIK Business School" }],
+    description: "Skill Learn IQ Hub Portal System",
+    keywords: ["Skillearniq", "Skill Learn IQ Hub", "Student Portal", "Prep School", "Nigeria"],
+    authors: [{ name: "Skill Learn IQ Hub" }],
     creator: "Q-verse Limited",
     publisher: "Q-verse Limited",
     icons: [
