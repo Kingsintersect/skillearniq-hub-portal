@@ -329,18 +329,18 @@ export const StudentNavMain: SidebarNavConfig = {
             ],
             display: true,
         },
-        {
-            title: "REPORTS",
-            url: "#",
-            icon: Flag,
-            items: [
-                {
-                    title: "Grade Report",
-                    url: "/student/grade-report",
-                },
-            ],
-            display: true,
-        },
+        // {
+        //     title: "REPORTS",
+        //     url: "#",
+        //     icon: Flag,
+        //     items: [
+        //         {
+        //             title: "Grade Report",
+        //             url: "/student/grade-report",
+        //         },
+        //     ],
+        //     display: true,
+        // },
 
         {
             title: "PROFILE",
