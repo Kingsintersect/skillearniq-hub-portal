@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
 import { 
   Award, 
@@ -17,9 +18,398 @@ import {
   TrendingUp,
   BookOpen,
   Calendar,
-  Filter
+  Filter,
+  Sheet,
+  FileDown
 } from 'lucide-react';
 import { useStudentQueries } from '@/hooks/useStudentQueries';
+
+type ExportFormat = 'csv' | 'excel' | 'pdf';
+
+// Custom hook for export functionality
+const useExportResults = () => {
+  const exportToCSV = (results: any, filters: any, overallStats: any) => {
+    if (!results) return;
+    
+    const headers = [
+      'Subject', 
+      'Code', 
+      'Teacher', 
+      'Test Score', 
+      'Quiz Score', 
+      'Exam Score', 
+      'Total Score', 
+      'Max Score',
+      'Percentage', 
+      'Grade', 
+      'Attendance'
+    ];
+    
+    const csvContent = [
+      headers.join(','),
+      ...results.subjects.map((subject: any) => {
+        const testScore = subject.assessments.find((a: any) => a.type === 'test')?.score || 0;
+        const quizScore = subject.assessments.find((a: any) => a.type === 'quiz')?.score || 0;
+        const examScore = subject.assessments.find((a: any) => a.type === 'exam')?.score || 0;
+        
+        const testMax = subject.assessments.find((a: any) => a.type === 'test')?.maxScore || 0;
+        const quizMax = subject.assessments.find((a: any) => a.type === 'quiz')?.maxScore || 0;
+        const examMax = subject.assessments.find((a: any) => a.type === 'exam')?.maxScore || 0;
+
+        const totalScore = testScore + quizScore + examScore;
+        const totalMax = testMax + quizMax + examMax;
+        const percentage = totalMax > 0 ? (totalScore / totalMax) * 100 : 0;
+        const grade = getGradeFromPercentage(percentage);
+
+        return [
+          `"${subject.name}"`,
+          subject.code,
+          `"${subject.teacher}"`,
+          testScore,
+          quizScore,
+          examScore,
+          totalScore,
+          totalMax,
+          percentage.toFixed(1),
+          grade,
+          `${subject.attendance}%`
+        ].join(',');
+      }),
+      '', // Empty row for separation
+      'Overall Summary',
+      `"Average Score","${overallStats?.averagePercentage.toFixed(1)}%"`,
+      `"Overall Grade","${overallStats?.overallGrade}"`,
+      `"Average Attendance","${overallStats?.averageAttendance.toFixed(1)}%"`,
+      `"Total Subjects","${overallStats?.totalSubjects}"`
+    ].join('\n');
+
+    // Create and download CSV file
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `student-results-${filters.academicYear}-${filters.term}-term.csv`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+  };
+
+  const exportToExcel = (results: any, filters: any, overallStats: any) => {
+    if (!results) return;
+    
+    const headers = [
+      'Subject', 
+      'Code', 
+      'Teacher', 
+      'Test Score', 
+      'Quiz Score', 
+      'Exam Score', 
+      'Total Score', 
+      'Max Score',
+      'Percentage', 
+      'Grade', 
+      'Attendance'
+    ];
+    
+    const csvContent = [
+      headers.join(','),
+      ...results.subjects.map((subject: any) => {
+        const testScore = subject.assessments.find((a: any) => a.type === 'test')?.score || 0;
+        const quizScore = subject.assessments.find((a: any) => a.type === 'quiz')?.score || 0;
+        const examScore = subject.assessments.find((a: any) => a.type === 'exam')?.score || 0;
+        
+        const testMax = subject.assessments.find((a: any) => a.type === 'test')?.maxScore || 0;
+        const quizMax = subject.assessments.find((a: any) => a.type === 'quiz')?.maxScore || 0;
+        const examMax = subject.assessments.find((a: any) => a.type === 'exam')?.maxScore || 0;
+
+        const totalScore = testScore + quizScore + examScore;
+        const totalMax = testMax + quizMax + examMax;
+        const percentage = totalMax > 0 ? (totalScore / totalMax) * 100 : 0;
+        const grade = getGradeFromPercentage(percentage);
+
+        return [
+          `"${subject.name}"`,
+          subject.code,
+          `"${subject.teacher}"`,
+          testScore,
+          quizScore,
+          examScore,
+          totalScore,
+          totalMax,
+          percentage.toFixed(1),
+          grade,
+          `${subject.attendance}%`
+        ].join(',');
+      }),
+      '', // Empty row for separation
+      'Overall Summary',
+      `"Average Score","${overallStats?.averagePercentage.toFixed(1)}%"`,
+      `"Overall Grade","${overallStats?.overallGrade}"`,
+      `"Average Attendance","${overallStats?.averageAttendance.toFixed(1)}%"`,
+      `"Total Subjects","${overallStats?.totalSubjects}"`
+    ].join('\n');
+
+    // Create and download Excel file (using CSV format with .xls extension)
+    const blob = new Blob([csvContent], { type: 'application/vnd.ms-excel;charset=utf-8' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `student-results-${filters.academicYear}-${filters.term}-term.xls`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+  };
+
+  const exportToPDF = (results: any, filters: any, overallStats: any) => {
+    const printWindow = window.open('', '_blank');
+    if (printWindow && results) {
+      const subjectData = results.subjects.map((subject: any) => {
+        const testScore = subject.assessments.find((a: any) => a.type === 'test')?.score || 0;
+        const quizScore = subject.assessments.find((a: any) => a.type === 'quiz')?.score || 0;
+        const examScore = subject.assessments.find((a: any) => a.type === 'exam')?.score || 0;
+        
+        const testMax = subject.assessments.find((a: any) => a.type === 'test')?.maxScore || 0;
+        const quizMax = subject.assessments.find((a: any) => a.type === 'quiz')?.maxScore || 0;
+        const examMax = subject.assessments.find((a: any) => a.type === 'exam')?.maxScore || 0;
+
+        const totalScore = testScore + quizScore + examScore;
+        const totalMax = testMax + quizMax + examMax;
+        const percentage = totalMax > 0 ? (totalScore / totalMax) * 100 : 0;
+        const grade = getGradeFromPercentage(percentage);
+
+        return `
+          <tr>
+            <td>${subject.name}</td>
+            <td>${subject.code}</td>
+            <td>${subject.teacher}</td>
+            <td>${testScore}/${testMax}</td>
+            <td>${quizScore}/${quizMax}</td>
+            <td>${examScore}/${examMax}</td>
+            <td>${totalScore}/${totalMax}</td>
+            <td>${percentage.toFixed(1)}%</td>
+            <td>${grade}</td>
+            <td>${subject.attendance}%</td>
+          </tr>
+        `;
+      }).join('');
+
+      const assessmentDetails = results.subjects.map((subject: any) => {
+        const assessmentRows = subject.assessments.map((assessment: any) => {
+          const percentage = (assessment.score / assessment.maxScore) * 100;
+          const grade = getGradeFromPercentage(percentage);
+          return `
+            <tr>
+              <td>${subject.name}</td>
+              <td>${assessment.type}</td>
+              <td>${assessment.title}</td>
+              <td>${assessment.weight}%</td>
+              <td>${assessment.score}/${assessment.maxScore}</td>
+              <td>${percentage.toFixed(1)}%</td>
+              <td>${grade}</td>
+            </tr>
+          `;
+        }).join('');
+        return assessmentRows;
+      }).join('');
+
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>Student Results - ${filters.academicYear} ${filters.term} Term</title>
+            <style>
+              body { 
+                font-family: Arial, sans-serif; 
+                margin: 20px; 
+                color: #333;
+                line-height: 1.4;
+              }
+              .header { 
+                text-align: center; 
+                margin-bottom: 30px; 
+                border-bottom: 2px solid #333;
+                padding-bottom: 20px;
+              }
+              .header h1 { 
+                margin: 0; 
+                color: #1a365d;
+                font-size: 24px;
+              }
+              .header p { 
+                margin: 5px 0; 
+                color: #666;
+              }
+              .summary { 
+                margin: 20px 0;
+                padding: 15px;
+                background-color: #f0f9ff;
+                border-radius: 5px;
+                border-left: 4px solid #007bff;
+              }
+              .summary-grid {
+                display: grid;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 15px;
+                margin: 15px 0;
+              }
+              .summary-item {
+                text-align: center;
+                padding: 10px;
+                background: white;
+                border-radius: 5px;
+                border: 1px solid #e1e5e9;
+              }
+              .summary-value {
+                font-size: 20px;
+                font-weight: bold;
+                color: #1a365d;
+              }
+              .summary-label {
+                font-size: 12px;
+                color: #666;
+                margin-top: 5px;
+              }
+              table { 
+                width: 100%; 
+                border-collapse: collapse; 
+                margin: 20px 0;
+                font-size: 11px;
+              }
+              th, td { 
+                border: 1px solid #ddd; 
+                padding: 8px; 
+                text-align: left; 
+              }
+              th { 
+                background-color: #f5f5f5; 
+                font-weight: bold;
+                color: #333;
+              }
+              tr:nth-child(even) {
+                background-color: #f9f9f9;
+              }
+              .section-title {
+                background-color: #e9ecef;
+                font-weight: bold;
+                font-size: 14px;
+                padding: 10px;
+                margin-top: 25px;
+                border-left: 4px solid #007bff;
+              }
+              .footer {
+                margin-top: 30px;
+                text-align: center;
+                color: #666;
+                font-size: 11px;
+                border-top: 1px solid #ddd;
+                padding-top: 15px;
+              }
+              .grade-A { background-color: #d4edda; color: #155724; }
+              .grade-B { background-color: #d1ecf1; color: #0c5460; }
+              .grade-C { background-color: #fff3cd; color: #856404; }
+              .grade-D { background-color: #f8d7da; color: #721c24; }
+              .grade-F { background-color: #f5c6cb; color: #721c24; }
+              @media print {
+                body { margin: 0; }
+                .no-print { display: none; }
+              }
+            </style>
+          </head>
+          <body>
+            <div class="header">
+              <h1>Student Academic Results</h1>
+              <p>${filters.academicYear} - ${filters.term} Term</p>
+              <p>Generated on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}</p>
+            </div>
+
+            <div class="summary">
+              <h3 style="margin: 0 0 10px 0; color: #1a365d;">Overall Performance Summary</h3>
+              <div class="summary-grid">
+                <div class="summary-item">
+                  <div class="summary-value">${overallStats?.averagePercentage.toFixed(1)}%</div>
+                  <div class="summary-label">Average Score</div>
+                </div>
+                <div class="summary-item">
+                  <div class="summary-value">${overallStats?.overallGrade}</div>
+                  <div class="summary-label">Overall Grade</div>
+                </div>
+                <div class="summary-item">
+                  <div class="summary-value">${overallStats?.averageAttendance.toFixed(1)}%</div>
+                  <div class="summary-label">Average Attendance</div>
+                </div>
+                <div class="summary-item">
+                  <div class="summary-value">${overallStats?.totalSubjects}</div>
+                  <div class="summary-label">Total Subjects</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="section-title">Subject-wise Results Summary</div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Subject</th>
+                  <th>Code</th>
+                  <th>Teacher</th>
+                  <th>Test Score</th>
+                  <th>Quiz Score</th>
+                  <th>Exam Score</th>
+                  <th>Total Score</th>
+                  <th>Percentage</th>
+                  <th>Grade</th>
+                  <th>Attendance</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${subjectData}
+              </tbody>
+            </table>
+
+            <div class="section-title">Detailed Assessment Breakdown</div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Subject</th>
+                  <th>Type</th>
+                  <th>Title</th>
+                  <th>Weight</th>
+                  <th>Score</th>
+                  <th>Percentage</th>
+                  <th>Grade</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${assessmentDetails}
+              </tbody>
+            </table>
+
+            <div class="footer">
+              <p>Official Academic Record - For Student Use Only</p>
+              <p>Generated by School Management System • Confidential</p>
+            </div>
+
+            <div class="no-print" style="margin-top: 20px; text-align: center;">
+              <button onclick="window.print()" style="padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; margin: 5px;">
+                Print PDF
+              </button>
+              <button onclick="window.close()" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 5px; cursor: pointer; margin: 5px;">
+                Close
+              </button>
+            </div>
+
+            <script>
+              setTimeout(() => {
+                window.print();
+              }, 500);
+            </script>
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
+    }
+  };
+
+  return {
+    exportToCSV,
+    exportToExcel,
+    exportToPDF
+  };
+};
 
 export const StudentResultsPage: React.FC = () => {
   const [filters, setFilters] = useState({
@@ -29,6 +419,8 @@ export const StudentResultsPage: React.FC = () => {
 
   const { useResults } = useStudentQueries();
   const { data: resultsResponse, isLoading, error } = useResults(filters);
+
+  const { exportToCSV, exportToExcel, exportToPDF } = useExportResults();
 
   const academicYears = ['2024-2025', '2023-2024'];
   const terms = ['1st', '2nd', '3rd'];
@@ -49,7 +441,7 @@ export const StudentResultsPage: React.FC = () => {
     let totalMax = 0;
     let subjectCount = 0;
 
-    currentResults.subjects.forEach(subject => {
+    currentResults.subjects.forEach((subject: any) => {
       const subjectTotal = subject.assessments.reduce((sum: number, a: any) => sum + a.score, 0);
       const subjectMax = subject.assessments.reduce((sum: number, a: any) => sum + a.maxScore, 0);
       
@@ -69,66 +461,32 @@ export const StudentResultsPage: React.FC = () => {
     };
   }, [currentResults]);
 
-  // Working Export Functions
-  const exportToCSV = () => {
-    if (!currentResults) return;
+  const handleExport = (format: ExportFormat) => {
+    if (!currentResults) {
+      toast.error('No results available to export');
+      return;
+    }
 
-    const headers = ['Subject', 'Code', 'Teacher', 'Test Score', 'Quiz Score', 'Exam Score', 'Total Score', 'Percentage', 'Grade', 'Attendance'];
-    
-    const csvContent = [
-      headers.join(','),
-      ...currentResults.subjects.map((subject: any) => {
-        const testScore = subject.assessments.find((a: any) => a.type === 'test')?.score || 0;
-        const quizScore = subject.assessments.find((a: any) => a.type === 'quiz')?.score || 0;
-        const examScore = subject.assessments.find((a: any) => a.type === 'exam')?.score || 0;
-        const totalScore = testScore + quizScore + examScore;
-        const totalMax = 100; // 30 + 10 + 60
-        const percentage = (totalScore / totalMax) * 100;
-        const grade = getGradeFromPercentage(percentage);
-
-        return [
-          `"${subject.name}"`,
-          subject.code,
-          `"${subject.teacher}"`,
-          testScore,
-          quizScore,
-          examScore,
-          totalScore,
-          percentage.toFixed(1),
-          grade,
-          subject.attendance
-        ].join(',');
-      })
-    ].join('\n');
-
-    // Create and download CSV file
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `results-${filters.academicYear}-${filters.term}-term.csv`;
-    a.click();
-    window.URL.revokeObjectURL(url);
-
-    toast.success('Results exported as CSV successfully!');
-  };
-
-  const exportToPDF = () => {
-    // Simulate PDF export - in real app, you'd use a library like jsPDF
-    toast.success('PDF export functionality would be implemented with a library like jsPDF');
-    
-    // This is where you'd implement actual PDF generation
-    // For now, we'll show a success message
-    setTimeout(() => {
-      toast.success('Results exported as PDF successfully!');
-    }, 1000);
-  };
-
-  const handleExport = (format: 'csv' | 'pdf') => {
-    if (format === 'csv') {
-      exportToCSV();
-    } else {
-      exportToPDF();
+    try {
+      switch (format) {
+        case 'csv':
+          exportToCSV(currentResults, filters, overallStats);
+          toast.success('Results exported as CSV successfully!');
+          break;
+        case 'excel':
+          exportToExcel(currentResults, filters, overallStats);
+          toast.success('Results exported as Excel successfully!');
+          break;
+        case 'pdf':
+          exportToPDF(currentResults, filters, overallStats);
+          toast.success('Results exported as PDF successfully!');
+          break;
+        default:
+          toast.error('Unsupported export format');
+      }
+    } catch (error) {
+      toast.error('Failed to export results. Please try again.');
+      console.error('Export error:', error);
     }
   };
 
@@ -224,14 +582,37 @@ export const StudentResultsPage: React.FC = () => {
               </div>
 
               <div className="flex gap-2">
-                <Button variant="outline" onClick={() => handleExport('csv')}>
-                  <Download className="h-4 w-4 mr-2" />
-                  Export CSV
-                </Button>
-                <Button variant="outline" onClick={() => handleExport('pdf')}>
-                  <FileText className="h-4 w-4 mr-2" />
-                  Export PDF
-                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline">
+                      <Download className="h-4 w-4 mr-2" />
+                      Export Results
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem 
+                      onClick={() => handleExport('csv')}
+                      className="flex items-center space-x-2"
+                    >
+                      <Sheet className="h-4 w-4" />
+                      <span>Export as CSV</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => handleExport('excel')}
+                      className="flex items-center space-x-2"
+                    >
+                      <FileDown className="h-4 w-4" />
+                      <span>Export as Excel</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => handleExport('pdf')}
+                      className="flex items-center space-x-2"
+                    >
+                      <FileText className="h-4 w-4" />
+                      <span>Export as PDF</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </div>
           </CardContent>

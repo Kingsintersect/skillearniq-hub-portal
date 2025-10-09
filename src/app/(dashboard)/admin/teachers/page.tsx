@@ -8,14 +8,276 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { Plus, Search, Download, Upload, Trash2, BookOpen } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Plus, Search, Download, Upload, Trash2, BookOpen, Sheet, FileDown, FileText } from 'lucide-react';
 import { useAdminQueries } from '@/hooks/useAdminQueries';
+import { toast } from 'sonner';
 
 type Assignment = {
   academicYear: string;
   term: string;
   class: string;
   subjects: string[];
+};
+
+type ExportFormat = 'csv' | 'excel' | 'pdf';
+
+// Custom hook for export functionality
+const useExportTeachers = () => {
+  const exportToCSV = (teachers: any[], filename: string = 'teachers') => {
+    if (!teachers.length) return;
+    
+    const headers = [
+      'Teacher ID',
+      'Name', 
+      'Email', 
+      'Phone', 
+      'Subjects',
+      'Classes',
+      'Status',
+      'Employment Date'
+    ];
+    
+    const csvContent = [
+      headers.join(','),
+      ...teachers.map(teacher => [
+        teacher.teacherId,
+        `"${teacher.name.replace(/"/g, '""')}"`,
+        `"${teacher.email}"`,
+        `"${teacher.phone || 'N/A'}"`,
+        `"${teacher.subjects.join('; ')}"`,
+        `"${teacher.classes.join('; ')}"`,
+        teacher.status,
+        `"${teacher.employmentDate || 'N/A'}"`
+      ].join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `${filename}_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+  };
+
+  const exportToExcel = (teachers: any[], filename: string = 'teachers') => {
+    if (!teachers.length) return;
+    
+    const headers = [
+      'Teacher ID',
+      'Name', 
+      'Email', 
+      'Phone', 
+      'Subjects',
+      'Classes',
+      'Status',
+      'Employment Date'
+    ];
+    
+    const csvContent = [
+      headers.join(','),
+      ...teachers.map(teacher => [
+        teacher.teacherId,
+        `"${teacher.name.replace(/"/g, '""')}"`,
+        `"${teacher.email}"`,
+        `"${teacher.phone || 'N/A'}"`,
+        `"${teacher.subjects.join('; ')}"`,
+        `"${teacher.classes.join('; ')}"`,
+        teacher.status,
+        `"${teacher.employmentDate || 'N/A'}"`
+      ].join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'application/vnd.ms-excel;charset=utf-8' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `${filename}_${new Date().toISOString().split('T')[0]}.xls`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+  };
+
+  const exportToPDF = (teachers: any[], filename: string = 'teachers') => {
+    const printWindow = window.open('', '_blank');
+    if (printWindow && teachers.length > 0) {
+      const teacherData = teachers.map(teacher => `
+        <tr>
+          <td>${teacher.teacherId}</td>
+          <td>${teacher.name}</td>
+          <td>${teacher.email}</td>
+          <td>${teacher.phone || 'N/A'}</td>
+          <td>${teacher.subjects.join(', ')}</td>
+          <td>${teacher.classes.join(', ')}</td>
+          <td>${teacher.status}</td>
+        </tr>
+      `).join('');
+
+      const activeCount = teachers.filter(t => t.status === 'active').length;
+      const inactiveCount = teachers.filter(t => t.status === 'inactive').length;
+
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>Teacher Records - ${filename}</title>
+            <style>
+              body { 
+                font-family: Arial, sans-serif; 
+                margin: 20px; 
+                color: #333;
+                line-height: 1.4;
+              }
+              .header { 
+                text-align: center; 
+                margin-bottom: 30px; 
+                border-bottom: 2px solid #333;
+                padding-bottom: 20px;
+              }
+              .header h1 { 
+                margin: 0; 
+                color: #1a365d;
+                font-size: 24px;
+              }
+              .header p { 
+                margin: 5px 0; 
+                color: #666;
+              }
+              .summary { 
+                margin: 20px 0;
+                padding: 15px;
+                background-color: #f0f9ff;
+                border-radius: 5px;
+                border-left: 4px solid #007bff;
+              }
+              .summary-grid {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 15px;
+                margin: 15px 0;
+              }
+              .summary-item {
+                text-align: center;
+                padding: 10px;
+                background: white;
+                border-radius: 5px;
+                border: 1px solid #e1e5e9;
+              }
+              .summary-value {
+                font-size: 18px;
+                font-weight: bold;
+                color: #1a365d;
+              }
+              .summary-label {
+                font-size: 12px;
+                color: #666;
+                margin-top: 5px;
+              }
+              table { 
+                width: 100%; 
+                border-collapse: collapse; 
+                margin: 20px 0;
+                font-size: 11px;
+              }
+              th, td { 
+                border: 1px solid #ddd; 
+                padding: 8px; 
+                text-align: left; 
+              }
+              th { 
+                background-color: #f5f5f5; 
+                font-weight: bold;
+                color: #333;
+              }
+              tr:nth-child(even) {
+                background-color: #f9f9f9;
+              }
+              .status-active { background-color: #d4edda; color: #155724; }
+              .status-inactive { background-color: #e2e3e5; color: #383d41; }
+              .footer {
+                margin-top: 30px;
+                text-align: center;
+                color: #666;
+                font-size: 11px;
+                border-top: 1px solid #ddd;
+                padding-top: 15px;
+              }
+              @media print {
+                body { margin: 0; }
+                .no-print { display: none; }
+              }
+            </style>
+          </head>
+          <body>
+            <div class="header">
+              <h1>Teacher Management Records</h1>
+              <p>Generated on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}</p>
+              <p>Total Teachers: ${teachers.length}</p>
+            </div>
+
+            <div class="summary">
+              <h3 style="margin: 0 0 10px 0; color: #1a365d;">Teacher Summary</h3>
+              <div class="summary-grid">
+                <div class="summary-item">
+                  <div class="summary-value">${teachers.length}</div>
+                  <div class="summary-label">Total Teachers</div>
+                </div>
+                <div class="summary-item">
+                  <div class="summary-value">${activeCount}</div>
+                  <div class="summary-label">Active Teachers</div>
+                </div>
+                <div class="summary-item">
+                  <div class="summary-value">${inactiveCount}</div>
+                  <div class="summary-label">Inactive Teachers</div>
+                </div>
+              </div>
+            </div>
+
+            <table>
+              <thead>
+                <tr>
+                  <th>Teacher ID</th>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Phone</th>
+                  <th>Subjects</th>
+                  <th>Classes</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${teacherData}
+              </tbody>
+            </table>
+
+            <div class="footer">
+              <p>Confidential Teacher Records - For Administrative Use Only</p>
+              <p>Generated by School Management System</p>
+            </div>
+
+            <div class="no-print" style="margin-top: 20px; text-align: center;">
+              <button onclick="window.print()" style="padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; margin: 5px;">
+                Print PDF
+              </button>
+              <button onclick="window.close()" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 5px; cursor: pointer; margin: 5px;">
+                Close
+              </button>
+            </div>
+
+            <script>
+              setTimeout(() => {
+                window.print();
+              }, 500);
+            </script>
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
+    }
+  };
+
+  return {
+    exportToCSV,
+    exportToExcel,
+    exportToPDF
+  };
 };
 
 export default function TeachersPage() {
@@ -41,6 +303,8 @@ export default function TeachersPage() {
     subject: filters.subject,
     status: filters.status
   });
+
+  const { exportToCSV, exportToExcel, exportToPDF } = useExportTeachers();
 
   const createTeacherMutation = useCreateTeacher();
   const assignTeacherMutation = useAssignTeacher();
@@ -76,6 +340,10 @@ export default function TeachersPage() {
           subjects: [],
           classes: []
         });
+        toast.success('Teacher created successfully!');
+      },
+      onError: () => {
+        toast.error('Failed to create teacher');
       }
     });
   };
@@ -95,30 +363,93 @@ export default function TeachersPage() {
             class: '',
             subjects: []
           });
+          toast.success('Teacher assigned successfully!');
+        },
+        onError: () => {
+          toast.error('Failed to assign teacher');
         }
       });
     }
   };
 
   const handleDeleteTeacher = (teacherId: number) => {
-    deleteTeacherMutation.mutate(teacherId);
+    deleteTeacherMutation.mutate(teacherId, {
+      onSuccess: () => {
+        toast.success('Teacher deleted successfully!');
+      },
+      onError: () => {
+        toast.error('Failed to delete teacher');
+      }
+    });
+  };
+
+  const handleExport = (format: ExportFormat) => {
+    if (teachers.length === 0) {
+      toast.error('No teachers available to export');
+      return;
+    }
+
+    try {
+      const filename = `teachers_${filters.subject === 'all' ? 'all_subjects' : filters.subject}`;
+      switch (format) {
+        case 'csv':
+          exportToCSV(teachers, filename);
+          toast.success(`Exported ${teachers.length} teachers as CSV`);
+          break;
+        case 'excel':
+          exportToExcel(teachers, filename);
+          toast.success(`Exported ${teachers.length} teachers as Excel`);
+          break;
+        case 'pdf':
+          exportToPDF(teachers, filename);
+          toast.success(`Exported ${teachers.length} teachers as PDF`);
+          break;
+        default:
+          toast.error('Unsupported export format');
+      }
+    } catch (error) {
+      toast.error('Failed to export teachers. Please try again.');
+      console.error('Export error:', error);
+    }
   };
 
   const downloadTemplate = () => {
-    console.log('Download template');
+    const templateHeaders = [
+      'teacherId',
+      'name',
+      'email',
+      'phone',
+      'subjects',
+      'classes'
+    ];
+    
+    const templateContent = [templateHeaders.join(',')].join('\n');
+    const blob = new Blob([templateContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'teacher_upload_template.csv';
+    link.click();
+    URL.revokeObjectURL(link.href);
+    toast.success('Template downloaded successfully!');
   };
 
   const handleBulkUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      // Implement bulk upload logic here
       console.log('Bulk upload:', file);
+      toast.success('Bulk upload initiated!');
+      setIsBulkUploadDialogOpen(false);
     }
   };
 
   if (isLoading) {
     return (
       <div className="min-h-screen p-6 flex items-center justify-center">
-        <div className="text-center">Loading teachers...</div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <div>Loading teachers...</div>
+        </div>
       </div>
     );
   }
@@ -136,6 +467,37 @@ export default function TeachersPage() {
               <Upload className="h-4 w-4 mr-2" />
               Bulk Upload
             </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className='dark:border-white dark:text-white'>
+                  <Download className="h-4 w-4 mr-2" />
+                  Export
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem 
+                  onClick={() => handleExport('csv')}
+                  className="flex items-center space-x-2"
+                >
+                  <Sheet className="h-4 w-4" />
+                  <span>Export as CSV</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => handleExport('excel')}
+                  className="flex items-center space-x-2"
+                >
+                  <FileDown className="h-4 w-4" />
+                  <span>Export as Excel</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => handleExport('pdf')}
+                  className="flex items-center space-x-2"
+                >
+                  <FileText className="h-4 w-4" />
+                  <span>Export as PDF</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             <Button onClick={() => setIsCreateDialogOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
               Add Teacher
@@ -182,6 +544,14 @@ export default function TeachersPage() {
                   <SelectItem value="inactive">Inactive</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+            <div className="flex justify-between items-center mt-4">
+              <div className="text-sm text-muted-foreground">
+                {teachers.length} teachers found
+              </div>
+              <div className="text-sm">
+                Showing: {filters.subject === 'all' ? 'All subjects' : filters.subject} • {filters.status === 'all' ? 'All status' : filters.status}
+              </div>
             </div>
           </CardContent>
         </Card>

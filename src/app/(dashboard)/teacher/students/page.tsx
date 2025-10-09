@@ -21,6 +21,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
 import { 
   Users, 
@@ -35,7 +36,10 @@ import {
   TrendingUp,
   Shield,
   MessageSquare,
-  Send
+  Send,
+  FileText,
+  Sheet,
+  FileDown
 } from 'lucide-react';
 
 // Import the actual hooks and services
@@ -47,6 +51,209 @@ const groupSchema = z.object({
 });
 
 type GroupFormData = z.infer<typeof groupSchema>;
+type ExportFormat = 'csv' | 'excel' | 'pdf';
+
+// Custom hook for export functionality
+const useExportStudents = () => {
+  const exportToCSV = (students: any[], filename: string = 'students') => {
+    if (!students.length) return;
+    
+    const headers = ['ID', 'Name', 'Email', 'Phone', 'Class', 'Enrollment Date', 'Average Score', 'Status', 'Subjects'];
+    
+    const csvContent = [
+      headers.join(','),
+      ...students.map(student => [
+        student.id,
+        `"${student.name.replace(/"/g, '""')}"`,
+        `"${student.email}"`,
+        `"${student.phone || 'N/A'}"`,
+        `"${student.className || 'N/A'}"`,
+        `"${new Date(student.enrollmentDate).toLocaleDateString()}"`,
+        student.averageScore || '0',
+        student.status || 'Active',
+        `"${(student.subjects || []).join('; ')}"`
+      ].join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `${filename}_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+  };
+
+  const exportToExcel = (students: any[], filename: string = 'students') => {
+    // For Excel, we'll create a CSV with proper formatting that Excel can open
+    if (!students.length) return;
+    
+    const headers = ['ID', 'Name', 'Email', 'Phone', 'Class', 'Enrollment Date', 'Average Score', 'Status', 'Subjects'];
+    
+    const csvContent = [
+      headers.join(','),
+      ...students.map(student => [
+        student.id,
+        `"${student.name.replace(/"/g, '""')}"`,
+        `"${student.email}"`,
+        `"${student.phone || 'N/A'}"`,
+        `"${student.className || 'N/A'}"`,
+        `"${new Date(student.enrollmentDate).toLocaleDateString()}"`,
+        student.averageScore || '0',
+        student.status || 'Active',
+        `"${(student.subjects || []).join('; ')}"`
+      ].join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'application/vnd.ms-excel;charset=utf-8' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `${filename}_${new Date().toISOString().split('T')[0]}.xls`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+  };
+
+  const exportToPDF = (students: any[], filename: string = 'students') => {
+    // Create a printable HTML page with all student data
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      const studentData = students.map(student => `
+        <tr>
+          <td>${student.id}</td>
+          <td>${student.name}</td>
+          <td>${student.email}</td>
+          <td>${student.phone || 'N/A'}</td>
+          <td>${student.className || 'N/A'}</td>
+          <td>${new Date(student.enrollmentDate).toLocaleDateString()}</td>
+          <td>${student.averageScore || 0}%</td>
+          <td>${student.status || 'Active'}</td>
+          <td>${(student.subjects || []).join(', ')}</td>
+        </tr>
+      `).join('');
+
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>${filename}</title>
+            <style>
+              body { 
+                font-family: Arial, sans-serif; 
+                margin: 20px; 
+                color: #333;
+              }
+              .header { 
+                text-align: center; 
+                margin-bottom: 30px; 
+                border-bottom: 2px solid #333;
+                padding-bottom: 20px;
+              }
+              .header h1 { 
+                margin: 0; 
+                color: #1a365d;
+                font-size: 24px;
+              }
+              .header p { 
+                margin: 5px 0; 
+                color: #666;
+              }
+              table { 
+                width: 100%; 
+                border-collapse: collapse; 
+                margin-top: 20px;
+                font-size: 12px;
+              }
+              th, td { 
+                border: 1px solid #ddd; 
+                padding: 10px; 
+                text-align: left; 
+              }
+              th { 
+                background-color: #f5f5f5; 
+                font-weight: bold;
+                color: #333;
+              }
+              tr:nth-child(even) {
+                background-color: #f9f9f9;
+              }
+              .summary {
+                margin-top: 20px;
+                padding: 15px;
+                background-color: #f0f9ff;
+                border-radius: 5px;
+              }
+              .footer {
+                margin-top: 30px;
+                text-align: center;
+                color: #666;
+                font-size: 11px;
+              }
+              @media print {
+                body { margin: 0; }
+                .no-print { display: none; }
+              }
+            </style>
+          </head>
+          <body>
+            <div class="header">
+              <h1>Student List - ${filename}</h1>
+              <p>Generated on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}</p>
+              <p>Total Students: ${students.length}</p>
+            </div>
+
+            <div class="summary">
+              <strong>Summary:</strong> Showing ${students.length} student(s) with complete academic records.
+            </div>
+
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Phone</th>
+                  <th>Class</th>
+                  <th>Enrollment Date</th>
+                  <th>Average Score</th>
+                  <th>Status</th>
+                  <th>Subjects</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${studentData}
+              </tbody>
+            </table>
+
+            <div class="footer">
+              <p>Confidential Student Data - For Educational Use Only</p>
+              <p>Page generated by School Management System</p>
+            </div>
+
+            <div class="no-print" style="margin-top: 20px; text-align: center;">
+              <button onclick="window.print()" style="padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                Print PDF
+              </button>
+              <button onclick="window.close()" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 5px; cursor: pointer; margin-left: 10px;">
+                Close
+              </button>
+            </div>
+
+            <script>
+              setTimeout(() => {
+                window.print();
+              }, 500);
+            </script>
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
+    }
+  };
+
+  return {
+    exportToCSV,
+    exportToExcel,
+    exportToPDF
+  };
+};
 
 // Custom hooks for student management
 const useStudentManagement = (teacherId: number, filters: any) => {
@@ -92,6 +299,9 @@ const StudentManagementPage: React.FC = () => {
     academicYears, 
     isLoading 
   } = useStudentManagement(teacherId, filters);
+
+  // Export functionality
+  const { exportToCSV, exportToExcel, exportToPDF } = useExportStudents();
 
   // Group mutations
   const { 
@@ -174,8 +384,36 @@ const StudentManagementPage: React.FC = () => {
     }
   };
 
-  const handleExportData = () => {
-    toast.success('Data exported successfully!');
+  const handleExportData = (format: ExportFormat, studentsToExport: any[]) => {
+    if (studentsToExport.length === 0) {
+      toast.error('No students to export');
+      return;
+    }
+
+    const className = availableClasses.find(c => c.id === filters.classId)?.name || 'students';
+    const filename = `${className}_${filters.academicYear}_${filters.term}`;
+
+    try {
+      switch (format) {
+        case 'csv':
+          exportToCSV(studentsToExport, filename);
+          toast.success(`Exported ${studentsToExport.length} students as CSV`);
+          break;
+        case 'excel':
+          exportToExcel(studentsToExport, filename);
+          toast.success(`Exported ${studentsToExport.length} students as Excel`);
+          break;
+        case 'pdf':
+          exportToPDF(studentsToExport, filename);
+          toast.success(`Exported ${studentsToExport.length} students as PDF`);
+          break;
+        default:
+          toast.error('Unsupported export format');
+      }
+    } catch (error) {
+      toast.error('Failed to export data. Please try again.');
+      console.error('Export error:', error);
+    }
   };
 
   const handleSendMessage = (studentIds: number[], message: string, method: 'sms' | 'email' | 'in-app') => {
@@ -351,10 +589,37 @@ const StudentManagementPage: React.FC = () => {
               </div>
 
               <div className="flex gap-3">
-                <Button variant="outline" onClick={handleExportData}>
-                  <Download className="h-4 w-4 mr-2" />
-                  Export
-                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline">
+                      <Download className="h-4 w-4 mr-2" />
+                      Export All
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem 
+                      onClick={() => handleExportData('csv', filteredStudents)}
+                      className="flex items-center space-x-2"
+                    >
+                      <Sheet className="h-4 w-4" />
+                      <span>Export as CSV</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => handleExportData('excel', filteredStudents)}
+                      className="flex items-center space-x-2"
+                    >
+                      <FileDown className="h-4 w-4" />
+                      <span>Export as Excel</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => handleExportData('pdf', filteredStudents)}
+                      className="flex items-center space-x-2"
+                    >
+                      <FileText className="h-4 w-4" />
+                      <span>Export as PDF</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
                 <Button onClick={() => setDialogOpen('createGroup')}>
                   <UserPlus className="h-4 w-4 mr-2" />
                   New Group
@@ -375,15 +640,15 @@ const StudentManagementPage: React.FC = () => {
           </CardContent>
         </Card>
 
-        {/* Messaging Button */}
+        {/* Messaging and Export Selected Button */}
         <Card className="mb-6">
           <CardContent className="p-4">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <div>
                 <h3 className="font-semibold">Quick Actions</h3>
-                <p className="text-sm text-muted-foreground">Send messages to selected students</p>
+                <p className="text-sm text-muted-foreground">Send messages or export selected students</p>
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <Button 
                   variant="outline"
                   onClick={() => setDialogOpen('sendMessage')}
@@ -392,6 +657,40 @@ const StudentManagementPage: React.FC = () => {
                   <MessageSquare className="h-4 w-4 mr-2" />
                   Send Message ({selectedStudents.length})
                 </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button 
+                      variant="outline"
+                      disabled={selectedStudents.length === 0}
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      Export Selected ({selectedStudents.length})
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem 
+                      onClick={() => handleExportData('csv', students.filter(s => selectedStudents.includes(s.id)))}
+                      className="flex items-center space-x-2"
+                    >
+                      <Sheet className="h-4 w-4" />
+                      <span>Export as CSV</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => handleExportData('excel', students.filter(s => selectedStudents.includes(s.id)))}
+                      className="flex items-center space-x-2"
+                    >
+                      <FileDown className="h-4 w-4" />
+                      <span>Export as Excel</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => handleExportData('pdf', students.filter(s => selectedStudents.includes(s.id)))}
+                      className="flex items-center space-x-2"
+                    >
+                      <FileText className="h-4 w-4" />
+                      <span>Export as PDF</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
                 <Button 
                   variant="outline" 
                   onClick={selectAllStudents}
@@ -618,22 +917,18 @@ const StudentsOverview: React.FC<{
                     </div>
                   </TableCell>
                  
-                    <TableCell>
-  <div className="flex flex-wrap gap-1 max-w-[200px]">
-    {(student?.subjects ?? []).slice(0, 3).map((subject: string) => (
-      <Badge key={subject} variant="secondary" className="text-xs">
-        {subject}
-      </Badge>
-    ))}
-  
-
-
-                     {(student?.subjects?.length ?? 0) > 3 && (
-  <Badge variant="outline" className="text-xs">
-    +{(student?.subjects?.length ?? 0) - 3} more
-  </Badge>
-)}
-
+                  <TableCell>
+                    <div className="flex flex-wrap gap-1 max-w-[200px]">
+                      {(student?.subjects ?? []).slice(0, 3).map((subject: string) => (
+                        <Badge key={subject} variant="secondary" className="text-xs">
+                          {subject}
+                        </Badge>
+                      ))}
+                      {(student?.subjects?.length ?? 0) > 3 && (
+                        <Badge variant="outline" className="text-xs">
+                          +{(student?.subjects?.length ?? 0) - 3} more
+                        </Badge>
+                      )}
                     </div>
                   </TableCell>
                   <TableCell>
@@ -1005,36 +1300,36 @@ const MessageDialog: React.FC<{
           <CardTitle className="text-sm">Delivery Method</CardTitle>
         </CardHeader>
         <CardContent>
-           <ScrollArea className="h-32">
-          <div className="grid grid-cols-3 gap-2">
-            <Button
-              type="button"
-              variant={method === 'sms' ? 'default' : 'outline'}
-              onClick={() => setMethod('sms')}
-              className="flex flex-col h-auto p-3"
-            >
-              <Phone className="h-4 w-4 mb-1" />
-              <span className="text-xs">SMS</span>
-            </Button>
-            <Button
-              type="button"
-              variant={method === 'email' ? 'default' : 'outline'}
-              onClick={() => setMethod('email')}
-              className="flex flex-col h-auto p-3"
-            >
-              <Mail className="h-4 w-4 mb-1" />
-              <span className="text-xs">Email</span>
-            </Button>
-            <Button
-              type="button"
-              variant={method === 'in-app' ? 'default' : 'outline'}
-              onClick={() => setMethod('in-app')}
-              className="flex flex-col h-auto p-3"
-            >
-              <MessageSquare className="h-4 w-4 mb-1" />
-              <span className="text-xs">In-App</span>
-            </Button>
-          </div>
+          <ScrollArea className="h-32">
+            <div className="grid grid-cols-3 gap-2">
+              <Button
+                type="button"
+                variant={method === 'sms' ? 'default' : 'outline'}
+                onClick={() => setMethod('sms')}
+                className="flex flex-col h-auto p-3"
+              >
+                <Phone className="h-4 w-4 mb-1" />
+                <span className="text-xs">SMS</span>
+              </Button>
+              <Button
+                type="button"
+                variant={method === 'email' ? 'default' : 'outline'}
+                onClick={() => setMethod('email')}
+                className="flex flex-col h-auto p-3"
+              >
+                <Mail className="h-4 w-4 mb-1" />
+                <span className="text-xs">Email</span>
+              </Button>
+              <Button
+                type="button"
+                variant={method === 'in-app' ? 'default' : 'outline'}
+                onClick={() => setMethod('in-app')}
+                className="flex flex-col h-auto p-3"
+              >
+                <MessageSquare className="h-4 w-4 mb-1" />
+                <span className="text-xs">In-App</span>
+              </Button>
+            </div>
           </ScrollArea>
         </CardContent>
       </Card>
