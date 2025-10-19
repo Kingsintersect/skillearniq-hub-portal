@@ -15,13 +15,13 @@ type PersonalInformationProps = GenericHookFormProps<SignUpFormData>;
 
 export const PersonalInformation: React.FC<PersonalInformationProps> = ({ register, errors, control }) => {
     const { NewNationality, NewGender } = useStaticData();
-    const {
-        data: states,
-        isLoading: isStatesLoading,
-        isError,
-        refetch,
-        isFetching,
-    } = useStates();
+    // const {
+    //     data: states,
+    //     isLoading: isStatesLoading,
+    //     isError,
+    //     refetch,
+    //     isFetching,
+    // } = useStates();
 
     return (
         <div className="space-y-6">
@@ -90,7 +90,7 @@ export const PersonalInformation: React.FC<PersonalInformationProps> = ({ regist
                         )}
                     />
                 )}
-                {isStatesLoading ? (
+                {/* {isStatesLoading ? (
                     <p className='flex items-center gap-5'>Loading states... <Loader2 size={20} className="text-accent animate-spin" /></p>
                 ) : isError ? (
                     <div className="space-y-2">
@@ -121,7 +121,7 @@ export const PersonalInformation: React.FC<PersonalInformationProps> = ({ regist
                     />
                 ) : (
                     <p>No states available.</p>
-                )}
+                )} */}
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-10">
                 <InputField
