@@ -41,6 +41,8 @@ export function useSignup(): UseSignupReturn {
             gender: '',
             nationality: '',
             phone: '',
+            password: '',
+            confirmPassword: '',
         },
     });
 
