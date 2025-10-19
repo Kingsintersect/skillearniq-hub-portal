@@ -42,8 +42,8 @@ export const Footer: React.FC = () => {
                         <ul className="space-y-3 text-gray-300">
                             <li>📍 Awka, Anambra State, Nigeria</li>
                             <li>📞 +234 (0) 48 550 940</li>
-                            <li>✉️ info@unizikbusiness.edu.ng</li>
-                            <li>🌐 www.unizikbusiness.edu.ng</li>
+                            <li>✉️ info@skillearniqhub.edu.ng</li>
+                            <li>🌐 https://skillearniq-hub-portal.vercel.app</li>
                         </ul>
                     </div>
                 </div>
