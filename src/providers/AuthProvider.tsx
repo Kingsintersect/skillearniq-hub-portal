@@ -5,6 +5,7 @@ import { AuthenState } from '@/types/auth';
 import { SessionProvider } from 'next-auth/react'
 import { Session } from 'next-auth'
 import React, { createContext, useContext } from 'react';
+import { ClientOnly } from '@/components/layout/ClientOnly';
 interface AuthProviderProps {
     children: React.ReactNode
     session: Session | null
@@ -27,7 +28,7 @@ export default function AuthProvider({ children, session }: AuthProviderProps) {
     return (
         <SessionProvider session={session}>
             <AuthContext.Provider value={auth} >
-                {children}
+                <ClientOnly>{children}</ClientOnly>
             </AuthContext.Provider>
         </SessionProvider>
     )

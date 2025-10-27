@@ -30,6 +30,7 @@ export function QueryProvider({ children }: QueryProviderProps) {
                             }
                             return failureCount < 2;
                         },
+                        refetchOnWindowFocus: false,
                     },
                     mutations: {
                         retry: false,
