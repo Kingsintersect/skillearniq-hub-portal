@@ -1,4 +1,4 @@
-import { apiClient } from "./client";
+import { apiClient } from "../../core/client";
 import { Answer, Exam, ExamSession, Question } from "@/types";
 
 export const examService = {

@@ -1,5 +1,5 @@
 import { ApiError, PaginationParams } from "@/types/auth";
-import { apiClient } from "./client";
+import { apiClient } from "../../core/client";
 
 export type AccademicSessions = {
     id: number;

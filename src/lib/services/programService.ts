@@ -1,6 +1,6 @@
 // import { GetAllProgram } from "@/api/program";
 import { ApiError } from "@/types/auth";
-import { apiClient } from "./client";
+import { apiClient } from "../../core/client";
 
 export interface ProgramItem {
     id: number;
