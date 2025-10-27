@@ -40,7 +40,8 @@ export const Footer: React.FC = () => {
                     <div>
                         <h3 className="text-xl font-semibold mb-5">Contact Info</h3>
                         <ul className="space-y-3 text-gray-300">
-                            <li>📍 Awka, Anambra State, Nigeria</li>
+                            <li>📍 Federal Capital Territory, Abuja, Nigeria</li>
+                            <li>🏢 SkillEarnIQ Hub</li>
                             <li>📞 +234 (0) 48 550 940</li>
                             <li>✉️ info@skillearniqhub.edu.ng</li>
                             <li>🌐 https://skillearniq-hub-portal.vercel.app</li>

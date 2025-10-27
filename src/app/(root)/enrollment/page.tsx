@@ -1,32 +1,67 @@
-"use client";
+// app/courses/page.tsx
+'use client';
 
-import React from 'react'
-import { ClassCard } from './components/ClassCard'
-import Link from 'next/link'
-import { useCourseCategories } from '@/hooks/useAccademics';
+import { CourseDashboard } from './components/course-dashboard';
+import { Button } from '@/components/ui/button';
+import { motion } from 'framer-motion';
+import { RefreshCw, User, Database } from 'lucide-react';
+import { useState } from 'react';
+import { useCourseStore } from './stores/course-store';
 
-const CourseOverviewPage = () => {
-    const { data: courseCategories, isSuccess: isCategoryLoading } = useCourseCategories();
+export default function CoursesPage() {
+    const [userId, setUserId] = useState('user-123');
+    const [showEmptyState, setShowEmptyState] = useState(false);
+    const { resetSelection } = useCourseStore();
 
-    if (!isCategoryLoading) {
-        return <div>Loading...</div>;
-    }
+    const toggleEmptyState = () => {
+        setShowEmptyState(!showEmptyState);
+        // Store the empty state preference in localStorage for the service to read
+        localStorage.setItem('testEmptyState', (!showEmptyState).toString());
+        resetSelection();
+        // Force reload to show the new state
+        setTimeout(() => window.location.reload(), 100);
+    };
+
+
     return (
-        <div className='min-h-screen'>
-            <div className="relative w-full h-60 bg-gradient-primary text-primary-foreground rounded-b-full">
-                <span className='absolute left-1/2 -translate-x-1/2 bottom-10 text-3xl text-gradient-primary'>Course Overview</span>
-            </div>
-            <div className="px-20 py-10 mt-10">
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-10">
-                    {courseCategories?.map((data, i) => (
-                        <Link key={i} href={`/enrollment/course-listing?category=${data.id}`}>
-                            <ClassCard category={data} />
-                        </Link>
-                    ))}
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+            {/* Demo Controls */}
+            {/* <motion.div
+                initial={{ y: -20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                className="bg-white/80 backdrop-blur-sm border-b border-gray-200"
+            >
+                <div className="container mx-auto px-4 py-3">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-4">
+                            <div className="flex items-center space-x-2">
+                                <User className="w-4 h-4 text-gray-600" />
+                                <span className="text-sm font-medium text-gray-700">Demo User</span>
+                            </div>
+                            <div className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                                Using Merged API + Mock Data
+                            </div>
+                        </div>
+                        <div className="flex items-center space-x-3">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={toggleEmptyState}
+                                className="text-xs"
+                            >
+                                <RefreshCw className="w-3 h-3 mr-1" />
+                                {showEmptyState ? 'Show With Courses' : 'Show Empty State'}
+                            </Button>
+                            <div className="text-xs text-gray-500">
+                                {showEmptyState ? 'Testing: No enrolled courses' : 'Testing: With enrolled courses'}
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </div>
-    )
-}
+            </motion.div> */}
 
-export default CourseOverviewPage
+            <CourseDashboard userId={userId} />
+        </div>
+    );
+}

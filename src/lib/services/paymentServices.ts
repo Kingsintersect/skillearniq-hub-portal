@@ -1,5 +1,5 @@
 import { ApiError } from "@/types/auth";
-import { apiClient } from "./client";
+import { apiClient } from "../../core/client";
 
 export interface PaymentData {
     amount: number;

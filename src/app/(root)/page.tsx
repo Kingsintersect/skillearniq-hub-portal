@@ -5,6 +5,7 @@ import { Stats } from './components/Stats';
 import { HomepageSlider } from './components/slider/HomepageSlider';
 import CampusHighlights from './components/CampusHighlights';
 import CalenderView from './components/CalenderView';
+import { Footer } from './components/Footer';
 
 export default function HomePage() {
   return (
@@ -15,6 +16,7 @@ export default function HomePage() {
       <CalenderView />
       <CampusHighlights />
       <Stats />
+      <Footer />
     </main>
   );
 }

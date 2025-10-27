@@ -1,5 +1,5 @@
 import { SignUpFormData } from "@/schema/sign-up-schema";
-import { apiClient } from "./client";
+import { apiClient } from "../../core/client";
 import type { LoginResponse, SignupResponse } from "@/types/auth";
 import { UserInterface } from "@/types/global";
 import { forgotPasswordFormData, resetPasswordFormData, signInFormData } from "@/schema/auth-schema";

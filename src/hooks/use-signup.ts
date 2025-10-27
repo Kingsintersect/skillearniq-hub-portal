@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import { ApiError, SignupResponse } from '@/types/auth';
 import { useRouter } from 'next/navigation';
 import { STEPS, useSignupSteps } from './use-signup-steps';
+import { createMutation } from '@/core/queryHooks';
 
 interface UseSignupReturn extends UseFormReturn<SignUpFormData> {
     error: string | null;
@@ -57,52 +58,42 @@ export function useSignup(): UseSignupReturn {
         delta,
     } = useSignupSteps(form);
 
-    // const { data: currentSession, isSuccess: isSessionLoaded } = useCurrentSession();
-    // const { data: currentSemester, isSuccess: isSemesterLoaded } = useCurrentSemester();
-
-
-    // useEffect(() => {
-    //     if (isSessionLoaded && isSemesterLoaded) {
-    //         form.reset({
-    //             academic_session: currentSession?.name ?? "",
-    //             academic_semester: currentSemester?.name ?? "",
-    //             start_year: "2025",
-    //             amount: APPLICATION_FEE.toString(),
-    //         });
-    //     }
-    // }, [isSessionLoaded, isSemesterLoaded, currentSession, currentSemester, form]);
-
-
     // Create Account Mutation
-    const signup = useMutation({
-        mutationFn: (credentials: SignUpFormData) => authApi.signup(credentials),
-        onSuccess: async (res: SignupResponse) => {
-            toast.success(`Welcome back!`)
-            const redirectUrl = (res.user) ? res.user.email : "";
+    const signup = createMutation({
+        key: 'signup-user',
+        fn: (credentials: SignUpFormData) => authApi.signup(credentials),
+        defaultOptions: {
+            onSuccess: async (res: SignupResponse) => {
+                toast.success(`Welcome back!`)
+                const redirectUrl = (res.user) ? res.user.email : "";
 
-            router.push(`${baseUrl}/auth/signin?email=${redirectUrl}`);
-            form.reset();
-            setCurrentStep(0);
-            setCompletedSteps([]);
-        },
-        onError: (error: ApiError) => {
-            const message = error.message || "Login failed. Please try again.";
-            toast.error(message);
+                router.push(`${baseUrl}/auth/signin?email=${redirectUrl}`);
+                form.reset();
+                setCurrentStep(0);
+                setCompletedSteps([]);
+            },
+            onError: (error: ApiError) => {
+                const message = error.message || "Login failed. Please try again.";
+                toast.error(message);
 
-            setError(message);
-            if (error.errors) {
-                // Handle validation errors
-                Object.values(error.errors).forEach((messages: unknown) => {
-                    if (Array.isArray(messages)) {
-                        messages.forEach((msg) => toast.error(msg));
-                    }
-                });
-            }
+                setError(message);
+                if (error.errors) {
+                    // Handle validation errors
+                    Object.values(error.errors).forEach((messages: unknown) => {
+                        if (Array.isArray(messages)) {
+                            messages.forEach((msg) => toast.error(msg));
+                        }
+                    });
+                }
+            },
         },
     });
 
+    // Call the hook to get the mutation object
+    const signupMutation = signup();
+
     const onSubmit = async (data: SignUpFormData) => {
-        signup.mutate(data);
+        signupMutation.mutate(data);
     };
 
     return {

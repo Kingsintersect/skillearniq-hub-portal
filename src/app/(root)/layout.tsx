@@ -1,6 +1,5 @@
 import React, { ReactNode } from 'react'
 import { HomeHeader } from '@/components/layout/HomeHeader'
-import { Footer } from './components/Footer'
 
 const Layout = ({ children }: { children: ReactNode }) => {
     return (
@@ -9,7 +8,6 @@ const Layout = ({ children }: { children: ReactNode }) => {
                 <div className="wrapper">
                     <HomeHeader />
                     {children}
-                    <Footer />
                 </div>
             </div>
         </main>
