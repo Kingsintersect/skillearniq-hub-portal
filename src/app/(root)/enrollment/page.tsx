@@ -7,9 +7,11 @@ import { motion } from 'framer-motion';
 import { RefreshCw, User, Database } from 'lucide-react';
 import { useState } from 'react';
 import { useCourseStore } from './stores/course-store';
+import { useAuthContext } from '@/providers/AuthProvider';
 
 export default function CoursesPage() {
-    const [userId, setUserId] = useState('user-123');
+    // const [userId, setUserId] = useState('user-123');
+    const { user } = useAuthContext();
     const [showEmptyState, setShowEmptyState] = useState(false);
     const { resetSelection } = useCourseStore();
 
@@ -24,7 +26,7 @@ export default function CoursesPage() {
 
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-indigo-950">
             {/* Demo Controls */}
             {/* <motion.div
                 initial={{ y: -20, opacity: 0 }}
@@ -61,7 +63,7 @@ export default function CoursesPage() {
                 </div>
             </motion.div> */}
 
-            <CourseDashboard userId={userId} />
+            <CourseDashboard userId={String(user?.id)} />
         </div>
     );
 }

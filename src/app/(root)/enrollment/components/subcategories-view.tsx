@@ -106,7 +106,7 @@ export function SubCategoriesView() {
                             whileHover={{ y: -5 }}
                         >
                             <Card
-                                className={`cursor-pointer h-full border-2 transition-all duration-300 ${subCategory.courseCount === 0
+                                className={`cursor-pointer h-full border-2 transition-all duration-300 dark:shadow-2xl dark:shadow-accent-500/30 ${subCategory.courseCount === 0
                                     ? 'border-gray-200 hover:border-gray-300 opacity-75'
                                     : 'border-transparent hover:border-blue-500'
                                     }`}

@@ -28,7 +28,7 @@ export const Logo: React.FC<LogoProps> = ({ showText = true, size = 'md' }) => {
                 />
             </div>
             {showText && (
-                <span className={`${sizes[size].text} font-bold text-gray-800`}>
+                <span className={`${sizes[size].text} font-bold text-gray-800 dark:text-white`}>
                     {SITE_TITLE}
                 </span>
             )}

@@ -12,8 +12,8 @@ export const HomeHeader: React.FC = () => {
     return (
         <header
             className={cn(
-                'fixed top-0 left-0 right-0 bg-white z-50 transition-all duration-300',
-                isScrolled ? 'shadow-lg' : 'shadow-md'
+                'fixed top-0 left-0 right-0 bg-white dark:bg-gray-900 dark:border-b dark:border-b-gray-700 z-50 transition-all duration-300',
+                isScrolled ? 'shadow-lg dark:shadow-gray-800/50' : 'shadow-md dark:shadow-gray-800/30'
             )}
         >
             <div className="max-w-7xl mx-auto flex justify-between items-center px-6 py-1">
