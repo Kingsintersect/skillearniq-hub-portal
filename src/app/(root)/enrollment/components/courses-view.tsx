@@ -178,7 +178,7 @@ export function CoursesView({ userId }: { userId: string }) {
                         transition={{ delay: index * 0.1 }}
                         whileHover={{ scale: 1.02 }}
                     >
-                        <Card className="pt-0 overflow-hidden border-2 border-transparent hover:border-blue-300 transition-all duration-300">
+                        <Card className="pt-0 overflow-hidden border-2 border-transparent dark:shadow-2xl dark:shadow-accent-500/30 hover:border-blue-300 transition-all duration-300">
                             <div className="h-48 bg-gradient-to-r from-blue-400 to-purple-500 relative">
                                 <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
                                     <span className="text-white text-4xl font-bold">{course.title.split(' ')[0]}</span>

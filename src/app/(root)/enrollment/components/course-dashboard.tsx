@@ -54,7 +54,7 @@ export function CourseDashboard({ userId }: { userId: string }) {
     const CurrentView = VIEW_COMPONENTS[view];
 
     return (
-        <div className="pt-[60px] min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8">
+        <div className="pt-[60px] min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-indigo-950 py-8  dark:text-white">
             <div className="container mx-auto px-4 max-w-6xl">
                 <AnimatePresence mode="wait">
                     <motion.div
