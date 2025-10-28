@@ -1,4 +1,3 @@
-// types/course.types.ts
 export interface ApiCategory {
     id: number;
     name: string;

@@ -1,4 +1,3 @@
-// services/course-service.ts
 import { Category, Enrollment, ApiCategory, ApiCourse, Course, SubCategory, PaymentData } from '../types/course.types';
 import { mockCategories, mockEnrollments, mockEmptyEnrollments, mockCourses, mockSubCategories } from '../data/mock-data';
 import { apiClient } from '@/core/client';

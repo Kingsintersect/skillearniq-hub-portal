@@ -1,4 +1,3 @@
-// hooks/use-course-queries.ts
 import { useQuery, useMutation, useQueryClient, queryOptions, UseQueryOptions } from '@tanstack/react-query';
 import { courseService } from '../services/course-service';
 import { useCourseStore } from '../stores/course-store';

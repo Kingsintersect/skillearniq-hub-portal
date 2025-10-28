@@ -1,4 +1,3 @@
-// components/courses-view.tsx
 "use client";
 
 import { useCourseStore } from '../stores/course-store';
@@ -41,13 +40,14 @@ export function CoursesView({ userId }: { userId: string }) {
         return (
             <div className="space-y-6">
                 <div className="flex items-center space-x-4">
-                    <Button variant="ghost" size="icon" onClick={() => setView('subcategories')}>
+                    <Button className='flex items-center' variant="ghost" size="icon" onClick={() => setView('subcategories')}>
                         <ArrowLeft className="w-5 h-5" />
+                        backwards
                     </Button>
                     <div>
-                        <h1 className="text-3xl font-bold text-gray-900">{selectedSubCategory.name}</h1>
-                        <p className="text-gray-600">{selectedSubCategory.description}</p>
-                        <div className="flex items-center space-x-4 mt-2 text-sm text-gray-500">
+                        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{selectedSubCategory.name}</h1>
+                        <p className="text-gray-600 dark:text-gray-300">{selectedSubCategory.description}</p>
+                        <div className="flex items-center space-x-4 mt-2 text-sm text-gray-500 dark:text-primary">
                             <div className="flex items-center">
                                 <BookOpen className="w-4 h-4 mr-1" />
                                 0 courses available
@@ -67,37 +67,37 @@ export function CoursesView({ userId }: { userId: string }) {
                     </div>
 
                     <div className="space-y-4">
-                        <h2 className="text-2xl font-bold text-gray-900">
+                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
                             Exciting Courses Coming Soon!
                         </h2>
-                        <p className="text-gray-600 max-w-md mx-auto leading-relaxed">
+                        <p className="text-gray-600 dark:text-gray-300 max-w-md mx-auto leading-relaxed">
                             We're working hard to bring you amazing courses for <strong>{selectedSubCategory.name}</strong>.
                             Our team is developing comprehensive learning materials to help you master this subject.
                         </p>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto mt-8">
-                        <div className="text-center p-6 bg-white rounded-lg shadow-sm border border-blue-100">
+                        <div className="text-center p-6 bg-white dark:bg-indigo-950 rounded-lg shadow-sm border border-blue-100 dark:border-gray-700">
                             <Clock className="w-12 h-12 text-blue-500 mx-auto mb-4" />
                             <h3 className="font-semibold text-lg mb-2">Coming Soon</h3>
-                            <p className="text-gray-600">New courses in development</p>
+                            <p className="text-gray-600 dark:text-gray-300">New courses in development</p>
                         </div>
 
-                        <div className="text-center p-6 bg-white rounded-lg shadow-sm border border-green-100">
+                        <div className="text-center p-6 bg-white dark:bg-indigo-950 rounded-lg shadow-sm border border-green-100 dark:border-gray-700">
                             <BookOpen className="w-12 h-12 text-green-500 mx-auto mb-4" />
                             <h3 className="font-semibold text-lg mb-2">Expert Content</h3>
-                            <p className="text-gray-600">Created by industry professionals</p>
+                            <p className="text-gray-600 dark:text-gray-300">Created by industry professionals</p>
                         </div>
 
-                        <div className="text-center p-6 bg-white rounded-lg shadow-sm border border-purple-100">
+                        <div className="text-center p-6 bg-white dark:bg-indigo-950 rounded-lg shadow-sm border border-purple-100 dark:border-gray-700">
                             <Users className="w-12 h-12 text-purple-500 mx-auto mb-4" />
                             <h3 className="font-semibold text-lg mb-2">Stay Updated</h3>
-                            <p className="text-gray-600">We'll notify you when ready</p>
+                            <p className="text-gray-600 dark:text-gray-300">We'll notify you when ready</p>
                         </div>
                     </div>
 
                     <div className="pt-8 space-y-4">
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-gray-500 dark:text-gray-300">
                             Interested in this subject? Let us know what you'd like to learn!
                         </p>
                         <div className="flex justify-center space-x-4">
@@ -125,45 +125,41 @@ export function CoursesView({ userId }: { userId: string }) {
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between space-x-4">
-                <div className="flex items-between space-x-4">
-                    <Button variant="ghost" size="icon" onClick={() => setView('subcategories')}>
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                <div className="flex items-start space-x-4">
+                    <Button variant="ghost" size="icon" onClick={() => setView('subcategories')} className="flex-shrink-0">
                         <ArrowLeft className="w-5 h-5" />
                     </Button>
-                    <div>
-                        <h1 className="text-3xl font-bold text-gray-900">{selectedSubCategory.name}</h1>
-                        <p className="text-gray-600">{selectedSubCategory.description}</p>
-                        <div className="flex items-center space-x-4 mt-2 text-sm text-gray-500">
+                    <div className="min-w-0 flex-1">
+                        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white break-words">{selectedSubCategory.name}</h1>
+                        <p className="text-gray-600 dark:text-gray-300 mt-1 text-sm sm:text-base">{selectedSubCategory.description}</p>
+                        <div className="flex items-center space-x-4 mt-2 text-sm text-gray-500 dark:text-primary">
                             <div className="flex items-center">
-                                <BookOpen className="w-4 h-4 mr-1" />
-                                {selectedSubCategory.courses.length} courses available
+                                <BookOpen className="w-4 h-4 mr-1 flex-shrink-0" />
+                                <span>{selectedSubCategory.courses.length} courses available</span>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div className="">
+                <div className="w-full lg:w-auto">
                     <Button
-                        className="flex-1 bg-accent-600 hover:bg-accent-700 text-white"
+                        className="w-full lg:w-auto bg-accent-400 hover:bg-accent-700 text-white"
                         onClick={() => handleEnroll('1')}
-                        // onClick={() => mutate({
-                        //     courseId: 1, //courses.id-- -> to be removed,
-                        //     amount: 20000,
-                        // })}
                         disabled={isPending}
-                        size={'xl'}
+                        size="xl"
                     >
                         {isPending ? (
-                            <>
+                            <div className="flex items-center justify-center">
                                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                                <LoadingSpinner />
                                 Processing...
-                            </>
+                            </div>
                         ) : (
-                            <>
+                            <div className="flex items-center">
                                 <CreditCard className="w-4 h-4 mr-2" />
-                                Unlock access to courses
-                            </>
+                                <span className="hidden sm:inline">Unlock access to courses</span>
+                                <span className="sm:hidden">Enroll Now</span>
+                            </div>
                         )}
                     </Button>
                 </div>
@@ -198,7 +194,7 @@ export function CoursesView({ userId }: { userId: string }) {
                             </CardHeader>
 
                             <CardContent className="space-y-4">
-                                <div className="flex items-center justify-between text-sm text-gray-600">
+                                <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-300">
                                     <div className="flex items-center space-x-4">
                                         {/* <div className="flex items-center">
                                             <Clock className="w-4 h-4 mr-1" />

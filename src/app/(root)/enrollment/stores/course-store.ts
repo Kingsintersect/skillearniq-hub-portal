@@ -1,4 +1,3 @@
-// stores/course-store.ts
 import { create } from 'zustand';
 import { CourseState, CourseActions, Category, SubCategory, Enrollment, Course } from '../types/course.types';
 

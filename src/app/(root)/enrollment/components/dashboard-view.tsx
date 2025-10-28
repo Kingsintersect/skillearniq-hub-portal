@@ -65,7 +65,7 @@ export function DashboardView({ userId }: { userId: string }) {
                     transition={{ delay: 0.6, duration: 0.5 }}
                     className="pt-8"
                 >
-                    <div className="space-x-5">
+                    <div className="flex flex-col space-x-5 md:flex-row justify-center items-center gap-4">
                         <Button
                             size="lg"
                             onClick={reloadCategoriesAndCourses}
