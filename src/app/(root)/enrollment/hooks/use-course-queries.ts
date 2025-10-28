@@ -6,9 +6,11 @@ import { useEffect } from 'react';
 import { toast } from 'sonner';
 import { Enrollment } from '../types/course.types';
 import { createQuery } from '@/core/queryHooks';
+import { useAuthContext } from '@/providers/AuthProvider';
 
 export const useCourseQueries = (userId: string) => {
     const { setCategories, setEnrolledCourses, setLoading } = useCourseStore();
+    const { user } = useAuthContext();
     const queryClient = useQueryClient();
 
     // Merged categories with courses query
@@ -21,8 +23,8 @@ export const useCourseQueries = (userId: string) => {
     }, [mergedCategoriesQuery.data, setCategories]);
 
     // Enrollments query with useEffect for side effects
-    const enrollmentsQuery = getStudentEnrollmentsQuery(userId, {
-        enabled: !!userId
+    const enrollmentsQuery = getStudentEnrollmentsQuery(user?.email, {
+        enabled: !!user?.email
     });
 
     // Handle all side effects

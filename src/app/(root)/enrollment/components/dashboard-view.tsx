@@ -1,4 +1,3 @@
-// components/dashboard-view.tsx
 import { useCourseStore } from '../stores/course-store';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -25,10 +24,10 @@ export function DashboardView({ userId }: { userId: string }) {
                     </div>
 
                     <div className="space-y-4">
-                        <h1 className="text-4xl font-bold text-gray-900">
+                        <h1 className="text-4xl font-bold text-gray-900  dark:text-white">
                             Start Your Learning Journey!
                         </h1>
-                        <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
+                        <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed dark:text-white">
                             Discover amazing courses tailored for your career growth.
                             Learn from industry experts and join a community of passionate learners.
                         </p>
@@ -41,22 +40,22 @@ export function DashboardView({ userId }: { userId: string }) {
                     transition={{ delay: 0.3, duration: 0.5 }}
                     className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto mt-12"
                 >
-                    <div className="text-center p-6 bg-white rounded-lg shadow-sm border">
-                        <Target className="w-12 h-12 text-blue-500 mx-auto mb-4" />
-                        <h3 className="font-semibold text-lg mb-2">Set Your Goals</h3>
-                        <p className="text-gray-600">Choose from 100+ courses aligned with your career objectives</p>
+                    <div className="text-center p-6 bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-gray-700/30 dark:border-gray-700">
+                        <Target className="w-12 h-12 text-blue-500 dark:text-blue-400 mx-auto mb-4" />
+                        <h3 className="font-semibold text-lg mb-2 dark:text-white">Set Your Goals</h3>
+                        <p className="text-gray-600 dark:text-gray-300">Choose from 100+ courses aligned with your career objectives</p>
                     </div>
 
-                    <div className="text-center p-6 bg-white rounded-lg shadow-sm border">
-                        <BookOpen className="w-12 h-12 text-green-500 mx-auto mb-4" />
-                        <h3 className="font-semibold text-lg mb-2">Learn by Doing</h3>
-                        <p className="text-gray-600">Hands-on projects and real-world scenarios</p>
+                    <div className="text-center p-6 bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-gray-700/30 dark:border-gray-700">
+                        <BookOpen className="w-12 h-12 text-green-500 dark:text-green-400 mx-auto mb-4" />
+                        <h3 className="font-semibold text-lg mb-2 dark:text-white">Learn by Doing</h3>
+                        <p className="text-gray-600 dark:text-gray-300">Hands-on projects and real-world scenarios</p>
                     </div>
 
-                    <div className="text-center p-6 bg-white rounded-lg shadow-sm border">
-                        <Award className="w-12 h-12 text-yellow-500 mx-auto mb-4" />
-                        <h3 className="font-semibold text-lg mb-2">Get Certified</h3>
-                        <p className="text-gray-600">Earn certificates to showcase your skills</p>
+                    <div className="text-center p-6 bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-gray-700/30 dark:border-gray-700">
+                        <Award className="w-12 h-12 text-yellow-500 dark:text-yellow-400 mx-auto mb-4" />
+                        <h3 className="font-semibold text-lg mb-2 dark:text-white">Get Certified</h3>
+                        <p className="text-gray-600 dark:text-gray-300">Earn certificates to showcase your skills</p>
                     </div>
                 </motion.div>
 

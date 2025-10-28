@@ -14,14 +14,14 @@ export const Programs: React.FC = () => {
         <section
             ref={pRef}
             id="programs"
-            className="py-20 px-6 bg-white min-h-[85vh] flex items-center justify-center"
+            className="py-20 px-6 bg-white dark:bg-gray-800 min-h-[85vh] flex items-center justify-center"
         >
             <div className="max-w-7xl mx-auto">
                 <div className="text-center mb-16">
-                    <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4">
+                    <h2 className="text-3xl md:text-4xl font-bold text-gray-800 dark:text-white mb-4">
                         Featured Academic Programs
                     </h2>
-                    <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+                    <p className="text-lg text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
                         Choose from our comprehensive range of business programs designed to meet
                         diverse career goals and industry demands.
                     </p>
@@ -30,7 +30,7 @@ export const Programs: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                     {PROGRAMS.map((program, index) => (
                         <Card key={index}
-                            className={`bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl p-8 border border-gray-200 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg border-t-4 border-t-accent ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+                            className={`bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 rounded-2xl p-8 border border-gray-200 dark:border-gray-600 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg dark:hover:shadow-gray-800/50 border-t-4 border-t-accent ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
                                 }`}
                             style={{ transitionDelay: `${index * 200}ms` }}
                         >
@@ -39,19 +39,19 @@ export const Programs: React.FC = () => {
                                     }`}
                                 style={{ transitionDelay: `${index * 300 + 200}ms` }}
                             >
-                                <div className={`bg-[#23608c]/10 p-2 rounded-md`}>
-                                    <program.icon className="h-6 w-6 text-[#23608c]" />
+                                <div className={`bg-[#23608c]/10 dark:bg-[#23608c]/20 p-2 rounded-md`}>
+                                    <program.icon className="h-6 w-6 text-[#23608c] dark:text-blue-400" />
                                 </div>
-                                <CardTitle className="text-xl font-semibold text-gray-800 mb-4">{program.title}</CardTitle>
+                                <CardTitle className="text-xl font-semibold text-gray-800 dark:text-white mb-4">{program.title}</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <CardDescription className='text-gray-600 text-xl mb-6 leading-relaxed'>{program.description}</CardDescription>
+                                <CardDescription className='text-gray-600 dark:text-gray-300 text-xl mb-6 leading-relaxed'>{program.description}</CardDescription>
                             </CardContent>
                             <CardFooter className="flex justify-between items-center">
-                                <span className="bg-primary-600 text-white px-3 py-1 rounded-full text-sm font-medium">
+                                <span className="bg-primary-600 dark:bg-primary-700 text-white px-3 py-1 rounded-full text-sm font-medium">
                                     {program.duration}
                                 </span>
-                                <Button className="text-blue-600 font-medium hover:text-blue-800 transition-colors duration-200 cursor-pointer bg-transparent border-none">
+                                <Button className="text-blue-600 dark:text-blue-400 font-medium hover:text-blue-800 dark:hover:text-blue-300 transition-colors duration-200 cursor-pointer bg-transparent border-none">
                                     Learn More →
                                 </Button>
                             </CardFooter>

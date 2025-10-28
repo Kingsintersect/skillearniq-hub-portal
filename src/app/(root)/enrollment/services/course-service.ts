@@ -35,6 +35,7 @@ class CourseService {
     // }
 
     getEnrollments = async (studentEmail: string): Promise<Enrollment[]> => {
+        console.log('studentEmail', studentEmail)
         await new Promise(resolve => setTimeout(resolve, 800));
         // const result = await apiClient.get(`/admin/course/grading?student_email=${studentEmail}`)
         // console.log('result', result);
