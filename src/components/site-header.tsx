@@ -10,6 +10,8 @@ import { ThemeSelector } from './theme-selector'
 import { DynamicBreadcrumb } from './ui/dynamic-breadcrumb'
 import SignOutButton from './core/signout-button'
 import { StudentSelector } from './StudentSelector'
+import Link from 'next/link'
+import { LucideLink } from 'lucide-react'
 
 const SiteHeader = () => {
     const pathname = usePathname()
@@ -27,6 +29,13 @@ const SiteHeader = () => {
             </div>
             <div className="flex items-center gap-4 px-4">
                 {isParentPage && <StudentSelector />}
+                <div className="flex items-center gap-2">
+                    <LucideLink className="w-4 h-4" />
+                    <Link href={`/enrollment`} >
+                        Enroll In Courses
+                    </Link>
+                    {/* Enroll In Courses */}
+                </div>
                 <ThemeSelector />
                 <ModeToggle />
                 <SignOutButton />

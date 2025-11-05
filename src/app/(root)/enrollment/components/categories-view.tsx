@@ -8,7 +8,7 @@ export function CategoriesView() {
     const { categories, selectCategory, toggleShowAllCategories } = useCourseStore();
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-12">
             <div className="flex items-center space-x-4">
                 <Button variant="ghost" size="icon" onClick={toggleShowAllCategories}>
                     <ArrowLeft className="w-5 h-5" />

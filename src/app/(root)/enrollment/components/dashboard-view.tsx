@@ -8,7 +8,14 @@ import { useCourseQueries } from '../hooks/use-course-queries';
 
 export function DashboardView({ userId }: { userId: string }) {
     const { enrolledCourses, toggleShowAllCategories, clearCache } = useCourseStore();
-    const { reloadCategoriesAndCourses, isLoading, isFetching } = useCourseQueries(userId);
+    const { reloadCategoriesAndCourses, isLoading, isFetching, unenrollFromCourseMutation, isUnenrollmentProcessing } = useCourseQueries(userId);
+
+    const handleUnenroll = (courseId: string, courseGroupId: number) => {
+        unenrollFromCourseMutation.mutate({
+            courseGroupId: courseGroupId,
+            courseId: parseInt(courseId)
+        });
+    };
 
     if (enrolledCourses.length === 0) {
         return (
@@ -95,15 +102,15 @@ export function DashboardView({ userId }: { userId: string }) {
     }
 
     return (
-        <div className="space-y-8">
+        <div className="space-y-12">
             <motion.div
                 initial={{ y: -20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 className="flex justify-between items-center"
             >
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-900">My Learning Dashboard</h1>
-                    <p className="text-gray-600 mt-2">Continue where you left off</p>
+                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white">My Learning Dashboard</h1>
+                    <p className="text-primary-800 mt-2">Continue where you left off</p>
                 </div>
                 <div className="flex items-center space-x-5">
                     <Button
@@ -119,7 +126,7 @@ export function DashboardView({ userId }: { userId: string }) {
                     <Button
                         onClick={toggleShowAllCategories}
                         variant="outline"
-                        className="border-blue-200 text-blue-600 hover:bg-blue-50 hover:text-blue-600"
+                        className="border-blue-200 text-blue-600 hover:bg-blue-50 hover:text-blue-600 dark:border-yellow-200 dark:text-yellow-600 dark:hover:bg-yellow-50 dark:hover:text-yellow-600"
                     >
                         <Plus className="w-4 h-4 mr-2" />
                         Enroll in More Programs
@@ -128,57 +135,62 @@ export function DashboardView({ userId }: { userId: string }) {
             </motion.div>
 
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {enrolledCourses.map((enrollment, index) => (
-                    <motion.div
-                        key={enrollment.id}
-                        initial={{ y: 20, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        transition={{ delay: index * 0.1 }}
-                        whileHover={{ y: -5 }}
-                    >
-                        <Card className="h-full border-2 border-transparent hover:border-blue-300 transition-all duration-300 hover:shadow-lg">
-                            <CardHeader className="pb-4">
-                                <div className="flex items-center justify-between">
-                                    <CardTitle className="text-lg leading-tight">
-                                        {enrollment.course.title}
-                                    </CardTitle>
-                                    <Award className="w-5 h-5 text-yellow-500" />
-                                </div>
-                                <CardDescription className="line-clamp-2">
-                                    {enrollment.course.instructor}
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="space-y-4">
-                                    <div className="flex items-center justify-between text-sm text-gray-600">
-                                        {/* <div className="flex items-center">
-                                            <Clock className="w-4 h-4 mr-1" />
-                                            {enrollment.course.duration}
-                                        </div> */}
-                                        {/* <span className={`px-2 py-1 rounded-full text-xs font-medium ${enrollment.course.level === 'beginner' ? 'bg-green-100 text-green-800' :
-                                            enrollment.course.level === 'intermediate' ? 'bg-yellow-100 text-yellow-800' :
-                                                'bg-red-100 text-red-800'
-                                            }`}>
-                                            {enrollment.course.level}
-                                        </span> */}
+                {enrolledCourses.map((enrollment, index) => {
+                    return (
+                        <motion.div
+                            key={enrollment.id}
+                            initial={{ y: 20, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            transition={{ delay: index * 0.1 }}
+                            whileHover={{ y: -5 }}
+                        >
+                            <Card className="h-full border-2 border-transparent dark:border-gray-600 hover:border-blue-300 transition-all duration-300 hover:shadow-lg">
+                                <CardHeader className="pb-4">
+                                    <div className="flex items-center justify-between">
+                                        <CardTitle className="text-lg leading-tight">
+                                            {enrollment.course.course_name || enrollment.course.title}
+                                        </CardTitle>
+                                        <Award className="w-5 h-5 text-yellow-500" />
                                     </div>
-
-                                    <div className="space-y-2">
-                                        <div className="flex justify-between text-sm">
-                                            <span className="text-gray-600">Progress</span>
-                                            <span className="font-semibold">{enrollment.progress}%</span>
+                                    <CardDescription className="line-clamp-2">
+                                        {enrollment.course.course_group}
+                                    </CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="space-y-4">
+                                        <div className="flex items-center justify-between text-sm text-gray-600">
+                                            <span className="text-xs text-gray-500">
+                                                {enrollment.course.short_name}
+                                            </span>
                                         </div>
-                                        <Progress value={enrollment.progress} className="h-2" />
-                                    </div>
 
-                                    <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white">
-                                        Continue Learning
-                                    </Button>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </motion.div>
-                ))}
+                                        <div className="space-y-2">
+                                            <div className="flex justify-between text-sm">
+                                                <span className="text-gray-600">Progress</span>
+                                                <span className="font-semibold">{enrollment.progress}%</span>
+                                            </div>
+                                            <Progress value={enrollment.progress} className="h-2" />
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-5">
+                                            <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white">
+                                                Continue Learning
+                                            </Button>
+                                            <Button
+                                                variant="ghost"
+                                                className="dark:hover:text-white"
+                                                onClick={() => handleUnenroll(enrollment.course.id, enrollment.course.course_group_id)}
+                                                disabled={isUnenrollmentProcessing}
+                                            >
+                                                {isUnenrollmentProcessing ? 'Unenrolling...' : 'Unenroll'}
+                                            </Button>
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </motion.div>
+                    )
+                })}
             </div>
         </div>
     );

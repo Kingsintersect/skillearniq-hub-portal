@@ -14,25 +14,71 @@ export interface ApiCourse {
     startdate: number;
     summary: string;
 }
+export interface VerifyPaymentResponse {
+    transAmount: string;
+    reference: string;
+    transRef: string;
+    processorFee: string;
+    errorMessage: string;
+    currency: string;
+    gateway: string;
+    status: string;
+    message?: string;
+    error?: [];
+}
 
-// Base course interface with all required properties
+// Update EnrollmentApiResponse to match actual API structure
+export interface EnrollmentApiResponse {
+    status: string;
+    message: string;
+    user: EnrolledCourseUser;
+    courses: Array<{
+        course_id: number;
+        course_name: string;
+        short_name: string;
+        course_group_id: number;
+        course_group: string;
+    }>;
+}
+
+// Simplify Enrollment interface - remove duplicate fields that are in Course
+export interface Enrollment {
+    id: string;
+    courseId: string;
+    course: Course;
+    enrolledAt: string;
+    progress: number;
+    completed: boolean;
+}
+
+// Simplify Course interface - keep only the API fields that actually come from the response
 export interface Course {
     id: string;
     title: string;
     description: string;
-    // price: number;
-    // duration: string;
-    // level: 'beginner' | 'intermediate' | 'advanced';
     instructor: string;
     rating: number;
     studentsEnrolled: number;
     imageUrl: string;
-    // API fields (optional)
+
+    // API fields from enrollment response
+    course_group: string;
+    course_group_id: number;
+    course_id: number;
+    course_name: string;
+    short_name: string;
+
+    // Optional API fields from courses endpoint
     apiId?: number;
     shortname?: string;
     visible?: number;
     startdate?: number;
     summary?: string;
+}
+
+export interface EnrolledCourseUser {
+    id: number;
+    email: string;
 }
 
 export interface SubCategory {
@@ -59,15 +105,6 @@ export interface Category {
     apiId?: number;
     parent?: number;
     sortorder?: number;
-}
-
-export interface Enrollment {
-    id: string;
-    courseId: string;
-    course: Course;
-    enrolledAt: string;
-    progress: number;
-    completed: boolean;
 }
 
 export interface CourseState {
@@ -101,4 +138,45 @@ export interface PaymentData {
     debitAmount: number;
     fee: number;
     reference: string;
+}
+// Add to your course.types.ts file
+export interface EnrolledCategory {
+    id: string;
+    name: string;
+    course_group_id: number;
+    course_group: string;
+    courseCount: number;
+    enrolledAt: string;
+    progress: number;
+    completed: boolean;
+}
+
+export interface CourseActions {
+    setCategories: (categories: Category[]) => void;
+    setEnrolledCourses: (enrollments: Enrollment[]) => void;
+    setEnrolledCategories: (categories: EnrolledCategory[]) => void;
+    addEnrolledCategory: (category: Omit<EnrolledCategory, 'id' | 'enrolledAt' | 'progress' | 'completed'>) => void;
+    updateEnrolledCategoryProgress: (categoryId: string, progress: number) => void;
+    markEnrolledCategoryCompleted: (categoryId: string) => void;
+    buildEnrolledCategoriesFromCourses: (enrollments: Enrollment[], existingCategories: EnrolledCategory[]) => EnrolledCategory[];
+    unenrollFromCourse: (courseId: string, courseGroupId: number) => void;
+    selectCategory: (category: Category) => void;
+    selectSubCategory: (subCategory: SubCategory) => void;
+    toggleShowAllCategories: () => void;
+    setLoading: (loading: boolean) => void;
+    resetSelection: () => void;
+    setView: (view: CourseState['view']) => void;
+    enrollInCourse: (courseId: string) => void;
+    clearCache: () => void;
+}
+
+export interface CourseState {
+    categories: Category[];
+    enrolledCourses: Enrollment[];
+    enrolledCategories: EnrolledCategory[];
+    selectedCategory: Category | null;
+    selectedSubCategory: SubCategory | null;
+    showAllCategories: boolean;
+    isLoading: boolean;
+    view: 'dashboard' | 'categories' | 'subcategories' | 'courses' | 'payment';
 }

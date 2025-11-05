@@ -1,54 +1,45 @@
-import { Category, Enrollment, ApiCategory, ApiCourse, Course, SubCategory, PaymentData } from '../types/course.types';
-import { mockCategories, mockEnrollments, mockEmptyEnrollments, mockCourses, mockSubCategories } from '../data/mock-data';
+import { Category, Enrollment, ApiCategory, ApiCourse, Course, SubCategory, PaymentData, EnrollmentApiResponse, VerifyPaymentResponse } from '../types/course.types';
+import { mockCategories, mockCourses, mockSubCategories } from '../data/mock-data';
 import { apiClient } from '@/core/client';
 import { ApiError } from '@/types/auth';
 
-
-export interface CourseCategory {
-    id: number;
-    name: string;
-    parent: number;
-    sortorder: string;
+interface EnrolledCourseResponseType {
+    course_id: number | string;
+    course_name: string;
+    course_group?: string;
+    course_group_id?: number;
+    short_name?: string;
 }
-
-export interface CategoryCourse {
-    id: number;
-    category: string;
-    sortorder: string;
-
-    fullname: string,
-    shortname: string,
-    idnumber: string,
-    summary: string,
-}
-
-
 class CourseService {
     // Cache for API data
     private apiCategoriesCache: ApiCategory[] | null = null;
     private apiCoursesCache: ApiCourse[] | null = null;
+    // private apiEnrollmentsCache: Enrollment[] | null = null;
 
-    // getCategories = async (): Promise<Category[]> => {
-    //     await new Promise(resolve => setTimeout(resolve, 1000));
-    //     return mockCategories;
-    // }
+    getEnrolledCourseWithCategories = async (): Promise<Enrollment[]> => {
+        try {
+            const response = await apiClient.get<EnrollmentApiResponse>("/student/my-enrolled-courses-with-category");
+            const apiCourses = (response as any).courses || []; //response.data.courses || [];
 
-    getEnrollments = async (studentEmail: string): Promise<Enrollment[]> => {
-        console.log('studentEmail', studentEmail)
-        await new Promise(resolve => setTimeout(resolve, 800));
-        // const result = await apiClient.get(`/admin/course/grading?student_email=${studentEmail}`)
-        // console.log('result', result);
-
-        // Check URL parameter for demo purposes
-        const urlParams = new URLSearchParams(window.location.search);
-        const emptyState = urlParams.get('empty') === 'true';
-
-        if (emptyState || localStorage.getItem('testEmptyState') === 'true') {
-            return mockEmptyEnrollments;
+            // Transform API courses to Enrollment format
+            return apiCourses.map((apiCourse: EnrolledCourseResponseType) => this.transformApiCourseToEnrollment(apiCourse));
+        } catch (error) {
+            console.error('Failed to fetch enrollments from API:', error);
+            return [];
         }
+    }
 
-        // return mockEnrollments;
-        return [];
+    getEnrolledCourse = async (): Promise<Enrollment[]> => {
+        try {
+            const results = await apiClient.get<EnrollmentApiResponse>("/student/my-enrolled-courses");
+            const apiCourses = results.data.courses || [];
+
+            // Transform API courses to Enrollment format
+            return apiCourses.map(apiCourse => this.transformApiCourseToEnrollment(apiCourse));
+        } catch (error) {
+            console.error('Failed to fetch categories from API:', error);
+            return [];
+        }
     }
 
     fetchApiCategories = async (): Promise<ApiCategory[]> => {
@@ -77,19 +68,90 @@ class CourseService {
         }
     }
 
+    // Helper to transform API course data to Enrollment
+    private transformApiCourseToEnrollment = (apiCourse: any): Enrollment => {
+        // Create course object from API data
+        const course: Course = {
+            id: `${apiCourse.course_id}`,
+            title: apiCourse.course_name,
+            description: '', // Will be augmented from mock data if needed
+            instructor: 'Instructor', // Default value
+            rating: 0, // Default value
+            studentsEnrolled: 0, // Default value
+            imageUrl: '', // Default value
+
+            // Map API fields
+            course_group: apiCourse.course_group,
+            course_group_id: apiCourse.course_group_id,
+            course_id: apiCourse.course_id,
+            course_name: apiCourse.course_name,
+            short_name: apiCourse.short_name
+        };
+
+        return {
+            id: `enroll-${apiCourse.course_id}`,
+            courseId: `${apiCourse.course_id}`,
+            course: course,
+            enrolledAt: new Date().toISOString(),
+            progress: 0, // Default progress
+            completed: false // Default completed status
+        };
+    }
+
+    private augmentCourse = (
+        apiCourse: ApiCourse
+    ): Partial<Course> => {
+        // Pick mock course data sequentially based on course ID
+        const mockIndex = (apiCourse.id - 1) % mockCourses.length;
+        const mockCourse = mockCourses[mockIndex];
+
+        // Use API summary if available, otherwise use mock description
+        const description = apiCourse.summary && apiCourse.summary.trim() !== ''
+            ? apiCourse.summary
+            : mockCourse.description;
+
+        return {
+            // API data - kept as is
+            id: `${apiCourse.id}`,
+            title: apiCourse.fullname,
+            shortname: apiCourse.shortname,
+            apiId: apiCourse.id,
+            visible: apiCourse.visible,
+            startdate: apiCourse.startdate,
+            summary: apiCourse.summary,
+
+            // Augmented fields from mock data
+            description: description,
+            instructor: mockCourse.instructor,
+            rating: mockCourse.rating,
+            studentsEnrolled: mockCourse.studentsEnrolled,
+            imageUrl: mockCourse.imageUrl,
+
+            // Map to enrollment structure fields
+            course_group: '', // Will be populated from category data if available
+            course_group_id: apiCourse.category, // Use category as group_id
+            course_id: apiCourse.id,
+            course_name: apiCourse.fullname,
+            short_name: apiCourse.shortname
+        };
+    }
+
     getMergedCategoriesWithCourses = async (): Promise<Category[]> => {
         try {
-            // Fetch data from API only - we'll augment with mock data
             const [apiCategories, apiCourses] = await Promise.all([
                 this.fetchApiCategories(),
                 this.fetchApiCourses()
             ]);
 
+            // If no data was fetched, return empty array
+            if (apiCategories.length === 0 || apiCourses.length === 0) {
+                return [];
+            }
+
             return this.buildAugmentedCategories(apiCategories, apiCourses);
         } catch (error) {
             console.error('Error in getMergedCategoriesWithCourses:', error);
-            // Fallback to mock data if API calls fail
-            return mockCategories;
+            return [];
         }
     }
 
@@ -97,13 +159,6 @@ class CourseService {
         apiCategories: ApiCategory[],
         apiCourses: ApiCourse[]
     ): Category[] => {
-        // If API data is empty, return mock data as fallback
-        if (apiCategories.length === 0 || apiCourses.length === 0) {
-            console.warn('API data is empty, using mock data as fallback');
-            // return mockCategories;
-            return [];
-        }
-
         // Filter out only visible courses (visible === 1) and exclude category 0
         const visibleApiCourses = apiCourses.filter(course => course.visible === 1 && course.category !== 0);
 
@@ -113,138 +168,84 @@ class CourseService {
 
         // Map API categories to our enhanced Category structure
         return rootCategories.map(apiCategory => {
-            // Find a mock category template to augment missing fields
-            const mockCategoryTemplate = mockCategories.find(mockCat =>
-                this.getCategoryType(apiCategory.id) === mockCat.id
-            ) || mockCategories[0];
-
             // Get subcategories for this root category
             const categorySubCategories = subCategories.filter(sub => sub.parent === apiCategory.id);
 
             // Build enhanced subcategories
             const enhancedSubCategories = categorySubCategories.map(apiSubCategory => {
-                // Find a mock subcategory template to augment missing fields
-                const mockSubTemplate = mockSubCategories.find(mockSub =>
-                    this.getSubCategoryType(apiSubCategory.id) === mockSub.id
-                ) || mockSubCategories[0];
-
                 // Get courses for this subcategory
                 const subCategoryCourses = visibleApiCourses.filter(course => course.category === apiSubCategory.id);
 
                 // Build enhanced courses
-                const enhancedCourses = subCategoryCourses.map((apiCourse, index) => {
-                    // Find a mock course template (cycle through available ones)
-                    const mockCourseTemplate = mockCourses[index % mockCourses.length] || mockCourses[0];
-
-                    return this.augmentCourse(apiCourse, mockCourseTemplate);
+                const enhancedCourses = subCategoryCourses.map(apiCourse => {
+                    return this.augmentCourse(apiCourse);
                 });
 
-                // Augment the subcategory with mock data for missing fields
-                return this.augmentSubCategory(apiSubCategory, mockSubTemplate, enhancedCourses);
+                return this.augmentSubCategory(apiSubCategory, enhancedCourses);
             });
 
-            // Augment the category with mock data for missing fields
-            return this.augmentCategory(apiCategory, mockCategoryTemplate, enhancedSubCategories);
+            return this.augmentCategory(apiCategory, enhancedSubCategories);
         });
-    }
-
-    private getCategoryType = (apiCategoryId: number): string => {
-        // Map API category IDs to mock category IDs
-        const categoryMap: { [key: number]: string } = {
-            1: 'cat-1', // JUNIOR SECONDARY -> Frontend Development
-            2: 'cat-2', // SENIOR SECONDARY -> Backend & DevOps
-        };
-        return categoryMap[apiCategoryId] || 'cat-1';
-    }
-
-    private getSubCategoryType = (apiSubCategoryId: number): string => {
-        // Map API subcategory IDs to mock subcategory IDs
-        const subCategoryMap: { [key: number]: string } = {
-            1: 'sub-1', // JUNIOR SECONDARY -> React
-            8: 'sub-4', // SCIENCE STUDIES -> Node.js
-            9: 'sub-5', // ART STUDIES -> Python & Data Science
-            10: 'sub-6', // COMMERCIAL STUDIES -> DevOps
-        };
-        return subCategoryMap[apiSubCategoryId] || 'sub-1';
     }
 
     private augmentCategory = (
         apiCategory: ApiCategory,
-        mockCategory: Category,
         subCategories: SubCategory[]
     ): Category => {
+        // Pick mock category data sequentially based on category ID
+        const mockIndex = (apiCategory.id - 1) % mockCategories.length;
+        const mockCategory = mockCategories[mockIndex];
+
         return {
-            id: `cat-${apiCategory.id}`,
+            // API data - kept as is
+            id: `${apiCategory.id}`,
             name: apiCategory.name,
-            description: mockCategory.description, // Use mock description
-            icon: mockCategory.icon, // Use mock icon
-            color: mockCategory.color, // Use mock color
-            subCategories: subCategories,
-            // API fields
-            apiId: apiCategory.id,
             parent: apiCategory.parent,
-            sortorder: apiCategory.sortorder
+            sortorder: apiCategory.sortorder,
+            apiId: apiCategory.id,
+
+            // Augmented fields from mock data
+            description: mockCategory.description,
+            icon: mockCategory.icon,
+            color: mockCategory.color,
+
+            // Computed fields
+            subCategories: subCategories,
         };
     }
 
     private augmentSubCategory = (
         apiSubCategory: ApiCategory,
-        mockSubCategory: SubCategory,
-        courses: Course[]
+        courses: Partial<Course>[]
     ): SubCategory => {
+        // Pick mock subcategory data sequentially based on subcategory ID
+        const mockIndex = (apiSubCategory.id - 1) % mockSubCategories.length;
+        const mockSubCategory = mockSubCategories[mockIndex];
+
         return {
-            id: `sub-${apiSubCategory.id}`,
+            // API data - kept as is
+            id: `${apiSubCategory.id}`,
             name: apiSubCategory.name,
-            description: mockSubCategory.description, // Use mock description
-            icon: mockSubCategory.icon, // Use mock icon
-            courseCount: courses.length,
-            courses: courses,
-            // API fields
-            apiId: apiSubCategory.id,
             parent: apiSubCategory.parent,
-            sortorder: apiSubCategory.sortorder
+            sortorder: apiSubCategory.sortorder,
+            apiId: apiSubCategory.id,
+
+            // Augmented fields from mock data
+            description: mockSubCategory.description,
+            icon: mockSubCategory.icon,
+
+            // Computed fields
+            courseCount: courses.length,
+            courses: courses as Course[],
         };
     }
 
-    private augmentCourse = (
-        apiCourse: ApiCourse,
-        mockCourse: Course
-    ): Course => {
-        return {
-            id: `course-${apiCourse.id}`,
-            title: apiCourse.fullname,
-            description: apiCourse.summary || mockCourse.description, // Use API summary or mock description
-            // price: mockCourse.price, // Use mock price
-            // duration: mockCourse.duration, // Use mock duration
-            // level: mockCourse.level, // Use mock level
-            instructor: mockCourse.instructor, // Use mock instructor
-            rating: mockCourse.rating, // Use mock rating
-            studentsEnrolled: mockCourse.studentsEnrolled, // Use mock students count
-            imageUrl: mockCourse.imageUrl, // Use mock image
-            // API fields
-            apiId: apiCourse.id,
-            shortname: apiCourse.shortname,
-            visible: apiCourse.visible,
-            startdate: apiCourse.startdate,
-            summary: apiCourse.summary
-        };
-    }
-
-    // processPayment = async (courseId: string, paymentData: unknown): Promise<{ success: boolean; enrollmentId: string }> => {
-    processPayment = async (courseId: string, paymentData: Record<string, unknown> | null): Promise<PaymentData> => {
-        // // Simulate payment processing
-        // await new Promise(resolve => setTimeout(resolve, 2000));
-
-        // // Simulate successful payment
-        // return {
-        //     success: true,
-        //     enrollmentId: `enroll-${Date.now()}`
-        // };
+    processPayment = async (programId: string, paymentData: Record<string, unknown>): Promise<PaymentData> => {
         try {
-            const response = await apiClient.post<PaymentData>('/student/enroll-course', {
-                "department": "SKILLEARN",
-                "course_id": courseId,
-                "amount": paymentData?.amount,
+            const response = await apiClient.post<PaymentData>('/student/course-payment', {
+                "department": paymentData.program_name,
+                "course_group_id": programId,
+                "amount": paymentData.amount,
             });
 
             if (response.status !== 200) {
@@ -255,7 +256,6 @@ class CourseService {
                 throw new Error('No payment data received');
             }
 
-            // Return just the payment data part
             return response.data;
         } catch (error) {
             console.error('error', error);
@@ -263,13 +263,88 @@ class CourseService {
         }
     }
 
-    // Utility method to clear cache (useful for testing or force refresh)
+    verifyCoursePayment = async (verifyCredentials: VerifyPaymentResponse): Promise<VerifyPaymentResponse> => {
+        try {
+            // Build query string from parameters
+            const queryParams = new URLSearchParams({
+                transAmount: verifyCredentials.transAmount,
+                reference: verifyCredentials.reference,
+                transRef: verifyCredentials.transRef,
+                processorFee: verifyCredentials.processorFee,
+                errorMessage: verifyCredentials.errorMessage,
+                currency: verifyCredentials.currency,
+                gateway: verifyCredentials.gateway,
+                status: verifyCredentials.status,
+            }).toString();
+
+            const response = await apiClient.get<VerifyPaymentResponse>(
+                `/student/verify-payment?${queryParams}`
+            );
+
+            // Check if status is "Successful" (string)
+            const responseData = response.data || response;
+
+            // Check if status is "Successful" (string)
+            if (responseData.status !== "Successful") {
+                throw new Error(responseData.message || 'Payment verification failed');
+            }
+
+            return responseData;
+        } catch (error) {
+            throw error as ApiError;
+        }
+    }
+
+    processEnrollInCourse = async (enrollmentRequestData: Record<string, unknown>): Promise<any> => {
+        try {
+            const response = await apiClient.post<any>('/student/enroll-course', {
+                "course_group_id": enrollmentRequestData.programId,
+                "course_id": enrollmentRequestData.courseId,
+                "department": enrollmentRequestData.program_name,
+            });
+
+            if (String(response?.status) === 'Success') {
+                return response.message;
+            }
+
+            if (response?.status && String(response?.status) !== 'Success') {
+                throw new Error(response.message || 'Failed to enroll in course');
+            }
+
+            throw new Error(response?.message || 'Unexpected response format');
+        } catch (error) {
+            console.error('error', error);
+            throw error as ApiError;
+        }
+    }
+
+    processUnEnrollFromCourse = async (courseGroupId: number, courseId: number): Promise<any> => {
+        try {
+            const response = await apiClient.post<any>('/student/unenroll-course', {
+                course_group_id: courseGroupId,
+                course_id: courseId
+            });
+
+            if (String(response?.status) === 'Success') {
+                return response.message;
+            }
+
+            if (response?.status && String(response?.status) !== 'Success') {
+                throw new Error(response.message || 'Failed to unenroll from course');
+            }
+
+            throw new Error(response?.message || 'Unexpected response format');
+        } catch (error) {
+            console.error('Error unenrolling from course:', error);
+            throw error as ApiError;
+        }
+    }
+
     clearCache = (): void => {
         this.apiCategoriesCache = null;
         this.apiCoursesCache = null;
     }
 
-    // Method to get cache status (useful for debugging)
     getCacheStatus = (): { categoriesCached: boolean; coursesCached: boolean } => {
         return {
             categoriesCached: this.apiCategoriesCache !== null,
