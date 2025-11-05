@@ -2,9 +2,8 @@
 
 import { Button } from '@/components/ui/button';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { useVerifyCoursePurchase } from '@/hooks/usePayments';
 import { useRouter, useSearchParams } from 'next/navigation';
-import React, { useEffect } from 'react'
+import React from 'react'
 import {
     Table,
     TableBody,
@@ -14,11 +13,13 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import { useAuthContext } from '@/providers/AuthProvider';
+import { useCourseQueries } from '../hooks/use-course-queries';
 
 const VerifyPaymentPage = () => {
     const searchParams = useSearchParams();
     const router = useRouter();
     const { user } = useAuthContext();
+    const { verifyCourseGroupPurchaseQuery, isLoading: isVerifyingPayment } = useCourseQueries(user?.id || "");
 
     // Extract all parameters from URL
     const verifyCredentials = {
@@ -32,7 +33,7 @@ const VerifyPaymentPage = () => {
         status: searchParams.get('status') || '',
     };
 
-    const { data, isLoading, isError, error } = useVerifyCoursePurchase(verifyCredentials);
+    const { data, isLoading, isError, error } = verifyCourseGroupPurchaseQuery(verifyCredentials);
 
 
     // useEffect(() => {

@@ -1,4 +1,3 @@
-// components/course-dashboard.tsx
 'use client';
 
 import { useCourseStore } from '../stores/course-store';

@@ -1,4 +1,3 @@
-// components/categories-view.tsx
 import { useCourseStore } from '../stores/course-store';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,14 +8,14 @@ export function CategoriesView() {
     const { categories, selectCategory, toggleShowAllCategories } = useCourseStore();
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-12">
             <div className="flex items-center space-x-4">
                 <Button variant="ghost" size="icon" onClick={toggleShowAllCategories}>
                     <ArrowLeft className="w-5 h-5" />
                 </Button>
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-900">Browse All Categories</h1>
-                    <p className="text-gray-600">Choose a category that matches your interests</p>
+                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Browse All Categories</h1>
+                    <p className="text-gray-600 dark:text-gray-100">Choose a category that matches your interests</p>
                 </div>
             </div>
 
@@ -57,7 +56,7 @@ export function CategoriesView() {
                                     <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-blue-500 group-hover:translate-x-1 transition-all" />
                                 </CardHeader>
                                 <CardContent>
-                                    <div className="flex justify-between items-center text-sm text-gray-600">
+                                    <div className="flex justify-between items-center text-sm text-gray-600 dark:text-gray-300">
                                         <div className="flex items-center space-x-4">
                                             <div className="flex items-center">
                                                 <BookOpen className="w-4 h-4 mr-1" />

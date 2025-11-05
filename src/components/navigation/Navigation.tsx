@@ -8,6 +8,7 @@ import { LogOut, User } from 'lucide-react';
 import Link from 'next/link';
 import { ModeToggle } from '../ui/mood-toggle';
 import { usePathname } from 'next/navigation';
+import { cn } from '@/lib/utils';
 
 export const Navigation = () => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -15,6 +16,7 @@ export const Navigation = () => {
     const pathname = usePathname();
     const role = user?.role.toLocaleLowerCase();
     const isHomepage = pathname === '/'
+    const isOnEnrollmentPage = pathname === '/enrollment'
 
     const handleNavClick = (href: string) => {
         const element = document.querySelector(href);
@@ -26,6 +28,8 @@ export const Navigation = () => {
 
     const handleLogout = () => { logout(); };
 
+    const navLinkClasses = "text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors duration-200 relative group cursor-pointer bg-transparent border-none";
+
     return (
         <>
             {/* Desktop Navigation */}
@@ -34,7 +38,7 @@ export const Navigation = () => {
                     <button
                         key={item.href}
                         onClick={() => handleNavClick(item.href)}
-                        className={`text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors duration-200 relative group cursor-pointer bg-transparent border-none ${!isHomepage ? " hidden" : ""}`}
+                        className={cn(navLinkClasses, !isHomepage ? " hidden" : "")}
                     >
                         {item.label}
                         <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 dark:bg-blue-400 transition-all duration-200 group-hover:w-full" />
@@ -42,12 +46,19 @@ export const Navigation = () => {
                 ))}
                 {user ? (
                     <>
-                        <div className="hidden md:block">
+                        <div className={`${isOnEnrollmentPage ? "hidden" : "hidden md:block "}`}>
+                            <Link href={`/enrollment`} className={cn(navLinkClasses, "")}>
+                                Enroll In Courses
+                                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 dark:bg-blue-400 transition-all duration-200 group-hover:w-full" />
+                            </Link>
+                        </div>
+                        <div className={`${isHomepage ? "hidden" : "hidden md:block "}`}>
                             <Link href={`/${role}/profile`} className='flex gap-3 items-center'>
                                 <div className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center">
                                     <User className="w-4 h-4 text-gray-600 dark:text-gray-300" />
                                 </div>
                                 <span className="text-sm font-medium text-gray-700 dark:text-gray-200">{user.first_name}</span>
+                                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 dark:bg-blue-400 transition-all duration-200 group-hover:w-full" />
                             </Link>
                         </div>
                         <Button
@@ -97,6 +108,11 @@ export const Navigation = () => {
                     ))}
                     {user ? (
                         <>
+                            <div className="block">
+                                <Link href={`/enrollment`} className='flex gap-3 items-center'>
+                                    <span className="text-sm font-medium text-gray-700 dark:text-gray-200">Enroll In Courses</span>
+                                </Link>
+                            </div>
                             <div className="block">
                                 <Link href={`/${role}/profile`} className='flex gap-3 items-center'>
                                     <div className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center">

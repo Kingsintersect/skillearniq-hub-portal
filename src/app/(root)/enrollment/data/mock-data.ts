@@ -1,4 +1,3 @@
-// data/mock-data.ts
 import { Category, Enrollment, Course, SubCategory } from '../types/course.types';
 
 // Mock courses for augmentation
@@ -13,7 +12,13 @@ export const mockCourses: Course[] = [
         instructor: 'Sarah Johnson',
         rating: 4.8,
         studentsEnrolled: 1250,
-        imageUrl: '/api/placeholder/400/200'
+        imageUrl: '/api/placeholder/400/200',
+
+        course_group: "",
+        course_group_id: 0,
+        course_id: 0,
+        course_name: "",
+        short_name: "",
     },
     {
         id: 'course-2',
@@ -25,7 +30,13 @@ export const mockCourses: Course[] = [
         instructor: 'Mike Chen',
         rating: 4.9,
         studentsEnrolled: 890,
-        imageUrl: '/api/placeholder/400/200'
+        imageUrl: '/api/placeholder/400/200',
+
+        course_group: "",
+        course_group_id: 0,
+        course_id: 0,
+        course_name: "",
+        short_name: "",
     },
     {
         id: 'course-3',
@@ -37,7 +48,13 @@ export const mockCourses: Course[] = [
         instructor: 'Emma Davis',
         rating: 4.7,
         studentsEnrolled: 650,
-        imageUrl: '/api/placeholder/400/200'
+        imageUrl: '/api/placeholder/400/200',
+
+        course_group: "",
+        course_group_id: 0,
+        course_id: 0,
+        course_name: "",
+        short_name: "",
     },
     {
         id: 'course-4',
@@ -49,7 +66,13 @@ export const mockCourses: Course[] = [
         instructor: 'Alex Rodriguez',
         rating: 4.8,
         studentsEnrolled: 1100,
-        imageUrl: '/api/placeholder/400/200'
+        imageUrl: '/api/placeholder/400/200',
+
+        course_group: "",
+        course_group_id: 0,
+        course_id: 0,
+        course_name: "",
+        short_name: "",
     },
     {
         id: 'course-5',
@@ -61,7 +84,13 @@ export const mockCourses: Course[] = [
         instructor: 'David Kim',
         rating: 4.6,
         studentsEnrolled: 950,
-        imageUrl: '/api/placeholder/400/200'
+        imageUrl: '/api/placeholder/400/200',
+
+        course_group: "",
+        course_group_id: 0,
+        course_id: 0,
+        course_name: "",
+        short_name: "",
     },
     {
         id: 'course-6',
@@ -73,7 +102,13 @@ export const mockCourses: Course[] = [
         instructor: 'Lisa Wang',
         rating: 4.9,
         studentsEnrolled: 2100,
-        imageUrl: '/api/placeholder/400/200'
+        imageUrl: '/api/placeholder/400/200',
+
+        course_group: "",
+        course_group_id: 0,
+        course_id: 0,
+        course_name: "",
+        short_name: "",
     },
     {
         id: 'course-7',
@@ -85,7 +120,13 @@ export const mockCourses: Course[] = [
         instructor: 'Dr. Robert Brown',
         rating: 4.7,
         studentsEnrolled: 780,
-        imageUrl: '/api/placeholder/400/200'
+        imageUrl: '/api/placeholder/400/200',
+
+        course_group: "",
+        course_group_id: 0,
+        course_id: 0,
+        course_name: "",
+        short_name: "",
     },
     {
         id: 'course-8',
@@ -97,7 +138,13 @@ export const mockCourses: Course[] = [
         instructor: 'Maria Garcia',
         rating: 4.8,
         studentsEnrolled: 520,
-        imageUrl: '/api/placeholder/400/200'
+        imageUrl: '/api/placeholder/400/200',
+
+        course_group: "",
+        course_group_id: 0,
+        course_id: 0,
+        course_name: "",
+        short_name: "",
     }
 ];
 
