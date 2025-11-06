@@ -1,52 +1,44 @@
-import { useQuery, useMutation, useQueryClient, queryOptions, UseQueryOptions } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { courseService } from '../services/course-service';
 import { useCourseStore } from '../stores/course-store';
 import { useEffect } from 'react';
 import { toast } from 'sonner';
-import { VerifyPaymentResponse } from '../types/course.types';
+import { PaidCategory, VerifyPaymentResponse } from '../types/course.types';
 import { createQuery } from '@/core/queryHooks';
 import { useAuthContext } from '@/providers/AuthProvider';
 
 export const useCourseQueries = (userId: string) => {
-    const { setCategories, setEnrolledCourses, setLoading, unenrollFromCourse } = useCourseStore();
+    const { setCategories, setEnrolledCourses, setPaidCategories, setLoading, unenrollFromCourse } = useCourseStore();
     const { user } = useAuthContext();
     const queryClient = useQueryClient();
 
-    // Merged categories with courses query
     const mergedCategoriesQuery = getMergedCategoriesQuery();
-    // Handle merged categories side effects
-    useEffect(() => {
-        if (mergedCategoriesQuery.data) {
-            setCategories(mergedCategoriesQuery.data);
-        }
-    }, [mergedCategoriesQuery.data, setCategories]);
-
-    // Enrollments query with useEffect for side effects
     const enrollmentsQuery = getStudentEnrollmentsQuery();
+    const paidCategoriesQuery = getPaidCategoriesQuery();
 
-    // Handle all side effects
     useEffect(() => {
-        if (mergedCategoriesQuery.data) {
-            setCategories(mergedCategoriesQuery.data);
-        }
-        if (enrollmentsQuery.data) {
-            setEnrolledCourses(enrollmentsQuery.data);
-        }
-        // Update global loading state
-        setLoading(mergedCategoriesQuery.isLoading || enrollmentsQuery.isLoading);
+        if (mergedCategoriesQuery.data) setCategories(mergedCategoriesQuery.data);
+        if (enrollmentsQuery.data) setEnrolledCourses(enrollmentsQuery.data);
+        if (paidCategoriesQuery.data) setPaidCategories(paidCategoriesQuery.data as unknown as PaidCategory[]);
+
+        setLoading(mergedCategoriesQuery.isLoading || enrollmentsQuery.isLoading || paidCategoriesQuery.isLoading);
     }, [
         mergedCategoriesQuery.data,
         enrollmentsQuery.data,
+        paidCategoriesQuery.data,
         mergedCategoriesQuery.isLoading,
         enrollmentsQuery.isLoading,
+        paidCategoriesQuery.isLoading,
         setCategories,
         setEnrolledCourses,
+        setPaidCategories,
         setLoading
     ]);
 
     const reloadAllQueries = () => {
         mergedCategoriesQuery.refetch();
         enrollmentsQuery.refetch();
+        paidCategoriesQuery.refetch();
     }
 
     // Payment mutation
@@ -139,7 +131,9 @@ export const useCourseQueries = (userId: string) => {
     });
 
     return {
+        user,
         mergedCategoriesQuery,
+        paidCategoriesQuery,
         reloadCategoriesAndCourses: reloadAllQueries,
         enrollmentsQuery,
         paymentMutation,
@@ -158,20 +152,19 @@ export const useCourseQueries = (userId: string) => {
 const getStudentEnrollmentsQuery = createQuery({
     key: ['student-enrollments'],
     fn: courseService.getEnrolledCourseWithCategories,
-    defaultOptions: {
-        retry: 2,
-        retryDelay: 1000,
-    }
+    defaultOptions: { retry: 2, retryDelay: 1000, }
+});
+
+const getPaidCategoriesQuery = createQuery({
+    key: ['paid-categories'],
+    fn: courseService.getPaidCategories,
+    defaultOptions: { retry: 2, retryDelay: 1000, }
 });
 
 const getMergedCategoriesQuery = createQuery({
     key: ['merged-categories'],
     fn: courseService.getMergedCategoriesWithCourses,
-    defaultOptions: {
-        retry: 2,
-        retryDelay: 1000,
-        staleTime: 60 * 60 * 1000, // 1 hour
-    }
+    defaultOptions: { retry: 2, retryDelay: 1000, staleTime: 60 * 60 * 1000, }
 });
 
 const verifyCourseGroupPurchase = (verifyCredentials: VerifyPaymentResponse | null) => {

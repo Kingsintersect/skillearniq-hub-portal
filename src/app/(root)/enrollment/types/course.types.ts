@@ -139,27 +139,16 @@ export interface PaymentData {
     fee: number;
     reference: string;
 }
-// Add to your course.types.ts file
-export interface EnrolledCategory {
-    id: string;
-    name: string;
+
+export interface PaidCategory {
     course_group_id: number;
     course_group: string;
-    courseCount: number;
-    enrolledAt: string;
-    progress: number;
-    completed: boolean;
 }
 
 export interface CourseActions {
     setCategories: (categories: Category[]) => void;
     setEnrolledCourses: (enrollments: Enrollment[]) => void;
-    setEnrolledCategories: (categories: EnrolledCategory[]) => void;
-    addEnrolledCategory: (category: Omit<EnrolledCategory, 'id' | 'enrolledAt' | 'progress' | 'completed'>) => void;
-    updateEnrolledCategoryProgress: (categoryId: string, progress: number) => void;
-    markEnrolledCategoryCompleted: (categoryId: string) => void;
-    buildEnrolledCategoriesFromCourses: (enrollments: Enrollment[], existingCategories: EnrolledCategory[]) => EnrolledCategory[];
-    unenrollFromCourse: (courseId: string, courseGroupId: number) => void;
+    setPaidCategories: (categories: PaidCategory[]) => void; // Updated
     selectCategory: (category: Category) => void;
     selectSubCategory: (subCategory: SubCategory) => void;
     toggleShowAllCategories: () => void;
@@ -167,13 +156,14 @@ export interface CourseActions {
     resetSelection: () => void;
     setView: (view: CourseState['view']) => void;
     enrollInCourse: (courseId: string) => void;
+    unenrollFromCourse: (courseId: string, courseGroupId: number) => void; // Add this
     clearCache: () => void;
 }
 
 export interface CourseState {
     categories: Category[];
     enrolledCourses: Enrollment[];
-    enrolledCategories: EnrolledCategory[];
+    paidCategories: PaidCategory[]; // Updated
     selectedCategory: Category | null;
     selectedSubCategory: SubCategory | null;
     showAllCategories: boolean;

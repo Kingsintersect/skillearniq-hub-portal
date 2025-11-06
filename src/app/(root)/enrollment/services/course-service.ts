@@ -2,6 +2,7 @@ import { Category, Enrollment, ApiCategory, ApiCourse, Course, SubCategory, Paym
 import { mockCategories, mockCourses, mockSubCategories } from '../data/mock-data';
 import { apiClient } from '@/core/client';
 import { ApiError } from '@/types/auth';
+import { lmsLoginUrl } from '@/config';
 
 interface EnrolledCourseResponseType {
     course_id: number | string;
@@ -14,7 +15,6 @@ class CourseService {
     // Cache for API data
     private apiCategoriesCache: ApiCategory[] | null = null;
     private apiCoursesCache: ApiCourse[] | null = null;
-    // private apiEnrollmentsCache: Enrollment[] | null = null;
 
     getEnrolledCourseWithCategories = async (): Promise<Enrollment[]> => {
         try {
@@ -25,6 +25,18 @@ class CourseService {
             return apiCourses.map((apiCourse: EnrolledCourseResponseType) => this.transformApiCourseToEnrollment(apiCourse));
         } catch (error) {
             console.error('Failed to fetch enrollments from API:', error);
+            return [];
+        }
+    }
+
+    getPaidCategories = async (): Promise<Enrollment[]> => {
+        try {
+            const response = await apiClient.get<EnrollmentApiResponse>("/student/paid-courses-category");
+            const paidCategories = (response as any).data || [];
+
+            return paidCategories
+        } catch (error) {
+            console.error('Failed to fetch paid categories from API:', error);
             return [];
         }
     }
@@ -338,6 +350,11 @@ class CourseService {
             console.error('Error unenrolling from course:', error);
             throw error as ApiError;
         }
+    }
+
+    redirectToCourseWarePlatform = (user_email: string): void => {
+        const courseUrl = `${lmsLoginUrl}/ssotester/index.php?sso_loggers=1&u=${user_email}&password=1`;
+        window.open(courseUrl, '_blank');
     }
 
     clearCache = (): void => {
