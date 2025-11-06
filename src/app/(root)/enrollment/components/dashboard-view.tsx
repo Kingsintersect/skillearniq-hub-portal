@@ -5,10 +5,11 @@ import { Progress } from '@/components/ui/progress';
 import { BookOpen, Plus, Award, Rocket, Target, Database, RefreshCcw } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useCourseQueries } from '../hooks/use-course-queries';
+import { courseService } from '../services/course-service';
 
 export function DashboardView({ userId }: { userId: string }) {
     const { enrolledCourses, toggleShowAllCategories, clearCache } = useCourseStore();
-    const { reloadCategoriesAndCourses, isLoading, isFetching, unenrollFromCourseMutation, isUnenrollmentProcessing } = useCourseQueries(userId);
+    const { reloadCategoriesAndCourses, isLoading, isFetching, unenrollFromCourseMutation, isUnenrollmentProcessing, user } = useCourseQueries(userId);
 
     const handleUnenroll = (courseId: string, courseGroupId: number) => {
         unenrollFromCourseMutation.mutate({
@@ -115,7 +116,7 @@ export function DashboardView({ userId }: { userId: string }) {
                 <div className="flex items-center space-x-5">
                     <Button
                         type="button"
-                        variant="outline"
+                        variant="secondary"
                         size="sm"
                         onClick={clearCache}
                         className="text-xs"
@@ -173,7 +174,10 @@ export function DashboardView({ userId }: { userId: string }) {
                                         </div>
 
                                         <div className="grid grid-cols-2 gap-5">
-                                            <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white">
+                                            <Button
+                                                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                                                onClick={() => courseService.redirectToCourseWarePlatform(String(user?.email))}
+                                            >
                                                 Continue Learning
                                             </Button>
                                             <Button
