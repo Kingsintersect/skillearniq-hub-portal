@@ -3,7 +3,7 @@
 import { useCourseStore } from '../stores/course-store';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Star, Clock, Users, CreditCard, CheckCircle, BookOpen, FolderOpen, Rocket } from 'lucide-react';
+import { ArrowLeft, Star, Clock, Users, CreditCard, CheckCircle, BookOpen, Rocket } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useCourseQueries } from '../hooks/use-course-queries';
 import { useState } from 'react';
@@ -12,7 +12,7 @@ import { LoadingSpinner } from '@/components/ui/loading-spinner';
 const COURSE_ENROLLMENT_AMOUNT = 20000;
 
 export function CoursesView({ userId }: { userId: string }) {
-    const { selectedSubCategory, setView, enrolledCourses, enrolledCategories } = useCourseStore();
+    const { selectedSubCategory, setView, enrolledCourses, paidCategories } = useCourseStore();
     const { paymentMutation, enrollmentInCourseMutation, isPaymentProcessing } = useCourseQueries(userId);
     const [selectedCourse, setSelectedCourse] = useState<string | null>(null);
 
@@ -51,7 +51,9 @@ export function CoursesView({ userId }: { userId: string }) {
 
     // Check if a category has been paid for
     const isCategoryPaidFor = () => {
-        return enrolledCategories.some(cat => cat.course_group_id === selectedSubCategory.apiId);
+        console.log('Paid Categories:', paidCategories);
+        console.log('Selected SubCategory API ID:', selectedSubCategory.apiId);
+        return paidCategories.some(cat => cat.course_group_id === selectedSubCategory.apiId);
     };
 
     // Empty state when no courses are available
@@ -141,7 +143,7 @@ export function CoursesView({ userId }: { userId: string }) {
             </div>
         );
     }
-
+    console.log('isCategoryPaidFor()', isCategoryPaidFor());
     return (
         <div className="space-y-12">
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
@@ -254,9 +256,9 @@ export function CoursesView({ userId }: { userId: string }) {
                                                 }
                                             </>
                                         )}
-                                        <Button variant="outline">
+                                        {/* <Button variant="outline">
                                             View Details
-                                        </Button>
+                                        </Button> */}
                                     </div>
 
                                     {selectedCourse === course.id && (
