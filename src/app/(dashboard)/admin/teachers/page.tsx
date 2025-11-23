@@ -1,5 +1,5 @@
 'use client'
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,12 +12,17 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Plus, Search, Download, Upload, Trash2, BookOpen, Sheet, FileDown, FileText } from 'lucide-react';
 import { useAdminQueries } from '@/hooks/useAdminQueries';
 import { toast } from 'sonner';
+import { CreateTeacherPayload, AssignTeacherPayload, Category, Course } from '@/lib/services/admin/teacherService';
 
 type Assignment = {
-  academicYear: string;
-  term: string;
-  class: string;
-  subjects: string[];
+  category_id: number;
+  course_id: number;
+  start_date: string;
+  end_date: string;
+  meta: {
+    semester: string;
+    room: string;
+  };
 };
 
 type ExportFormat = 'csv' | 'excel' | 'pdf';
@@ -29,11 +34,13 @@ const useExportTeachers = () => {
     
     const headers = [
       'Teacher ID',
-      'Name', 
+      'Username',
+      'First Name',
+      'Last Name',
       'Email', 
       'Phone', 
+      'Categories',
       'Subjects',
-      'Classes',
       'Status',
       'Employment Date'
     ];
@@ -41,14 +48,16 @@ const useExportTeachers = () => {
     const csvContent = [
       headers.join(','),
       ...teachers.map(teacher => [
-        teacher.teacherId,
-        `"${teacher.name.replace(/"/g, '""')}"`,
+        teacher.employee_no || teacher.teacherId,
+        `"${teacher.username}"`,
+        `"${teacher.first_name}"`,
+        `"${teacher.last_name}"`,
         `"${teacher.email}"`,
         `"${teacher.phone || 'N/A'}"`,
-        `"${teacher.subjects.join('; ')}"`,
-        `"${teacher.classes.join('; ')}"`,
+        `"${teacher.categories?.join('; ') || ''}"`,
+        `"${teacher.subjects?.join('; ') || ''}"`,
         teacher.status,
-        `"${teacher.employmentDate || 'N/A'}"`
+        `"${teacher.employmentDate || teacher.hire_date || 'N/A'}"`
       ].join(','))
     ].join('\n');
 
@@ -65,11 +74,13 @@ const useExportTeachers = () => {
     
     const headers = [
       'Teacher ID',
-      'Name', 
+      'Username',
+      'First Name',
+      'Last Name',
       'Email', 
       'Phone', 
+      'Categories',
       'Subjects',
-      'Classes',
       'Status',
       'Employment Date'
     ];
@@ -77,14 +88,16 @@ const useExportTeachers = () => {
     const csvContent = [
       headers.join(','),
       ...teachers.map(teacher => [
-        teacher.teacherId,
-        `"${teacher.name.replace(/"/g, '""')}"`,
+        teacher.employee_no || teacher.teacherId,
+        `"${teacher.username}"`,
+        `"${teacher.first_name}"`,
+        `"${teacher.last_name}"`,
         `"${teacher.email}"`,
         `"${teacher.phone || 'N/A'}"`,
-        `"${teacher.subjects.join('; ')}"`,
-        `"${teacher.classes.join('; ')}"`,
+        `"${teacher.categories?.join('; ') || ''}"`,
+        `"${teacher.subjects?.join('; ') || ''}"`,
         teacher.status,
-        `"${teacher.employmentDate || 'N/A'}"`
+        `"${teacher.employmentDate || teacher.hire_date || 'N/A'}"`
       ].join(','))
     ].join('\n');
 
@@ -101,12 +114,13 @@ const useExportTeachers = () => {
     if (printWindow && teachers.length > 0) {
       const teacherData = teachers.map(teacher => `
         <tr>
-          <td>${teacher.teacherId}</td>
-          <td>${teacher.name}</td>
+          <td>${teacher.employee_no || teacher.teacherId}</td>
+          <td>${teacher.username}</td>
+          <td>${teacher.first_name} ${teacher.last_name}</td>
           <td>${teacher.email}</td>
           <td>${teacher.phone || 'N/A'}</td>
-          <td>${teacher.subjects.join(', ')}</td>
-          <td>${teacher.classes.join(', ')}</td>
+          <td>${teacher.categories?.join(', ') || ''}</td>
+          <td>${teacher.subjects?.join(', ') || ''}</td>
           <td>${teacher.status}</td>
         </tr>
       `).join('');
@@ -234,11 +248,12 @@ const useExportTeachers = () => {
               <thead>
                 <tr>
                   <th>Teacher ID</th>
+                  <th>Username</th>
                   <th>Name</th>
                   <th>Email</th>
                   <th>Phone</th>
+                  <th>Categories</th>
                   <th>Subjects</th>
-                  <th>Classes</th>
                   <th>Status</th>
                 </tr>
               </thead>
@@ -280,6 +295,23 @@ const useExportTeachers = () => {
   };
 };
 
+// Improved Debounce hook with better TypeScript
+const useDebounce = <T,>(value: T, delay: number): T => {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+};
+
 export default function TeachersPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isBulkUploadDialogOpen, setIsBulkUploadDialogOpen] = useState(false);
@@ -287,86 +319,237 @@ export default function TeachersPage() {
   const [selectedTeacher, setSelectedTeacher] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState({
-    subject: 'all',
+    category: 'all',
     status: 'all'
   });
   
   const { 
+    useCategories,
+    useCourses,
     useTeachers, 
     useCreateTeacher, 
     useAssignTeacher, 
-    useDeleteTeacher 
+    useDeleteTeacher,
+    useBulkUploadTeachers 
   } = useAdminQueries();
 
-  const { data: teachersResponse, isLoading } = useTeachers({
-    search: searchTerm,
-    subject: filters.subject,
-    status: filters.status
+  // FIXED: Use debounce for search with proper typing
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
+
+  // FIXED: Properly handle filter changes with useEffect
+  const [filterParams, setFilterParams] = useState({
+    search: '',
+    category: undefined as string | undefined,
+    status: undefined as string | undefined
   });
+
+  // Update filter params when debounced search or filters change
+  useEffect(() => {
+    console.log('Filter params updated:', {
+      search: debouncedSearchTerm,
+      category: filters.category !== 'all' ? filters.category : undefined,
+      status: filters.status !== 'all' ? filters.status : undefined
+    });
+    
+    setFilterParams({
+      search: debouncedSearchTerm,
+      category: filters.category !== 'all' ? filters.category : undefined,
+      status: filters.status !== 'all' ? filters.status : undefined
+    });
+  }, [debouncedSearchTerm, filters.category, filters.status]);
+
+  const { data: categoriesResponse, isLoading: categoriesLoading, error: categoriesError } = useCategories();
+  const { data: coursesResponse, isLoading: coursesLoading, error: coursesError } = useCourses();
+  
+  // FIXED: Use the filterParams state that gets updated properly
+  const { data: teachersResponse, isLoading: teachersLoading, error: teachersError, refetch } = useTeachers(filterParams);
 
   const { exportToCSV, exportToExcel, exportToPDF } = useExportTeachers();
 
   const createTeacherMutation = useCreateTeacher();
   const assignTeacherMutation = useAssignTeacher();
   const deleteTeacherMutation = useDeleteTeacher();
+  const bulkUploadMutation = useBulkUploadTeachers();
 
   const [newTeacher, setNewTeacher] = useState({
-    name: '',
-    teacherId: '',
+    first_name: '',
+    last_name: '',
     email: '',
+    username: '',
     phone: '',
-    subjects: [],
-    classes: []
+    password: 'P@55word',
+    employee_no: '',
+    hire_date: '',
+    subjects: [] as string[]
   });
 
   const [assignment, setAssignment] = useState<Assignment>({
-    academicYear: '2025-2026',
-    term: '1st',
-    class: '',
-    subjects: []
+    category_id: 0,
+    course_id: 0,
+    start_date: '',
+    end_date: '',
+    meta: {
+      semester: 'First',
+      room: ''
+    }
   });
 
+  // Extract data from API responses
+  const categories = categoriesResponse || [];
+  const courses = coursesResponse || [];
   const teachers = teachersResponse?.data || [];
 
+  // Filter only parent categories (parent = 0)
+  const parentCategories = useMemo(() => {
+    const parents = categories.filter(category => category.parent === 0);
+    console.log('Parent categories:', parents);
+    return parents;
+  }, [categories]);
+
+  // FIXED: Get all child categories for a given parent category
+  const getChildCategories = useMemo(() => {
+    const childMap: { [key: number]: Category[] } = {};
+    categories.forEach(category => {
+      if (category.parent !== 0) {
+        if (!childMap[category.parent]) {
+          childMap[category.parent] = [];
+        }
+        childMap[category.parent].push(category);
+      }
+    });
+    console.log('Child categories map:', childMap);
+    return childMap;
+  }, [categories]);
+
+  // FIXED: Filter courses by selected category - include both parent and child categories
+  const filteredCourses = useMemo(() => {
+    if (assignment.category_id === 0) {
+      console.log('No category selected for course filtering');
+      return [];
+    }
+    
+    // Get all category IDs to include (parent + children)
+    const categoryIdsToInclude = [assignment.category_id];
+    const childCategories = getChildCategories[assignment.category_id] || [];
+    childCategories.forEach(child => categoryIdsToInclude.push(child.id));
+    
+    console.log('Filtering courses for categories:', categoryIdsToInclude);
+    
+    const filtered = courses.filter(course => 
+      categoryIdsToInclude.includes(course.category) && course.visible === 1
+    );
+    
+    console.log(`Filtered courses for category ${assignment.category_id}:`, filtered);
+    return filtered;
+  }, [courses, assignment.category_id, getChildCategories]);
+
+  // FIXED: Build complete category hierarchy for display
+  const categoryHierarchy = useMemo(() => {
+    const hierarchy: { [key: number]: Category & { children?: Category[] } } = {};
+    
+    // First add all parent categories
+    parentCategories.forEach(category => {
+      hierarchy[category.id] = { ...category, children: [] };
+    });
+    
+    // Then add children to their parents
+    categories.forEach(category => {
+      if (category.parent !== 0 && hierarchy[category.parent]) {
+        hierarchy[category.parent].children?.push(category);
+      }
+    });
+    
+    const result = Object.values(hierarchy);
+    console.log('Category hierarchy:', result);
+    return result;
+  }, [categories, parentCategories]);
+
+  // Debug search functionality
+  useEffect(() => {
+    console.log('=== SEARCH DEBUGGING ===');
+    console.log('Search Term:', searchTerm);
+    console.log('Debounced Search Term:', debouncedSearchTerm);
+    console.log('Filter Params:', filterParams);
+    console.log('Teachers Data:', teachers);
+    console.log('Teachers Count:', teachers.length);
+    console.log('=== END SEARCH DEBUGGING ===');
+  }, [searchTerm, debouncedSearchTerm, filterParams, teachers]);
+
+  // Debug categories and courses
+  useEffect(() => {
+    console.log('=== CATEGORIES & COURSES DEBUGGING ===');
+    console.log('All Categories:', categories);
+    console.log('All Courses:', courses);
+    console.log('Parent Categories:', parentCategories);
+    console.log('Child Categories Map:', getChildCategories);
+    console.log('Currently Selected Category ID:', assignment.category_id);
+    console.log('Filtered Courses:', filteredCourses);
+    console.log('=== END CATEGORIES & COURSES DEBUGGING ===');
+  }, [categories, courses, parentCategories, getChildCategories, assignment.category_id, filteredCourses]);
+
   const handleCreateTeacher = () => {
-    createTeacherMutation.mutate(newTeacher, {
+    const payload: CreateTeacherPayload = {
+      first_name: newTeacher.first_name,
+      last_name: newTeacher.last_name,
+      email: newTeacher.email,
+      username: newTeacher.username,
+      phone: newTeacher.phone,
+      password: newTeacher.password,
+      teacher: {
+        employee_no: newTeacher.employee_no,
+        hire_date: newTeacher.hire_date,
+        subjects: newTeacher.subjects
+      }
+    };
+
+    createTeacherMutation.mutate(payload, {
       onSuccess: () => {
         setIsCreateDialogOpen(false);
         setNewTeacher({
-          name: '',
-          teacherId: '',
+          first_name: '',
+          last_name: '',
           email: '',
+          username: '',
           phone: '',
-          subjects: [],
-          classes: []
+          password: 'P@55word',
+          employee_no: '',
+          hire_date: '',
+          subjects: []
         });
-        toast.success('Teacher created successfully!');
       },
       onError: () => {
-        toast.error('Failed to create teacher');
+        // Error handling is done in the mutation
       }
     });
   };
 
   const handleAssignTeacher = () => {
-    if (selectedTeacher && assignment.class && assignment.subjects.length > 0) {
-      assignTeacherMutation.mutate({
-        teacherId: selectedTeacher.id,
-        class: assignment.class,
-        subjects: assignment.subjects
-      }, {
+    if (selectedTeacher && assignment.category_id && assignment.course_id && assignment.start_date && assignment.end_date) {
+      const payload: AssignTeacherPayload = {
+        class_group_id: assignment.category_id,
+        subject_id: assignment.course_id,
+        teacher_id: selectedTeacher.id,
+        start_date: assignment.start_date,
+        end_date: assignment.end_date,
+        meta: assignment.meta
+      };
+
+      assignTeacherMutation.mutate(payload, {
         onSuccess: () => {
           setIsAssignDialogOpen(false);
           setAssignment({
-            academicYear: '2025-2026',
-            term: '1st',
-            class: '',
-            subjects: []
+            category_id: 0,
+            course_id: 0,
+            start_date: '',
+            end_date: '',
+            meta: {
+              semester: 'First',
+              room: ''
+            }
           });
-          toast.success('Teacher assigned successfully!');
         },
         onError: () => {
-          toast.error('Failed to assign teacher');
+          // Error handling is done in the mutation
         }
       });
     }
@@ -374,11 +557,8 @@ export default function TeachersPage() {
 
   const handleDeleteTeacher = (teacherId: number) => {
     deleteTeacherMutation.mutate(teacherId, {
-      onSuccess: () => {
-        toast.success('Teacher deleted successfully!');
-      },
       onError: () => {
-        toast.error('Failed to delete teacher');
+        // Error handling is done in the mutation
       }
     });
   };
@@ -390,7 +570,7 @@ export default function TeachersPage() {
     }
 
     try {
-      const filename = `teachers_${filters.subject === 'all' ? 'all_subjects' : filters.subject}`;
+      const filename = `teachers_${filters.category === 'all' ? 'all_categories' : filters.category}`;
       switch (format) {
         case 'csv':
           exportToCSV(teachers, filename);
@@ -415,12 +595,13 @@ export default function TeachersPage() {
 
   const downloadTemplate = () => {
     const templateHeaders = [
-      'teacherId',
-      'name',
+      'first_name',
+      'last_name',
       'email',
+      'username',
       'phone',
-      'subjects',
-      'classes'
+      'employee_no',
+      'hire_date'
     ];
     
     const templateContent = [templateHeaders.join(',')].join('\n');
@@ -436,12 +617,35 @@ export default function TeachersPage() {
   const handleBulkUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      // Implement bulk upload logic here
-      console.log('Bulk upload:', file);
-      toast.success('Bulk upload initiated!');
-      setIsBulkUploadDialogOpen(false);
+      bulkUploadMutation.mutate(file, {
+        onSuccess: () => {
+          setIsBulkUploadDialogOpen(false);
+          // Reset file input
+          if (event.target) {
+            event.target.value = '';
+          }
+        }
+      });
     }
   };
+
+  // FIXED: Handle search input change with immediate feedback
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchTerm(value);
+    console.log('Search input changed:', value);
+  };
+
+  // FIXED: Handle filter changes
+  const handleCategoryFilterChange = (value: string) => {
+    setFilters(prev => ({ ...prev, category: value }));
+  };
+
+  const handleStatusFilterChange = (value: string) => {
+    setFilters(prev => ({ ...prev, status: value }));
+  };
+
+  const isLoading = teachersLoading || categoriesLoading || coursesLoading;
 
   if (isLoading) {
     return (
@@ -449,6 +653,19 @@ export default function TeachersPage() {
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
           <div>Loading teachers...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (teachersError) {
+    return (
+      <div className="min-h-screen p-6 flex items-center justify-center">
+        <div className="text-center text-destructive">
+          <div>Failed to load teachers</div>
+          <div className="text-sm text-muted-foreground mt-2">
+            Please try again later
+          </div>
         </div>
       </div>
     );
@@ -505,35 +722,41 @@ export default function TeachersPage() {
           </div>
         </div>
 
-        {/* Search and Filters */}
+        {/* Search and Filters - FIXED: Proper event handlers */}
         <Card className="mb-6">
           <CardContent className="p-6">
             <div className="flex flex-col md:flex-row gap-4">
-              <div className="flex-1">
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search teachers by name, ID, or subject..."
+                  placeholder="Search teachers by name, username, email, or employee number..."
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={handleSearchChange}
+                  className="pl-10"
                 />
+                <div className="text-xs text-muted-foreground mt-1">
+                  {debouncedSearchTerm ? `Searching for: "${debouncedSearchTerm}"` : 'Type to search...'}
+                </div>
               </div>
               <Select 
-                value={filters.subject} 
-                onValueChange={(value) => setFilters(prev => ({...prev, subject: value}))}
+                value={filters.category} 
+                onValueChange={handleCategoryFilterChange}
               >
                 <SelectTrigger className="w-full md:w-[200px]">
-                  <SelectValue placeholder="Filter by subject" />
+                  <SelectValue placeholder="Filter by category" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Subjects</SelectItem>
-                  <SelectItem value="Mathematics">Mathematics</SelectItem>
-                  <SelectItem value="English">English</SelectItem>
-                  <SelectItem value="Science">Science</SelectItem>
-                  <SelectItem value="Physics">Physics</SelectItem>
+                  <SelectItem value="all">All Categories</SelectItem>
+                  {parentCategories.map((category) => (
+                    <SelectItem key={category.id} value={category.name}>
+                      {category.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               <Select 
                 value={filters.status} 
-                onValueChange={(value) => setFilters(prev => ({...prev, status: value}))}
+                onValueChange={handleStatusFilterChange}
               >
                 <SelectTrigger className="w-full md:w-[200px]">
                   <SelectValue placeholder="Filter by status" />
@@ -548,9 +771,10 @@ export default function TeachersPage() {
             <div className="flex justify-between items-center mt-4">
               <div className="text-sm text-muted-foreground">
                 {teachers.length} teachers found
+                {debouncedSearchTerm && ` for "${debouncedSearchTerm}"`}
               </div>
               <div className="text-sm">
-                Showing: {filters.subject === 'all' ? 'All subjects' : filters.subject} • {filters.status === 'all' ? 'All status' : filters.status}
+                Showing: {filters.category === 'all' ? 'All categories' : filters.category} • {filters.status === 'all' ? 'All status' : filters.status}
               </div>
             </div>
           </CardContent>
@@ -560,16 +784,20 @@ export default function TeachersPage() {
         <Card>
           <CardHeader>
             <CardTitle>All Teachers</CardTitle>
-            <CardDescription>{teachers.length} teachers in the system</CardDescription>
+            <CardDescription>
+              {teachers.length} teachers in the system
+              {debouncedSearchTerm && ` matching "${debouncedSearchTerm}"`}
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Teacher ID</TableHead>
+                  <TableHead>Username</TableHead>
                   <TableHead>Name</TableHead>
+                  <TableHead>Categories</TableHead>
                   <TableHead>Subjects</TableHead>
-                  <TableHead>Classes</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
@@ -577,29 +805,40 @@ export default function TeachersPage() {
               <TableBody>
                 {teachers.map((teacher) => (
                   <TableRow key={teacher.id}>
-                    <TableCell className="font-medium">{teacher.teacherId}</TableCell>
+                    <TableCell className="font-medium">
+                      {teacher.employee_no || teacher.id}
+                    </TableCell>
+                    <TableCell className="font-medium">
+                      {teacher.username}
+                    </TableCell>
                     <TableCell>
                       <div>
-                        <div className="font-medium">{teacher.name}</div>
+                        <div className="font-medium">{teacher.first_name} {teacher.last_name}</div>
                         <div className="text-sm text-muted-foreground">{teacher.email}</div>
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex flex-wrap gap-1">
-                        {teacher.subjects.map((subject, index) => (
+                        {teacher.categories?.map((category, index) => (
                           <Badge key={index} variant="outline" className="text-xs">
-                            {subject}
+                            {category}
                           </Badge>
                         ))}
+                        {(!teacher.categories || teacher.categories.length === 0) && (
+                          <span className="text-muted-foreground text-xs">No categories</span>
+                        )}
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex flex-wrap gap-1">
-                        {teacher.classes.map((cls, index) => (
+                        {teacher.subjects?.map((subject, index) => (
                           <Badge key={index} variant="secondary" className="text-xs">
-                            {cls}
+                            {subject}
                           </Badge>
                         ))}
+                        {(!teacher.subjects || teacher.subjects.length === 0) && (
+                          <span className="text-muted-foreground text-xs">No subjects</span>
+                        )}
                       </div>
                     </TableCell>
                     <TableCell>
@@ -633,6 +872,13 @@ export default function TeachersPage() {
                     </TableCell>
                   </TableRow>
                 ))}
+                {teachers.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                      {debouncedSearchTerm ? `No teachers found matching "${debouncedSearchTerm}"` : 'No teachers found'}
+                    </TableCell>
+                  </TableRow>
+                )}
               </TableBody>
             </Table>
           </CardContent>
@@ -649,19 +895,21 @@ export default function TeachersPage() {
             </DialogHeader>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Full Name</Label>
+                <Label htmlFor="first_name">First Name</Label>
                 <Input
-                  id="name"
-                  value={newTeacher.name}
-                  onChange={(e) => setNewTeacher({...newTeacher, name: e.target.value})}
+                  id="first_name"
+                  value={newTeacher.first_name}
+                  onChange={(e) => setNewTeacher({...newTeacher, first_name: e.target.value})}
+                  placeholder="Enter first name"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="teacherId">Teacher ID</Label>
+                <Label htmlFor="last_name">Last Name</Label>
                 <Input
-                  id="teacherId"
-                  value={newTeacher.teacherId}
-                  onChange={(e) => setNewTeacher({...newTeacher, teacherId: e.target.value})}
+                  id="last_name"
+                  value={newTeacher.last_name}
+                  onChange={(e) => setNewTeacher({...newTeacher, last_name: e.target.value})}
+                  placeholder="Enter last name"
                 />
               </div>
               <div className="space-y-2">
@@ -671,6 +919,16 @@ export default function TeachersPage() {
                   type="email"
                   value={newTeacher.email}
                   onChange={(e) => setNewTeacher({...newTeacher, email: e.target.value})}
+                  placeholder="Enter email address"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="username">Username</Label>
+                <Input
+                  id="username"
+                  value={newTeacher.username}
+                  onChange={(e) => setNewTeacher({...newTeacher, username: e.target.value})}
+                  placeholder="Enter username"
                 />
               </div>
               <div className="space-y-2">
@@ -679,6 +937,35 @@ export default function TeachersPage() {
                   id="phone"
                   value={newTeacher.phone}
                   onChange={(e) => setNewTeacher({...newTeacher, phone: e.target.value})}
+                  placeholder="Enter phone number"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="employee_no">Employee Number</Label>
+                <Input
+                  id="employee_no"
+                  value={newTeacher.employee_no}
+                  onChange={(e) => setNewTeacher({...newTeacher, employee_no: e.target.value})}
+                  placeholder="Enter employee number"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="hire_date">Hire Date</Label>
+                <Input
+                  id="hire_date"
+                  type="date"
+                  value={newTeacher.hire_date}
+                  onChange={(e) => setNewTeacher({...newTeacher, hire_date: e.target.value})}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={newTeacher.password}
+                  onChange={(e) => setNewTeacher({...newTeacher, password: e.target.value})}
+                  placeholder="Enter password"
                 />
               </div>
             </div>
@@ -688,7 +975,7 @@ export default function TeachersPage() {
               </Button>
               <Button 
                 onClick={handleCreateTeacher}
-                disabled={createTeacherMutation.isPending}
+                disabled={createTeacherMutation.isPending || !newTeacher.first_name || !newTeacher.last_name || !newTeacher.email || !newTeacher.username || !newTeacher.employee_no}
               >
                 {createTeacherMutation.isPending ? 'Adding...' : 'Add Teacher'}
               </Button>
@@ -724,10 +1011,14 @@ export default function TeachersPage() {
                   type="file"
                   accept=".csv,.xlsx,.xls"
                   onChange={handleBulkUpload}
+                  disabled={bulkUploadMutation.isPending}
                 />
                 <p className="text-sm text-muted-foreground">
                   Supported formats: CSV, Excel (.xlsx, .xls)
                 </p>
+                {bulkUploadMutation.isPending && (
+                  <p className="text-sm text-blue-500">Uploading teachers...</p>
+                )}
               </div>
             </div>
             <div className="flex justify-end space-x-4 mt-6">
@@ -738,89 +1029,137 @@ export default function TeachersPage() {
           </DialogContent>
         </Dialog>
 
-        {/* Assign Teacher Dialog */}
+        {/* Assign Teacher Dialog - FIXED: Now properly shows courses from parent and child categories */}
         <Dialog open={isAssignDialogOpen} onOpenChange={setIsAssignDialogOpen}>
-          <DialogContent>
+          <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle>Assign Teacher to Class</DialogTitle>
+              <DialogTitle>Assign Teacher to Course</DialogTitle>
               <DialogDescription>
-                Assign {selectedTeacher?.name} to a class and subjects for the current academic year.
+                Assign {selectedTeacher?.first_name} {selectedTeacher?.last_name} to a course within a category.
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label>Academic Year</Label>
-                <Select value={assignment.academicYear} onValueChange={(value) => setAssignment({...assignment, academicYear: value})}>
+                <Label>Category</Label>
+                <Select 
+                  value={assignment.category_id.toString()} 
+                  onValueChange={(value) => setAssignment({
+                    ...assignment, 
+                    category_id: parseInt(value),
+                    course_id: 0
+                  })}
+                >
                   <SelectTrigger>
-                    <SelectValue />
+                    <SelectValue placeholder="Select category" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="2024-2025">2024-2025</SelectItem>
-                    <SelectItem value="2025-2026">2025-2026</SelectItem>
+                    {parentCategories.length > 0 ? (
+                      parentCategories.map((category) => (
+                        <SelectItem key={category.id} value={category.id.toString()}>
+                          {category.name}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <SelectItem value="0" disabled>
+                        No categories available
+                      </SelectItem>
+                    )}
                   </SelectContent>
                 </Select>
+                {categoriesError && (
+                  <p className="text-sm text-destructive">Failed to load categories</p>
+                )}
               </div>
+
               <div className="space-y-2">
-                <Label>Term</Label>
-                <Select value={assignment.term} onValueChange={(value) => setAssignment({...assignment, term: value})}>
+                <Label>Course</Label>
+                <Select 
+                  value={assignment.course_id.toString()} 
+                  onValueChange={(value) => setAssignment({
+                    ...assignment, 
+                    course_id: parseInt(value)
+                  })}
+                  disabled={assignment.category_id === 0 || filteredCourses.length === 0}
+                >
                   <SelectTrigger>
-                    <SelectValue />
+                    <SelectValue 
+                      placeholder={
+                        assignment.category_id === 0 
+                          ? "Select a category first" 
+                          : filteredCourses.length === 0 
+                            ? "No courses available" 
+                            : `Select course (${filteredCourses.length} available)`
+                      } 
+                    />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="1st">1st Term</SelectItem>
-                    <SelectItem value="2nd">2nd Term</SelectItem>
-                    <SelectItem value="3rd">3rd Term</SelectItem>
+                    {filteredCourses.length > 0 ? (
+                      filteredCourses.map((course) => (
+                        <SelectItem key={course.id} value={course.id.toString()}>
+                          {course.fullname} ({course.shortname})
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <SelectItem value="0" disabled>
+                        No courses available for this category
+                      </SelectItem>
+                    )}
                   </SelectContent>
                 </Select>
+                {coursesError && (
+                  <p className="text-sm text-destructive">Failed to load courses</p>
+                )}
               </div>
-              <div className="space-y-2">
-                <Label>Class</Label>
-                <Select value={assignment.class} onValueChange={(value) => setAssignment({...assignment, class: value})}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select class" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="JSS 1A">JSS 1A</SelectItem>
-                    <SelectItem value="JSS 1B">JSS 1B</SelectItem>
-                    <SelectItem value="JSS 2A">JSS 2A</SelectItem>
-                    <SelectItem value="JSS 2B">JSS 2B</SelectItem>
-                  </SelectContent>
-                </Select>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Start Date</Label>
+                  <Input
+                    type="date"
+                    value={assignment.start_date}
+                    onChange={(e) => setAssignment({...assignment, start_date: e.target.value})}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>End Date</Label>
+                  <Input
+                    type="date"
+                    value={assignment.end_date}
+                    onChange={(e) => setAssignment({...assignment, end_date: e.target.value})}
+                  />
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label>Subjects</Label>
-                <Select onValueChange={(value) => {
-                  if (!assignment.subjects.includes(value)) {
-                    setAssignment({...assignment, subjects: [...assignment.subjects, value]});
-                  }
-                }}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select subjects" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Mathematics">Mathematics</SelectItem>
-                    <SelectItem value="English">English</SelectItem>
-                    <SelectItem value="Science">Science</SelectItem>
-                    <SelectItem value="Social Studies">Social Studies</SelectItem>
-                    <SelectItem value="Physics">Physics</SelectItem>
-                    <SelectItem value="Chemistry">Chemistry</SelectItem>
-                  </SelectContent>
-                </Select>
-                <div className="flex flex-wrap gap-1 mt-2">
-                  {assignment.subjects.map((subject, index) => (
-                    <Badge key={index} variant="secondary" className="flex items-center gap-1">
-                      {subject}
-                      <button 
-                        onClick={() => setAssignment({
-                          ...assignment, 
-                          subjects: assignment.subjects.filter(s => s !== subject)
-                        })}
-                        className="ml-1 hover:text-destructive"
-                      >
-                        ×
-                      </button>
-                    </Badge>
-                  ))}
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Semester</Label>
+                  <Select 
+                    value={assignment.meta.semester} 
+                    onValueChange={(value) => setAssignment({
+                      ...assignment, 
+                      meta: {...assignment.meta, semester: value}
+                    })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="First">First Semester</SelectItem>
+                      <SelectItem value="Second">Second Semester</SelectItem>
+                      <SelectItem value="Third">Third Semester</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Room</Label>
+                  <Input
+                    value={assignment.meta.room}
+                    onChange={(e) => setAssignment({
+                      ...assignment, 
+                      meta: {...assignment.meta, room: e.target.value}
+                    })}
+                    placeholder="Room number"
+                  />
                 </div>
               </div>
             </div>
@@ -830,7 +1169,15 @@ export default function TeachersPage() {
               </Button>
               <Button 
                 onClick={handleAssignTeacher}
-                disabled={assignTeacherMutation.isPending || !assignment.class || assignment.subjects.length === 0}
+                disabled={
+                  assignTeacherMutation.isPending || 
+                  !assignment.category_id || 
+                  !assignment.course_id || 
+                  !assignment.start_date || 
+                  !assignment.end_date ||
+                  assignment.category_id === 0 ||
+                  assignment.course_id === 0
+                }
               >
                 {assignTeacherMutation.isPending ? 'Assigning...' : 'Assign Teacher'}
               </Button>

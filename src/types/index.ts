@@ -200,13 +200,13 @@ export interface StudentPerformance {
 }
 
 
-export interface Student {
-  id: number;
-  name: string;
-  email: string;
-  avatar: string;
-  enrollmentDate: string;
-}
+// export interface Student {
+//   id: number;
+//   name: string;
+//   email: string;
+//   avatar: string;
+//   enrollmentDate: string;
+// }
 
 export interface Enrollment {
   id: number;
@@ -228,4 +228,52 @@ export interface StudentGroup {
   studentIds: number[];
   createdAt: string;
   createdBy: number; // teacher ID
+}
+
+// Update your existing types to match API responses
+export interface Teacher {
+  id: number;
+  first_name: string;
+  last_name: string;
+  username: string | null;
+  email: string;
+  phone: string;
+  role: string;
+  is_active: number;
+  email_verified: number;
+  phone_verified: number;
+  created_at: string;
+  updated_at: string;
+  last_login_at: string | null;
+  meta: any;
+  // Frontend computed properties
+  name?: string;
+  teacherId?: string;
+  subjects?: string[];
+  classes?: string[];
+  status?: 'active' | 'inactive';
+}
+
+export interface Student {
+  id: number;
+  first_name: string;
+  last_name: string;
+  username: string | null;
+  email: string;
+  phone: string;
+  role: string;
+  is_active: number;
+  email_verified: number;
+  phone_verified: number;
+  created_at: string;
+  updated_at: string;
+  last_login_at: string | null;
+  meta: any;
+  // Frontend computed properties
+  name?: string;
+  studentId?: string;
+  class?: string;
+  gender?: string;
+  parentName?: string;
+  status?: 'active' | 'suspended';
 }

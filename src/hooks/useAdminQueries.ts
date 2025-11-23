@@ -1,218 +1,154 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { adminService } from '@/lib/services/adminService';
+import { 
+  teacherService, 
+  Teacher, 
+  CreateTeacherPayload, 
+  AssignTeacherPayload, 
+  TeacherFilterParams,
+  Category,
+  Course
+} from '@/lib/services/admin/teacherService';
 import { toast } from 'sonner';
-import { PaginationParams } from '@/types/auth';
 
 export const useAdminQueries = () => {
   const queryClient = useQueryClient();
 
-  // Dashboard
-  const useDashboardStats = () => {
+  // Get categories
+  const useCategories = () => {
     return useQuery({
-      queryKey: ['admin', 'dashboard', 'stats'],
-      queryFn: () => adminService.getDashboardStats(),
+      queryKey: ['categories'],
+      queryFn: async () => {
+        try {
+          const categories = await teacherService.getCategories();
+          console.log('Categories in hook:', categories);
+          return categories;
+        } catch (error) {
+          console.error('Error in categories hook:', error);
+          return [];
+        }
+      },
+      staleTime: 10 * 60 * 1000,
+      retry: 2,
     });
   };
 
-  // Students
-  const useStudents = (params?: PaginationParams & { search?: string; class?: string; status?: string }) => {
+  // Get courses
+  const useCourses = () => {
     return useQuery({
-      queryKey: ['admin', 'students', params],
-      queryFn: () => adminService.getStudents(params),
-    });
-  };
-
-  const useCreateStudent = () => {
-    return useMutation({
-      mutationFn: adminService.createStudent,
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['admin', 'students'] });
-        toast.success('Student created successfully');
+      queryKey: ['courses'],
+      queryFn: async () => {
+        try {
+          const courses = await teacherService.getCourses();
+          console.log('Courses in hook:', courses);
+          return courses;
+        } catch (error) {
+          console.error('Error in courses hook:', error);
+          return [];
+        }
       },
-      onError: (error: any) => {
-        toast.error(error.message || 'Failed to create student');
-      }
+      staleTime: 10 * 60 * 1000,
+      retry: 2,
     });
   };
 
-  const useUpdateStudentStatus = () => {
-    return useMutation({
-      mutationFn: ({ studentId, status }: { studentId: number; status: 'active' | 'suspended' }) => 
-        adminService.updateStudentStatus(studentId, status),
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['admin', 'students'] });
-        toast.success('Student status updated successfully');
-      },
-      onError: (error: any) => {
-        toast.error(error.message || 'Failed to update student status');
-      }
-    });
-  };
-
-  const useDeleteStudent = () => {
-    return useMutation({
-      mutationFn: adminService.deleteStudent,
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['admin', 'students'] });
-        toast.success('Student deleted successfully');
-      },
-      onError: (error: any) => {
-        toast.error(error.message || 'Failed to delete student');
-      }
-    });
-  };
-
-  // Teachers
-  const useTeachers = (params?: PaginationParams & { search?: string; subject?: string; status?: string }) => {
+  // Get teachers with filtering
+  const useTeachers = (params?: TeacherFilterParams) => {
     return useQuery({
-      queryKey: ['admin', 'teachers', params],
-      queryFn: () => adminService.getTeachers(params),
+      queryKey: ['teachers', params],
+      queryFn: () => teacherService.getTeachers(params),
+      staleTime: 5 * 60 * 1000,
     });
   };
 
+  // Get all teachers (for exports, etc.)
+  const useAllTeachers = () => {
+    return useQuery({
+      queryKey: ['all-teachers'],
+      queryFn: teacherService.getAllTeachers,
+      staleTime: 5 * 60 * 1000,
+    });
+  };
+
+  // Create teacher mutation
   const useCreateTeacher = () => {
     return useMutation({
-      mutationFn: adminService.createTeacher,
+      mutationFn: teacherService.createTeacher,
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['admin', 'teachers'] });
-        toast.success('Teacher created successfully');
+        queryClient.invalidateQueries({ queryKey: ['teachers'] });
+        toast.success('Teacher created successfully!');
       },
       onError: (error: any) => {
         toast.error(error.message || 'Failed to create teacher');
-      }
+      },
     });
   };
 
+  // Update teacher mutation
+  const useUpdateTeacher = () => {
+    return useMutation({
+      mutationFn: ({ id, payload }: { id: number; payload: any }) => 
+        teacherService.updateTeacher(id, payload),
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['teachers'] });
+        toast.success('Teacher updated successfully!');
+      },
+      onError: (error: any) => {
+        toast.error(error.message || 'Failed to update teacher');
+      },
+    });
+  };
+
+  // Assign teacher mutation
   const useAssignTeacher = () => {
     return useMutation({
-      mutationFn: ({ teacherId, class: className, subjects }: { teacherId: number; class: string; subjects: string[] }) => 
-        adminService.assignTeacher(teacherId, className, subjects),
+      mutationFn: teacherService.assignTeacher,
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['admin', 'teachers'] });
-        toast.success('Teacher assigned successfully');
+        queryClient.invalidateQueries({ queryKey: ['teachers'] });
+        toast.success('Teacher assigned successfully!');
       },
       onError: (error: any) => {
         toast.error(error.message || 'Failed to assign teacher');
-      }
+      },
     });
   };
 
+  // Delete teacher mutation
   const useDeleteTeacher = () => {
     return useMutation({
-      mutationFn: adminService.deleteTeacher,
+      mutationFn: teacherService.deleteTeacher,
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['admin', 'teachers'] });
-        toast.success('Teacher deleted successfully');
+        queryClient.invalidateQueries({ queryKey: ['teachers'] });
+        toast.success('Teacher deleted successfully!');
       },
       onError: (error: any) => {
         toast.error(error.message || 'Failed to delete teacher');
-      }
+      },
     });
   };
 
-  // Parents
-  const useParents = (params?: PaginationParams & { search?: string; status?: string }) => {
-    return useQuery({
-      queryKey: ['admin', 'parents', params],
-      queryFn: () => adminService.getParents(params),
-    });
-  };
-
-  const useCreateParent = () => {
+  // Bulk upload mutation
+  const useBulkUploadTeachers = () => {
     return useMutation({
-      mutationFn: adminService.createParent,
+      mutationFn: teacherService.bulkUploadTeachers,
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['admin', 'parents'] });
-        toast.success('Parent created successfully');
+        queryClient.invalidateQueries({ queryKey: ['teachers'] });
+        toast.success('Teachers uploaded successfully!');
       },
       onError: (error: any) => {
-        toast.error(error.message || 'Failed to create parent');
-      }
-    });
-  };
-
-  const useDeleteParent = () => {
-    return useMutation({
-      mutationFn: adminService.deleteParent,
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['admin', 'parents'] });
-        toast.success('Parent deleted successfully');
+        toast.error(error.message || 'Failed to upload teachers');
       },
-      onError: (error: any) => {
-        toast.error(error.message || 'Failed to delete parent');
-      }
-    });
-  };
-
-  // Payments
-  const usePayments = (params?: { 
-    academicYear?: string; 
-    term?: string; 
-    class?: string; 
-    student?: string; 
-    status?: string;
-    search?: string;
-  }) => {
-    return useQuery({
-      queryKey: ['admin', 'payments', params],
-      queryFn: () => adminService.getPayments(params),
-    });
-  };
-
-  // Reports
-  const useReports = (params?: { 
-    academicYear?: string; 
-    term?: string; 
-    class?: string; 
-    student?: string;
-  }) => {
-    return useQuery({
-      queryKey: ['admin', 'reports', params],
-      queryFn: () => adminService.getReports(params),
-    });
-  };
-
-  // Messages
-  const useSendMessage = () => {
-    return useMutation({
-      mutationFn: adminService.sendMessage,
-      onSuccess: () => {
-        toast.success('Message sent successfully');
-      },
-      onError: (error: any) => {
-        toast.error(error.message || 'Failed to send message');
-      }
     });
   };
 
   return {
-    // Dashboard
-    useDashboardStats,
-    
-    // Students
-    useStudents,
-    useCreateStudent,
-    useUpdateStudentStatus,
-    useDeleteStudent,
-    
-    // Teachers
+    useCategories,
+    useCourses,
     useTeachers,
+    useAllTeachers,
     useCreateTeacher,
+    useUpdateTeacher,
     useAssignTeacher,
     useDeleteTeacher,
-    
-    // Parents
-    useParents,
-    useCreateParent,
-    useDeleteParent,
-    
-    // Payments
-    usePayments,
-    
-    // Reports
-    useReports,
-    
-    // Messages
-    useSendMessage,
+    useBulkUploadTeachers,
   };
 };
