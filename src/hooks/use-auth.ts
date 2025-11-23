@@ -10,7 +10,7 @@ import { UserInterface } from "@/types/global";
 import { useLocalStorage } from "./use-local-storage";
 import { getSession, signIn, signOut } from "next-auth/react";
 import { signInFormData } from "@/schema/auth-schema";
-import { apiClient } from "@/lib/services/client";
+import { apiClient } from "@/core/client";
 
 export function useAuth() {
     const router = useRouter();
@@ -54,6 +54,8 @@ export function useAuth() {
             if (error.statusCode === 401) return false;
             return failureCount < 2;
         },
+        refetchOnWindowFocus: false,
+        // refetchOnMount: false,
     });
 
     // Login mutation

@@ -11,7 +11,7 @@ const layout = async ({ children }: { children: React.ReactNode }) => {
 
     return (
         <MainLayout requireAuth revealHeader={true}>
-            <div className="flex flex-col">
+            <div className="pt-[90px] flex flex-col">
                 {children}
             </div>
         </MainLayout>
