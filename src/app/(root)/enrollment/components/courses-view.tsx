@@ -51,8 +51,6 @@ export function CoursesView({ userId }: { userId: string }) {
 
     // Check if a category has been paid for
     const isCategoryPaidFor = () => {
-        console.log('Paid Categories:', paidCategories);
-        console.log('Selected SubCategory API ID:', selectedSubCategory.apiId);
         return paidCategories.some(cat => cat.course_group_id === selectedSubCategory.apiId);
     };
 
@@ -143,7 +141,7 @@ export function CoursesView({ userId }: { userId: string }) {
             </div>
         );
     }
-    console.log('isCategoryPaidFor()', isCategoryPaidFor());
+
     return (
         <div className="space-y-12">
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
