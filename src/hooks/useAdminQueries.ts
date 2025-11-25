@@ -1,7 +1,38 @@
+// hooks/useAdminQueries.ts
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { adminService } from '@/lib/services/adminService';
+import { 
+  teacherService, 
+  Teacher, 
+  CreateTeacherPayload, 
+  UpdateTeacherPayload,
+  AssignTeacherPayload,
+  TeacherFilterParams,
+  Category,
+  Course
+} from '@/lib/services/admin/teacherService';
+import { 
+  studentService, 
+  Student, 
+  CreateStudentPayload, 
+  StudentFilterParams 
+} from '@/lib/services/admin/studentService';
+import { 
+  parentService, 
+  Parent, 
+  CreateParentPayload, 
+  ParentFilterParams 
+} from '@/lib/services/admin/parentService';
+import { 
+  paymentService, 
+ 
+  PaymentFilterParams 
+} from '@/lib/services/admin/paymentService';
+import { Payment, PaymentWithDetails } from '@/types/auth';
+import { 
+  dashboardService, 
+  DashboardStats 
+} from '@/lib/services/admin/dashboardService';
 import { toast } from 'sonner';
-import { PaginationParams } from '@/types/auth';
 
 export const useAdminQueries = () => {
   const queryClient = useQueryClient();
@@ -9,179 +40,268 @@ export const useAdminQueries = () => {
   // Dashboard
   const useDashboardStats = () => {
     return useQuery({
-      queryKey: ['admin', 'dashboard', 'stats'],
-      queryFn: () => adminService.getDashboardStats(),
+      queryKey: ['dashboard-stats'],
+      queryFn: dashboardService.getDashboardStats,
+      staleTime: 5 * 60 * 1000,
     });
   };
 
-  // Students
-  const useStudents = (params?: PaginationParams & { search?: string; class?: string; status?: string }) => {
+  // Teachers - Fixed to accept parameters properly
+  const useTeachers = (params?: TeacherFilterParams) => {
     return useQuery({
-      queryKey: ['admin', 'students', params],
-      queryFn: () => adminService.getStudents(params),
+      queryKey: ['teachers', params],
+      queryFn: () => teacherService.getTeachers(params),
+      staleTime: 5 * 60 * 1000,
     });
   };
 
-  const useCreateStudent = () => {
-    return useMutation({
-      mutationFn: adminService.createStudent,
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['admin', 'students'] });
-        toast.success('Student created successfully');
-      },
-      onError: (error: any) => {
-        toast.error(error.message || 'Failed to create student');
-      }
-    });
-  };
-
-  const useUpdateStudentStatus = () => {
-    return useMutation({
-      mutationFn: ({ studentId, status }: { studentId: number; status: 'active' | 'suspended' }) => 
-        adminService.updateStudentStatus(studentId, status),
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['admin', 'students'] });
-        toast.success('Student status updated successfully');
-      },
-      onError: (error: any) => {
-        toast.error(error.message || 'Failed to update student status');
-      }
-    });
-  };
-
-  const useDeleteStudent = () => {
-    return useMutation({
-      mutationFn: adminService.deleteStudent,
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['admin', 'students'] });
-        toast.success('Student deleted successfully');
-      },
-      onError: (error: any) => {
-        toast.error(error.message || 'Failed to delete student');
-      }
-    });
-  };
-
-  // Teachers
-  const useTeachers = (params?: PaginationParams & { search?: string; subject?: string; status?: string }) => {
+  const useAllTeachers = () => {
     return useQuery({
-      queryKey: ['admin', 'teachers', params],
-      queryFn: () => adminService.getTeachers(params),
+      queryKey: ['all-teachers'],
+      queryFn: teacherService.getAllTeachers,
+      staleTime: 5 * 60 * 1000,
+    });
+  };
+
+  const useTeacher = (id: number) => {
+  return useQuery({
+    queryKey: ['teacher', id],
+    queryFn: () => teacherService.getTeacher(id),
+    enabled: !!id,
+    staleTime: 5 * 60 * 1000,
+  });
+};
+
+// Get teacher subjects
+const useTeacherSubjects = () => {
+  return useQuery({
+    queryKey: ['teacher-subjects'],
+    queryFn: teacherService.getTeacherSubjects,
+    staleTime: 5 * 60 * 1000,
+  });
+};
+
+  // Categories - Fixed to accept parameters
+  const useCategories = (params?: any) => {
+    return useQuery({
+      queryKey: ['categories', params],
+      queryFn: () => teacherService.getCategories(params),
+      staleTime: 5 * 60 * 1000,
+    });
+  };
+
+  // Courses - Fixed to accept parameters
+  const useCourses = (params?: any) => {
+    return useQuery({
+      queryKey: ['courses', params],
+      queryFn: () => teacherService.getCourses(params),
+      staleTime: 5 * 60 * 1000,
     });
   };
 
   const useCreateTeacher = () => {
     return useMutation({
-      mutationFn: adminService.createTeacher,
+      mutationFn: teacherService.createTeacher,
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['admin', 'teachers'] });
-        toast.success('Teacher created successfully');
+        queryClient.invalidateQueries({ queryKey: ['teachers'] });
+        queryClient.invalidateQueries({ queryKey: ['all-teachers'] });
+        toast.success('Teacher created successfully!');
       },
       onError: (error: any) => {
         toast.error(error.message || 'Failed to create teacher');
-      }
+      },
+    });
+  };
+
+  const useUpdateTeacher = () => {
+    return useMutation({
+      mutationFn: ({ id, payload }: { id: number; payload: UpdateTeacherPayload }) =>
+        teacherService.updateTeacher(id, payload),
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['teachers'] });
+        queryClient.invalidateQueries({ queryKey: ['all-teachers'] });
+        toast.success('Teacher updated successfully!');
+      },
+      onError: (error: any) => {
+        toast.error(error.message || 'Failed to update teacher');
+      },
     });
   };
 
   const useAssignTeacher = () => {
     return useMutation({
-      mutationFn: ({ teacherId, class: className, subjects }: { teacherId: number; class: string; subjects: string[] }) => 
-        adminService.assignTeacher(teacherId, className, subjects),
+      mutationFn: teacherService.assignTeacher,
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['admin', 'teachers'] });
-        toast.success('Teacher assigned successfully');
+        queryClient.invalidateQueries({ queryKey: ['teachers'] });
+        toast.success('Teacher assigned successfully!');
       },
       onError: (error: any) => {
         toast.error(error.message || 'Failed to assign teacher');
-      }
+      },
     });
   };
 
   const useDeleteTeacher = () => {
     return useMutation({
-      mutationFn: adminService.deleteTeacher,
+      mutationFn: teacherService.deleteTeacher,
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['admin', 'teachers'] });
-        toast.success('Teacher deleted successfully');
+        queryClient.invalidateQueries({ queryKey: ['teachers'] });
+        queryClient.invalidateQueries({ queryKey: ['all-teachers'] });
+        toast.success('Teacher deleted successfully!');
       },
       onError: (error: any) => {
         toast.error(error.message || 'Failed to delete teacher');
-      }
+      },
+    });
+  };
+
+  const useBulkUploadTeachers = () => {
+    return useMutation({
+      mutationFn: teacherService.bulkUploadTeachers,
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['teachers'] });
+        queryClient.invalidateQueries({ queryKey: ['all-teachers'] });
+        toast.success('Teachers uploaded successfully!');
+      },
+      onError: (error: any) => {
+        toast.error(error.message || 'Failed to upload teachers');
+      },
+    });
+  };
+
+  // Students
+  const useStudents = (params?: StudentFilterParams) => {
+    return useQuery({
+      queryKey: ['students', params],
+      queryFn: () => studentService.getStudents(params),
+      staleTime: 5 * 60 * 1000,
+    });
+  };
+
+  const useAllStudents = () => {
+    return useQuery({
+      queryKey: ['all-students'],
+      queryFn: studentService.getAllStudents,
+      staleTime: 5 * 60 * 1000,
+    });
+  };
+
+  const useCreateStudent = () => {
+    return useMutation({
+      mutationFn: studentService.createStudent,
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['students'] });
+        queryClient.invalidateQueries({ queryKey: ['all-students'] });
+        toast.success('Student created successfully!');
+      },
+      onError: (error: any) => {
+        toast.error(error.message || 'Failed to create student');
+      },
+    });
+  };
+
+  const useUpdateStudentStatus = () => {
+    return useMutation({
+      mutationFn: ({ id, is_active }: { id: number; is_active: number }) =>
+        studentService.updateStudentStatus(id, is_active),
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['students'] });
+        queryClient.invalidateQueries({ queryKey: ['all-students'] });
+        toast.success('Student status updated successfully!');
+      },
+      onError: (error: any) => {
+        toast.error(error.message || 'Failed to update student status');
+      },
+    });
+  };
+
+  const useDeleteStudent = () => {
+    return useMutation({
+      mutationFn: studentService.deleteStudent,
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['students'] });
+        queryClient.invalidateQueries({ queryKey: ['all-students'] });
+        toast.success('Student deleted successfully!');
+      },
+      onError: (error: any) => {
+        toast.error(error.message || 'Failed to delete student');
+      },
+    });
+  };
+
+  const useBulkUploadStudents = () => {
+    return useMutation({
+      mutationFn: studentService.bulkUploadStudents,
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['students'] });
+        queryClient.invalidateQueries({ queryKey: ['all-students'] });
+        toast.success('Students uploaded successfully!');
+      },
+      onError: (error: any) => {
+        toast.error(error.message || 'Failed to upload students');
+      },
     });
   };
 
   // Parents
-  const useParents = (params?: PaginationParams & { search?: string; status?: string }) => {
+  const useParents = (params?: ParentFilterParams) => {
     return useQuery({
-      queryKey: ['admin', 'parents', params],
-      queryFn: () => adminService.getParents(params),
+      queryKey: ['parents', params],
+      queryFn: () => parentService.getParents(params),
+      staleTime: 5 * 60 * 1000,
+    });
+  };
+
+  const useAllParents = () => {
+    return useQuery({
+      queryKey: ['all-parents'],
+      queryFn: parentService.getAllParents,
+      staleTime: 5 * 60 * 1000,
     });
   };
 
   const useCreateParent = () => {
     return useMutation({
-      mutationFn: adminService.createParent,
+      mutationFn: parentService.createParent,
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['admin', 'parents'] });
-        toast.success('Parent created successfully');
+        queryClient.invalidateQueries({ queryKey: ['parents'] });
+        queryClient.invalidateQueries({ queryKey: ['all-parents'] });
+        toast.success('Parent created successfully!');
       },
       onError: (error: any) => {
         toast.error(error.message || 'Failed to create parent');
-      }
+      },
     });
   };
 
   const useDeleteParent = () => {
     return useMutation({
-      mutationFn: adminService.deleteParent,
+      mutationFn: parentService.deleteParent,
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['admin', 'parents'] });
-        toast.success('Parent deleted successfully');
+        queryClient.invalidateQueries({ queryKey: ['parents'] });
+        queryClient.invalidateQueries({ queryKey: ['all-parents'] });
+        toast.success('Parent deleted successfully!');
       },
       onError: (error: any) => {
         toast.error(error.message || 'Failed to delete parent');
-      }
-    });
-  };
-
-  // Payments
-  const usePayments = (params?: { 
-    academicYear?: string; 
-    term?: string; 
-    class?: string; 
-    student?: string; 
-    status?: string;
-    search?: string;
-  }) => {
-    return useQuery({
-      queryKey: ['admin', 'payments', params],
-      queryFn: () => adminService.getPayments(params),
-    });
-  };
-
-  // Reports
-  const useReports = (params?: { 
-    academicYear?: string; 
-    term?: string; 
-    class?: string; 
-    student?: string;
-  }) => {
-    return useQuery({
-      queryKey: ['admin', 'reports', params],
-      queryFn: () => adminService.getReports(params),
-    });
-  };
-
-  // Messages
-  const useSendMessage = () => {
-    return useMutation({
-      mutationFn: adminService.sendMessage,
-      onSuccess: () => {
-        toast.success('Message sent successfully');
       },
-      onError: (error: any) => {
-        toast.error(error.message || 'Failed to send message');
-      }
+    });
+  };
+
+  // Payments - Fixed to use the correct endpoint
+  const usePayments = (params?: PaymentFilterParams) => {
+    return useQuery({
+      queryKey: ['payments', params],
+      queryFn: () => paymentService.getAllPayments(params),
+      staleTime: 5 * 60 * 1000,
+    });
+  };
+
+  const usePaymentDetails = (params?: PaymentFilterParams) => {
+    return useQuery({
+      queryKey: ['payment-details', params],
+      queryFn: () => paymentService.getPaymentsWithDetails(params),
+      staleTime: 5 * 60 * 1000,
     });
   };
 
@@ -189,30 +309,35 @@ export const useAdminQueries = () => {
     // Dashboard
     useDashboardStats,
     
+    // Teachers
+    useTeachers,
+    useTeacher,
+    useTeacherSubjects,
+    useAllTeachers,
+    useCategories,
+    useCourses,
+    useCreateTeacher,
+    useUpdateTeacher,
+    useAssignTeacher,
+    useDeleteTeacher,
+    useBulkUploadTeachers,
+    
     // Students
     useStudents,
+    useAllStudents,
     useCreateStudent,
     useUpdateStudentStatus,
     useDeleteStudent,
-    
-    // Teachers
-    useTeachers,
-    useCreateTeacher,
-    useAssignTeacher,
-    useDeleteTeacher,
+    useBulkUploadStudents,
     
     // Parents
     useParents,
+    useAllParents,
     useCreateParent,
     useDeleteParent,
     
     // Payments
     usePayments,
-    
-    // Reports
-    useReports,
-    
-    // Messages
-    useSendMessage,
+    usePaymentDetails,
   };
 };

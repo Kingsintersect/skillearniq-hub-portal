@@ -242,18 +242,18 @@ export const AdminNavMain: SidebarNavConfig = {
             ],
             display: true,
         },
-        {
-            title: "SETTINGS",
-            url: "#",
-            icon: Settings2,
-            items: [
-                {
-                    title: "Profile Settings",
-                    url: "/admin/settings",
-                },
-            ],
-            display: true,
-        },
+        // {
+        //     title: "SETTINGS",
+        //     url: "#",
+        //     icon: Settings2,
+        //     items: [
+        //         {
+        //             title: "Profile Settings",
+        //             url: "/admin/settings",
+        //         },
+        //     ],
+        //     display: true,
+        // },
     ]
 }
 export const StudentNavMain: SidebarNavConfig = {

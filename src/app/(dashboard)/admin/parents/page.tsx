@@ -1,5 +1,6 @@
+// app/admin/parents/page.tsx
 'use client'
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,453 +10,299 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Plus, Search, Download, Upload, Trash2, Sheet, FileDown, FileText } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Plus, Search, Download, Trash2, Sheet, FileDown, FileText, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import { useAdminQueries } from '@/hooks/useAdminQueries';
 import { toast } from 'sonner';
+import { CreateParentPayload } from '@/lib/services/admin/parentService';
 
-type ExportFormat = 'csv' | 'excel' | 'pdf';
-
-// Custom hook for export functionality
-const useExportParents = () => {
-  const exportToCSV = (parents: any[], filename: string = 'parents') => {
-    if (!parents.length) return;
+// Pagination Component (same as teachers)
+const Pagination = ({ 
+  currentPage, 
+  totalPages, 
+  onPageChange,
+  totalItems,
+  itemsPerPage 
+}: { 
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
+  totalItems: number;
+  itemsPerPage: number;
+}) => {
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxVisiblePages = 5;
     
-    const headers = [
-      'Name', 
-      'Email', 
-      'Phone', 
-      'Children',
-      'Status',
-      'Registration Date'
-    ];
-    
-    const csvContent = [
-      headers.join(','),
-      ...parents.map(parent => [
-        `"${parent.name.replace(/"/g, '""')}"`,
-        `"${parent.email}"`,
-        `"${parent.phone || 'N/A'}"`,
-        `"${parent.children.join('; ')}"`,
-        parent.status,
-        `"${parent.registrationDate || 'N/A'}"`
-      ].join(','))
-    ].join('\n');
-
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `${filename}_${new Date().toISOString().split('T')[0]}.csv`;
-    link.click();
-    URL.revokeObjectURL(link.href);
-  };
-
-  const exportToExcel = (parents: any[], filename: string = 'parents') => {
-    if (!parents.length) return;
-    
-    const headers = [
-      'Name', 
-      'Email', 
-      'Phone', 
-      'Children',
-      'Status',
-      'Registration Date'
-    ];
-    
-    const csvContent = [
-      headers.join(','),
-      ...parents.map(parent => [
-        `"${parent.name.replace(/"/g, '""')}"`,
-        `"${parent.email}"`,
-        `"${parent.phone || 'N/A'}"`,
-        `"${parent.children.join('; ')}"`,
-        parent.status,
-        `"${parent.registrationDate || 'N/A'}"`
-      ].join(','))
-    ].join('\n');
-
-    const blob = new Blob([csvContent], { type: 'application/vnd.ms-excel;charset=utf-8' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `${filename}_${new Date().toISOString().split('T')[0]}.xls`;
-    link.click();
-    URL.revokeObjectURL(link.href);
-  };
-
-  const exportToPDF = (parents: any[], filename: string = 'parents') => {
-    const printWindow = window.open('', '_blank');
-    if (printWindow && parents.length > 0) {
-      const parentData = parents.map(parent => `
-        <tr>
-          <td>${parent.name}</td>
-          <td>${parent.email}</td>
-          <td>${parent.phone || 'N/A'}</td>
-          <td>${parent.children.join(', ')}</td>
-          <td>${parent.status}</td>
-        </tr>
-      `).join('');
-
-      const activeCount = parents.filter(p => p.status === 'active').length;
-      const inactiveCount = parents.filter(p => p.status === 'inactive').length;
-
-      printWindow.document.write(`
-        <html>
-          <head>
-            <title>Parent Records - ${filename}</title>
-            <style>
-              body { 
-                font-family: Arial, sans-serif; 
-                margin: 20px; 
-                color: #333;
-                line-height: 1.4;
-              }
-              .header { 
-                text-align: center; 
-                margin-bottom: 30px; 
-                border-bottom: 2px solid #333;
-                padding-bottom: 20px;
-              }
-              .header h1 { 
-                margin: 0; 
-                color: #1a365d;
-                font-size: 24px;
-              }
-              .header p { 
-                margin: 5px 0; 
-                color: #666;
-              }
-              .summary { 
-                margin: 20px 0;
-                padding: 15px;
-                background-color: #f0f9ff;
-                border-radius: 5px;
-                border-left: 4px solid #007bff;
-              }
-              .summary-grid {
-                display: grid;
-                grid-template-columns: repeat(3, 1fr);
-                gap: 15px;
-                margin: 15px 0;
-              }
-              .summary-item {
-                text-align: center;
-                padding: 10px;
-                background: white;
-                border-radius: 5px;
-                border: 1px solid #e1e5e9;
-              }
-              .summary-value {
-                font-size: 18px;
-                font-weight: bold;
-                color: #1a365d;
-              }
-              .summary-label {
-                font-size: 12px;
-                color: #666;
-                margin-top: 5px;
-              }
-              table { 
-                width: 100%; 
-                border-collapse: collapse; 
-                margin: 20px 0;
-                font-size: 11px;
-              }
-              th, td { 
-                border: 1px solid #ddd; 
-                padding: 8px; 
-                text-align: left; 
-              }
-              th { 
-                background-color: #f5f5f5; 
-                font-weight: bold;
-                color: #333;
-              }
-              tr:nth-child(even) {
-                background-color: #f9f9f9;
-              }
-              .status-active { background-color: #d4edda; color: #155724; }
-              .status-inactive { background-color: #e2e3e5; color: #383d41; }
-              .footer {
-                margin-top: 30px;
-                text-align: center;
-                color: #666;
-                font-size: 11px;
-                border-top: 1px solid #ddd;
-                padding-top: 15px;
-              }
-              @media print {
-                body { margin: 0; }
-                .no-print { display: none; }
-              }
-            </style>
-          </head>
-          <body>
-            <div class="header">
-              <h1>Parent Management Records</h1>
-              <p>Generated on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}</p>
-              <p>Total Parents: ${parents.length}</p>
-            </div>
-
-            <div class="summary">
-              <h3 style="margin: 0 0 10px 0; color: #1a365d;">Parent Summary</h3>
-              <div class="summary-grid">
-                <div class="summary-item">
-                  <div class="summary-value">${parents.length}</div>
-                  <div class="summary-label">Total Parents</div>
-                </div>
-                <div class="summary-item">
-                  <div class="summary-value">${activeCount}</div>
-                  <div class="summary-label">Active Parents</div>
-                </div>
-                <div class="summary-item">
-                  <div class="summary-value">${inactiveCount}</div>
-                  <div class="summary-label">Inactive Parents</div>
-                </div>
-              </div>
-            </div>
-
-            <table>
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Email</th>
-                  <th>Phone</th>
-                  <th>Children</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${parentData}
-              </tbody>
-            </table>
-
-            <div class="footer">
-              <p>Confidential Parent Records - For Administrative Use Only</p>
-              <p>Generated by School Management System</p>
-            </div>
-
-            <div class="no-print" style="margin-top: 20px; text-align: center;">
-              <button onclick="window.print()" style="padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; margin: 5px;">
-                Print PDF
-              </button>
-              <button onclick="window.close()" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 5px; cursor: pointer; margin: 5px;">
-                Close
-              </button>
-            </div>
-
-            <script>
-              setTimeout(() => {
-                window.print();
-              }, 500);
-            </script>
-          </body>
-        </html>
-      `);
-      printWindow.document.close();
+    if (totalPages <= maxVisiblePages) {
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      const startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+      const endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+      
+      if (startPage > 1) {
+        pages.push(1);
+        if (startPage > 2) pages.push('...');
+      }
+      
+      for (let i = startPage; i <= endPage; i++) {
+        pages.push(i);
+      }
+      
+      if (endPage < totalPages) {
+        if (endPage < totalPages - 1) pages.push('...');
+        pages.push(totalPages);
+      }
     }
+    
+    return pages;
   };
 
-  return {
-    exportToCSV,
-    exportToExcel,
-    exportToPDF
-  };
+  const startItem = (currentPage - 1) * itemsPerPage + 1;
+  const endItem = Math.min(currentPage * itemsPerPage, totalItems);
+
+  return (
+    <div className="flex items-center justify-between px-2 py-4">
+      <div className="flex-1 text-sm text-muted-foreground">
+        Showing {startItem} to {endItem} of {totalItems} entries
+      </div>
+      <div className="flex items-center space-x-2">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onPageChange(1)}
+          disabled={currentPage === 1}
+          className="hidden sm:flex"
+        >
+          <ChevronsLeft className="h-4 w-4" />
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onPageChange(currentPage - 1)}
+          disabled={currentPage === 1}
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
+        
+        <div className="flex items-center space-x-1">
+          {getPageNumbers().map((page, index) => (
+            page === '...' ? (
+              <span key={index} className="px-2 py-1 text-sm">...</span>
+            ) : (
+              <Button
+                key={index}
+                variant={currentPage === page ? "default" : "outline"}
+                size="sm"
+                onClick={() => onPageChange(page as number)}
+                className="h-8 w-8 p-0"
+              >
+                {page}
+              </Button>
+            )
+          ))}
+        </div>
+
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onPageChange(currentPage + 1)}
+          disabled={currentPage === totalPages}
+        >
+          <ChevronRight className="h-4 w-4" />
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onPageChange(totalPages)}
+          disabled={currentPage === totalPages}
+          className="hidden sm:flex"
+        >
+          <ChevronsRight className="h-4 w-4" />
+        </Button>
+      </div>
+    </div>
+  );
+};
+
+const useDebounce = <T,>(value: T, delay: number): T => {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+  useEffect(() => {
+    const handler = setTimeout(() => setDebouncedValue(value), delay);
+    return () => clearTimeout(handler);
+  }, [value, delay]);
+  return debouncedValue;
 };
 
 export default function ParentsPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [isBulkUploadDialogOpen, setIsBulkUploadDialogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filters, setFilters] = useState({
-    status: 'all'
+  const [filters, setFilters] = useState({ status: 'all' });
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    itemsPerPage: 10
   });
   
-  const { useParents, useCreateParent, useDeleteParent } = useAdminQueries();
+  const { useAllParents, useAllStudents, useCreateParent, useDeleteParent } = useAdminQueries();
 
-  const { data: parentsResponse, isLoading } = useParents({
-    search: searchTerm,
-    status: filters.status
-  });
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
-  const { exportToCSV, exportToExcel, exportToPDF } = useExportParents();
-
+  const { data: allParentsResponse, isLoading: parentsLoading } = useAllParents();
+  const { data: allStudentsResponse, isLoading: studentsLoading } = useAllStudents();
   const createParentMutation = useCreateParent();
   const deleteParentMutation = useDeleteParent();
 
   const [newParent, setNewParent] = useState({
-    name: '',
+    first_name: '',
+    last_name: '',
     email: '',
     phone: '',
-    children: []
+    password: 'secret123',
+    children: [] as number[]
   });
 
-  const parents = parentsResponse?.data || [];
+  const [studentSearch, setStudentSearch] = useState('');
+
+  const parents = allParentsResponse || [];
+  const allStudents = allStudentsResponse || [];
+
+  const filteredParents = parents.filter(parent => {
+    const matchesSearch = debouncedSearchTerm === '' || 
+      parent.first_name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+      parent.last_name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+      parent.email.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+      parent.phone.includes(debouncedSearchTerm);
+    
+    const matchesStatus = filters.status === 'all' || 
+      (filters.status === 'active' && parent.is_active === 1) ||
+      (filters.status === 'inactive' && parent.is_active === 0);
+    
+    return matchesSearch && matchesStatus;
+  });
+
+  const filteredStudents = allStudents.filter(student =>
+    studentSearch === '' ||
+    student.first_name.toLowerCase().includes(studentSearch.toLowerCase()) ||
+    student.last_name.toLowerCase().includes(studentSearch.toLowerCase()) ||
+    student.email.toLowerCase().includes(studentSearch.toLowerCase())
+  );
+
+  // Pagination
+  const totalItems = filteredParents.length;
+  const totalPages = Math.ceil(totalItems / pagination.itemsPerPage);
+  const startIndex = (pagination.currentPage - 1) * pagination.itemsPerPage;
+  const endIndex = startIndex + pagination.itemsPerPage;
+  const paginatedParents = filteredParents.slice(startIndex, endIndex);
+
+  useEffect(() => {
+    setPagination(prev => ({ ...prev, currentPage: 1 }));
+  }, [debouncedSearchTerm, filters.status]);
+
+  const handlePageChange = (page: number) => {
+    setPagination(prev => ({ ...prev, currentPage: page }));
+  };
+
+  const handleItemsPerPageChange = (value: string) => {
+    setPagination({
+      currentPage: 1,
+      itemsPerPage: parseInt(value)
+    });
+  };
 
   const handleCreateParent = () => {
-    createParentMutation.mutate(newParent, {
+    const payload: CreateParentPayload = {
+      first_name: newParent.first_name,
+      last_name: newParent.last_name,
+      email: newParent.email,
+      phone: newParent.phone,
+      password: newParent.password,
+      children: newParent.children
+    };
+
+    createParentMutation.mutate(payload, {
       onSuccess: () => {
         setIsCreateDialogOpen(false);
         setNewParent({
-          name: '',
+          first_name: '',
+          last_name: '',
           email: '',
           phone: '',
+          password: 'secret123',
           children: []
         });
         toast.success('Parent created successfully!');
       },
-      onError: () => {
-        toast.error('Failed to create parent');
+      onError: (error: any) => {
+        toast.error(error.message || 'Failed to create parent');
       }
     });
   };
 
   const handleDeleteParent = (parentId: number) => {
     deleteParentMutation.mutate(parentId, {
-      onSuccess: () => {
-        toast.success('Parent deleted successfully!');
-      },
-      onError: () => {
-        toast.error('Failed to delete parent');
+      onError: (error: any) => {
+        toast.error(error.message || 'Failed to delete parent');
       }
     });
   };
 
-  const handleExport = (format: ExportFormat) => {
-    if (parents.length === 0) {
-      toast.error('No parents available to export');
-      return;
-    }
-
-    try {
-      const filename = `parents_${filters.status === 'all' ? 'all_status' : filters.status}`;
-      switch (format) {
-        case 'csv':
-          exportToCSV(parents, filename);
-          toast.success(`Exported ${parents.length} parents as CSV`);
-          break;
-        case 'excel':
-          exportToExcel(parents, filename);
-          toast.success(`Exported ${parents.length} parents as Excel`);
-          break;
-        case 'pdf':
-          exportToPDF(parents, filename);
-          toast.success(`Exported ${parents.length} parents as PDF`);
-          break;
-        default:
-          toast.error('Unsupported export format');
-      }
-    } catch (error) {
-      toast.error('Failed to export parents. Please try again.');
-      console.error('Export error:', error);
-    }
+  const toggleStudentSelection = (studentId: number) => {
+    setNewParent(prev => ({
+      ...prev,
+      children: prev.children.includes(studentId)
+        ? prev.children.filter(id => id !== studentId)
+        : [...prev.children, studentId]
+    }));
   };
 
-  const downloadTemplate = () => {
-    const templateHeaders = [
-      'name',
-      'email',
-      'phone',
-      'children'
-    ];
-    
-    const templateContent = [templateHeaders.join(',')].join('\n');
-    const blob = new Blob([templateContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = 'parent_upload_template.csv';
-    link.click();
-    URL.revokeObjectURL(link.href);
-    toast.success('Template downloaded successfully!');
+  const getSelectedStudentNames = () => {
+    return newParent.children.map(id => {
+      const student = allStudents.find(s => s.id === id);
+      return student ? `${student.first_name} ${student.last_name}` : '';
+    }).filter(name => name);
   };
 
-  const handleBulkUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      // Implement bulk upload logic here
-      console.log('Bulk upload:', file);
-      toast.success('Bulk upload initiated!');
-      setIsBulkUploadDialogOpen(false);
-    }
-  };
-
-  if (isLoading) {
+  if (parentsLoading || studentsLoading) {
     return (
       <div className="min-h-screen p-6 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <div>Loading parents...</div>
-        </div>
+        <div className="text-center">Loading parents...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen p-6">
+    <div className="min-h-screen p-6 bg-gray-50">
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-3xl font-bold">Parents Management</h1>
-            <p className="text-muted-foreground">Manage all parents and their associations</p>
+            <h1 className="text-3xl font-bold text-gray-900">Parents Management</h1>
+            <p className="text-gray-600">Manage all parents and their associations</p>
           </div>
-          <div className="flex space-x-4">
-            <Button variant="outline" onClick={() => setIsBulkUploadDialogOpen(true)} className='dark:text-white dark:border-white'>
-              <Upload className="h-4 w-4 mr-2" />
-              Bulk Upload
-            </Button>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" className='dark:border-white dark:text-white'>
-                  <Download className="h-4 w-4 mr-2" />
-                  Export
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem 
-                  onClick={() => handleExport('csv')}
-                  className="flex items-center space-x-2"
-                >
-                  <Sheet className="h-4 w-4" />
-                  <span>Export as CSV</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  onClick={() => handleExport('excel')}
-                  className="flex items-center space-x-2"
-                >
-                  <FileDown className="h-4 w-4" />
-                  <span>Export as Excel</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  onClick={() => handleExport('pdf')}
-                  className="flex items-center space-x-2"
-                >
-                  <FileText className="h-4 w-4" />
-                  <span>Export as PDF</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-            <Button onClick={() => setIsCreateDialogOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Parent
-            </Button>
-          </div>
+          <Button onClick={() => setIsCreateDialogOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Parent
+          </Button>
         </div>
 
         {/* Search and Filters */}
-        <Card className="mb-6">
+        <Card className="mb-6 bg-white border border-gray-200">
           <CardContent className="p-6">
             <div className="flex flex-col md:flex-row gap-4">
               <div className="flex-1">
                 <Input
-                  placeholder="Search parents by name, email, or child name..."
+                  placeholder="Search parents by name, email, or phone..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
               <Select 
                 value={filters.status} 
-                onValueChange={(value) => setFilters(prev => ({...prev, status: value}))}
+                onValueChange={(value) => setFilters({ status: value })}
               >
                 <SelectTrigger className="w-full md:w-[200px]">
-                  <SelectValue placeholder="Filter by status" />
+                  <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Status</SelectItem>
@@ -463,23 +310,33 @@ export default function ParentsPage() {
                   <SelectItem value="inactive">Inactive</SelectItem>
                 </SelectContent>
               </Select>
+              <Select 
+                value={pagination.itemsPerPage.toString()} 
+                onValueChange={handleItemsPerPageChange}
+              >
+                <SelectTrigger className="w-full md:w-[200px]">
+                  <SelectValue placeholder="Show per page" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="5">5 per page</SelectItem>
+                  <SelectItem value="10">10 per page</SelectItem>
+                  <SelectItem value="20">20 per page</SelectItem>
+                  <SelectItem value="50">50 per page</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-            <div className="flex justify-between items-center mt-4">
-              <div className="text-sm text-muted-foreground">
-                {parents.length} parents found
-              </div>
-              <div className="text-sm">
-                Showing: {filters.status === 'all' ? 'All status' : filters.status}
-              </div>
+            <div className="mt-4 text-sm text-gray-600">
+              {totalItems} parents found
+              {debouncedSearchTerm && ` for "${debouncedSearchTerm}"`}
             </div>
           </CardContent>
         </Card>
 
         {/* Parents Table */}
-        <Card>
+        <Card className="bg-white border border-gray-200">
           <CardHeader>
             <CardTitle>All Parents</CardTitle>
-            <CardDescription>{parents.length} parents in the system</CardDescription>
+            <CardDescription>{totalItems} parents in the system</CardDescription>
           </CardHeader>
           <CardContent>
             <Table>
@@ -487,143 +344,158 @@ export default function ParentsPage() {
                 <TableRow>
                   <TableHead>Name</TableHead>
                   <TableHead>Contact</TableHead>
-                  <TableHead>Children</TableHead>
+                  <TableHead>Children Count</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {parents.map((parent) => (
+                {paginatedParents.map((parent) => (
                   <TableRow key={parent.id}>
-                    <TableCell className="font-medium">{parent.name}</TableCell>
+                    <TableCell>
+                      <div className="font-medium">{parent.first_name} {parent.last_name}</div>
+                    </TableCell>
                     <TableCell>
                       <div>
                         <div className="text-sm">{parent.email}</div>
-                        <div className="text-sm text-muted-foreground">{parent.phone}</div>
+                        <div className="text-sm text-gray-500">{parent.phone}</div>
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="flex flex-wrap gap-1">
-                        {parent.children.map((child, index) => (
-                          <Badge key={index} variant="outline" className="text-xs">
-                            {child}
-                          </Badge>
-                        ))}
-                      </div>
+                      <Badge variant="outline">{parent.children?.length || 0}</Badge>
                     </TableCell>
                     <TableCell>
-                      <Badge variant={parent.status === 'active' ? 'default' : 'secondary'}>
-                        {parent.status}
+                      <Badge variant={parent.is_active ? 'default' : 'secondary'}>
+                        {parent.is_active ? 'Active' : 'Inactive'}
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <div className="flex space-x-2">
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => handleDeleteParent(parent.id)}
-                          className='dark:text-white dark:border-white'
-                          disabled={deleteParentMutation.isPending}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleDeleteParent(parent.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
+            
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <Pagination
+                currentPage={pagination.currentPage}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+                totalItems={totalItems}
+                itemsPerPage={pagination.itemsPerPage}
+              />
+            )}
           </CardContent>
         </Card>
 
         {/* Create Parent Dialog */}
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-4xl">
             <DialogHeader>
               <DialogTitle>Add New Parent</DialogTitle>
               <DialogDescription>
-                Enter the parent's details to add them to the system.
+                Create a new parent account and assign children
               </DialogDescription>
             </DialogHeader>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Full Name</Label>
-                <Input
-                  id="name"
-                  value={newParent.name}
-                  onChange={(e) => setNewParent({...newParent, name: e.target.value})}
-                />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <h3 className="font-medium">Parent Information</h3>
+                <div className="space-y-2">
+                  <Label>First Name *</Label>
+                  <Input
+                    value={newParent.first_name}
+                    onChange={(e) => setNewParent({...newParent, first_name: e.target.value})}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Last Name *</Label>
+                  <Input
+                    value={newParent.last_name}
+                    onChange={(e) => setNewParent({...newParent, last_name: e.target.value})}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Email *</Label>
+                  <Input
+                    type="email"
+                    value={newParent.email}
+                    onChange={(e) => setNewParent({...newParent, email: e.target.value})}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Phone *</Label>
+                  <Input
+                    value={newParent.phone}
+                    onChange={(e) => setNewParent({...newParent, phone: e.target.value})}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Password *</Label>
+                  <Input
+                    type="password"
+                    value={newParent.password}
+                    onChange={(e) => setNewParent({...newParent, password: e.target.value})}
+                  />
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={newParent.email}
-                  onChange={(e) => setNewParent({...newParent, email: e.target.value})}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="phone">Phone</Label>
-                <Input
-                  id="phone"
-                  value={newParent.phone}
-                  onChange={(e) => setNewParent({...newParent, phone: e.target.value})}
-                />
+
+              <div className="space-y-4">
+                <h3 className="font-medium">Assign Children</h3>
+                <div className="space-y-2">
+                  <Label>Search Students</Label>
+                  <Input
+                    placeholder="Search students by name or email..."
+                    value={studentSearch}
+                    onChange={(e) => setStudentSearch(e.target.value)}
+                  />
+                </div>
+                
+                <div className="border rounded-lg p-4 max-h-60 overflow-y-auto">
+                  <div className="space-y-2">
+                    {filteredStudents.map((student) => (
+                      <div key={student.id} className="flex items-center space-x-2">
+                        <Checkbox
+                          checked={newParent.children.includes(student.id)}
+                          onCheckedChange={() => toggleStudentSelection(student.id)}
+                        />
+                        <Label className="flex-1">
+                          {student.first_name} {student.last_name} ({student.email})
+                        </Label>
+                      </div>
+                    ))}
+                    {filteredStudents.length === 0 && (
+                      <div className="text-sm text-gray-500 text-center py-4">
+                        No students found
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {newParent.children.length > 0 && (
+                  <div className="space-y-2">
+                    <Label>Selected Children ({newParent.children.length})</Label>
+                    <div className="flex flex-wrap gap-1">
+                      {getSelectedStudentNames().map((name, index) => (
+                        <Badge key={index} variant="secondary" className="text-xs">
+                          {name}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
             <div className="flex justify-end space-x-4 mt-6">
-              <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
-                Cancel
-              </Button>
-              <Button 
-                onClick={handleCreateParent}
-                disabled={createParentMutation.isPending}
-              >
-                {createParentMutation.isPending ? 'Adding...' : 'Add Parent'}
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-
-        {/* Bulk Upload Dialog */}
-        <Dialog open={isBulkUploadDialogOpen} onOpenChange={setIsBulkUploadDialogOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Bulk Upload Parents</DialogTitle>
-              <DialogDescription>
-                Download the template, fill it with parent data, and upload it here.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-6">
-              <div className="text-center p-6 border-2 border-dashed rounded-lg">
-                <Download className="h-8 w-8 mx-auto mb-4 text-blue-500" />
-                <h3 className="font-semibold mb-2">Download Template</h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Use this template to ensure your data is formatted correctly
-                </p>
-                <Button onClick={downloadTemplate}>
-                  <Download className="h-4 w-4 mr-2" />
-                  Download CSV Template
-                </Button>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Upload Filled Template</Label>
-                <Input
-                  type="file"
-                  accept=".csv,.xlsx,.xls"
-                  onChange={handleBulkUpload}
-                />
-                <p className="text-sm text-muted-foreground">
-                  Supported formats: CSV, Excel (.xlsx, .xls)
-                </p>
-              </div>
-            </div>
-            <div className="flex justify-end space-x-4 mt-6">
-              <Button variant="outline" onClick={() => setIsBulkUploadDialogOpen(false)}>
-                Cancel
-              </Button>
+              <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>Cancel</Button>
+              <Button onClick={handleCreateParent}>Create Parent</Button>
             </div>
           </DialogContent>
         </Dialog>
