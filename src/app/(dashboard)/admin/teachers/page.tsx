@@ -1,503 +1,441 @@
-'use client'
-import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Plus, Search, Download, Upload, Trash2, BookOpen, Sheet, FileDown, FileText } from 'lucide-react';
-import { useAdminQueries } from '@/hooks/useAdminQueries';
-import { toast } from 'sonner';
+// app/admin/teachers/page.tsx
+"use client";
+import React, { useState, useEffect } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import {
+  Plus,
+  Search,
+  Upload,
+  Trash2,
+  BookOpen,
+  Edit,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+} from "lucide-react";
+import { useAdminQueries } from "@/hooks/useAdminQueries";
+import { toast } from "sonner";
+import {
+  CreateTeacherPayload,
+  AssignTeacherPayload,
+} from "@/lib/services/admin/teacherService";
+import { useRouter } from "next/navigation";
 
-type Assignment = {
-  academicYear: string;
-  term: string;
-  class: string;
-  subjects: string[];
+// Pagination Component (same as before)
+const Pagination = ({
+  currentPage,
+  totalPages,
+  onPageChange,
+  totalItems,
+  itemsPerPage,
+}: {
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
+  totalItems: number;
+  itemsPerPage: number;
+}) => {
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxVisiblePages = 5;
+
+    if (totalPages <= maxVisiblePages) {
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      const startPage = Math.max(
+        1,
+        currentPage - Math.floor(maxVisiblePages / 2)
+      );
+      const endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+      if (startPage > 1) {
+        pages.push(1);
+        if (startPage > 2) pages.push("...");
+      }
+
+      for (let i = startPage; i <= endPage; i++) {
+        pages.push(i);
+      }
+
+      if (endPage < totalPages) {
+        if (endPage < totalPages - 1) pages.push("...");
+        pages.push(totalPages);
+      }
+    }
+
+    return pages;
+  };
+
+  const startItem = (currentPage - 1) * itemsPerPage + 1;
+  const endItem = Math.min(currentPage * itemsPerPage, totalItems);
+
+  return (
+    <div className="flex items-center justify-between px-2 py-4">
+      <div className="flex-1 text-sm text-muted-foreground">
+        Showing {startItem} to {endItem} of {totalItems} entries
+      </div>
+      <div className="flex items-center space-x-2">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onPageChange(1)}
+          disabled={currentPage === 1}
+          className="hidden sm:flex"
+        >
+          <ChevronsLeft className="h-4 w-4" />
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onPageChange(currentPage - 1)}
+          disabled={currentPage === 1}
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
+
+        <div className="flex items-center space-x-1">
+          {getPageNumbers().map((page, index) =>
+            page === "..." ? (
+              <span key={index} className="px-2 py-1 text-sm">
+                ...
+              </span>
+            ) : (
+              <Button
+                key={index}
+                variant={currentPage === page ? "default" : "outline"}
+                size="sm"
+                onClick={() => onPageChange(page as number)}
+                className="h-8 w-8 p-0"
+              >
+                {page}
+              </Button>
+            )
+          )}
+        </div>
+
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onPageChange(currentPage + 1)}
+          disabled={currentPage === totalPages}
+        >
+          <ChevronRight className="h-4 w-4" />
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onPageChange(totalPages)}
+          disabled={currentPage === totalPages}
+          className="hidden sm:flex"
+        >
+          <ChevronsRight className="h-4 w-4" />
+        </Button>
+      </div>
+    </div>
+  );
 };
 
-type ExportFormat = 'csv' | 'excel' | 'pdf';
-
-// Custom hook for export functionality
-const useExportTeachers = () => {
-  const exportToCSV = (teachers: any[], filename: string = 'teachers') => {
-    if (!teachers.length) return;
-    
-    const headers = [
-      'Teacher ID',
-      'Name', 
-      'Email', 
-      'Phone', 
-      'Subjects',
-      'Classes',
-      'Status',
-      'Employment Date'
-    ];
-    
-    const csvContent = [
-      headers.join(','),
-      ...teachers.map(teacher => [
-        teacher.teacherId,
-        `"${teacher.name.replace(/"/g, '""')}"`,
-        `"${teacher.email}"`,
-        `"${teacher.phone || 'N/A'}"`,
-        `"${teacher.subjects.join('; ')}"`,
-        `"${teacher.classes.join('; ')}"`,
-        teacher.status,
-        `"${teacher.employmentDate || 'N/A'}"`
-      ].join(','))
-    ].join('\n');
-
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `${filename}_${new Date().toISOString().split('T')[0]}.csv`;
-    link.click();
-    URL.revokeObjectURL(link.href);
-  };
-
-  const exportToExcel = (teachers: any[], filename: string = 'teachers') => {
-    if (!teachers.length) return;
-    
-    const headers = [
-      'Teacher ID',
-      'Name', 
-      'Email', 
-      'Phone', 
-      'Subjects',
-      'Classes',
-      'Status',
-      'Employment Date'
-    ];
-    
-    const csvContent = [
-      headers.join(','),
-      ...teachers.map(teacher => [
-        teacher.teacherId,
-        `"${teacher.name.replace(/"/g, '""')}"`,
-        `"${teacher.email}"`,
-        `"${teacher.phone || 'N/A'}"`,
-        `"${teacher.subjects.join('; ')}"`,
-        `"${teacher.classes.join('; ')}"`,
-        teacher.status,
-        `"${teacher.employmentDate || 'N/A'}"`
-      ].join(','))
-    ].join('\n');
-
-    const blob = new Blob([csvContent], { type: 'application/vnd.ms-excel;charset=utf-8' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `${filename}_${new Date().toISOString().split('T')[0]}.xls`;
-    link.click();
-    URL.revokeObjectURL(link.href);
-  };
-
-  const exportToPDF = (teachers: any[], filename: string = 'teachers') => {
-    const printWindow = window.open('', '_blank');
-    if (printWindow && teachers.length > 0) {
-      const teacherData = teachers.map(teacher => `
-        <tr>
-          <td>${teacher.teacherId}</td>
-          <td>${teacher.name}</td>
-          <td>${teacher.email}</td>
-          <td>${teacher.phone || 'N/A'}</td>
-          <td>${teacher.subjects.join(', ')}</td>
-          <td>${teacher.classes.join(', ')}</td>
-          <td>${teacher.status}</td>
-        </tr>
-      `).join('');
-
-      const activeCount = teachers.filter(t => t.status === 'active').length;
-      const inactiveCount = teachers.filter(t => t.status === 'inactive').length;
-
-      printWindow.document.write(`
-        <html>
-          <head>
-            <title>Teacher Records - ${filename}</title>
-            <style>
-              body { 
-                font-family: Arial, sans-serif; 
-                margin: 20px; 
-                color: #333;
-                line-height: 1.4;
-              }
-              .header { 
-                text-align: center; 
-                margin-bottom: 30px; 
-                border-bottom: 2px solid #333;
-                padding-bottom: 20px;
-              }
-              .header h1 { 
-                margin: 0; 
-                color: #1a365d;
-                font-size: 24px;
-              }
-              .header p { 
-                margin: 5px 0; 
-                color: #666;
-              }
-              .summary { 
-                margin: 20px 0;
-                padding: 15px;
-                background-color: #f0f9ff;
-                border-radius: 5px;
-                border-left: 4px solid #007bff;
-              }
-              .summary-grid {
-                display: grid;
-                grid-template-columns: repeat(3, 1fr);
-                gap: 15px;
-                margin: 15px 0;
-              }
-              .summary-item {
-                text-align: center;
-                padding: 10px;
-                background: white;
-                border-radius: 5px;
-                border: 1px solid #e1e5e9;
-              }
-              .summary-value {
-                font-size: 18px;
-                font-weight: bold;
-                color: #1a365d;
-              }
-              .summary-label {
-                font-size: 12px;
-                color: #666;
-                margin-top: 5px;
-              }
-              table { 
-                width: 100%; 
-                border-collapse: collapse; 
-                margin: 20px 0;
-                font-size: 11px;
-              }
-              th, td { 
-                border: 1px solid #ddd; 
-                padding: 8px; 
-                text-align: left; 
-              }
-              th { 
-                background-color: #f5f5f5; 
-                font-weight: bold;
-                color: #333;
-              }
-              tr:nth-child(even) {
-                background-color: #f9f9f9;
-              }
-              .status-active { background-color: #d4edda; color: #155724; }
-              .status-inactive { background-color: #e2e3e5; color: #383d41; }
-              .footer {
-                margin-top: 30px;
-                text-align: center;
-                color: #666;
-                font-size: 11px;
-                border-top: 1px solid #ddd;
-                padding-top: 15px;
-              }
-              @media print {
-                body { margin: 0; }
-                .no-print { display: none; }
-              }
-            </style>
-          </head>
-          <body>
-            <div class="header">
-              <h1>Teacher Management Records</h1>
-              <p>Generated on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}</p>
-              <p>Total Teachers: ${teachers.length}</p>
-            </div>
-
-            <div class="summary">
-              <h3 style="margin: 0 0 10px 0; color: #1a365d;">Teacher Summary</h3>
-              <div class="summary-grid">
-                <div class="summary-item">
-                  <div class="summary-value">${teachers.length}</div>
-                  <div class="summary-label">Total Teachers</div>
-                </div>
-                <div class="summary-item">
-                  <div class="summary-value">${activeCount}</div>
-                  <div class="summary-label">Active Teachers</div>
-                </div>
-                <div class="summary-item">
-                  <div class="summary-value">${inactiveCount}</div>
-                  <div class="summary-label">Inactive Teachers</div>
-                </div>
-              </div>
-            </div>
-
-            <table>
-              <thead>
-                <tr>
-                  <th>Teacher ID</th>
-                  <th>Name</th>
-                  <th>Email</th>
-                  <th>Phone</th>
-                  <th>Subjects</th>
-                  <th>Classes</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${teacherData}
-              </tbody>
-            </table>
-
-            <div class="footer">
-              <p>Confidential Teacher Records - For Administrative Use Only</p>
-              <p>Generated by School Management System</p>
-            </div>
-
-            <div class="no-print" style="margin-top: 20px; text-align: center;">
-              <button onclick="window.print()" style="padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; margin: 5px;">
-                Print PDF
-              </button>
-              <button onclick="window.close()" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 5px; cursor: pointer; margin: 5px;">
-                Close
-              </button>
-            </div>
-
-            <script>
-              setTimeout(() => {
-                window.print();
-              }, 500);
-            </script>
-          </body>
-        </html>
-      `);
-      printWindow.document.close();
-    }
-  };
-
-  return {
-    exportToCSV,
-    exportToExcel,
-    exportToPDF
-  };
+const useDebounce = <T,>(value: T, delay: number): T => {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+  useEffect(() => {
+    const handler = setTimeout(() => setDebouncedValue(value), delay);
+    return () => clearTimeout(handler);
+  }, [value, delay]);
+  return debouncedValue;
 };
 
 export default function TeachersPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [isBulkUploadDialogOpen, setIsBulkUploadDialogOpen] = useState(false);
   const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedTeacher, setSelectedTeacher] = useState<any>(null);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState({
-    subject: 'all',
-    status: 'all'
+    category: "all",
+    status: "all",
   });
-  
-  const { 
-    useTeachers, 
-    useCreateTeacher, 
-    useAssignTeacher, 
-    useDeleteTeacher 
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    itemsPerPage: 10,
+  });
+
+  const {
+    useCategories,
+    useCourses,
+    useTeachers,
+    useCreateTeacher,
+    useUpdateTeacher,
+    useAssignTeacher,
+    useDeleteTeacher,
   } = useAdminQueries();
 
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
+  const router = useRouter();
+
+  // Fetch categories and courses
+  const { data: categoriesResponse } = useCategories({ page: 1, perPage: 50 });
+  const { data: coursesResponse } = useCourses({ page: 1, perPage: 50 });
+  const { useTeacherSubjects } = useAdminQueries();
+  const { data: subjectsResponse } = useTeacherSubjects();
+  const allSubjects = subjectsResponse?.data || [];
+
+  // Function to get teacher's assigned subjects
+  const getTeacherAssignedSubjects = (teacherId: number) => {
+    return allSubjects
+      .filter((subject: any) => subject.teacher.id === teacherId)
+      .map((subject: any) => subject.subject.name);
+  };
+
+  // Fetch teachers with proper filtering and pagination
   const { data: teachersResponse, isLoading } = useTeachers({
-    search: searchTerm,
-    subject: filters.subject,
-    status: filters.status
+    search: debouncedSearchTerm,
+    category: filters.category !== "all" ? filters.category : undefined,
+    status: filters.status !== "all" ? filters.status : undefined,
+    page: pagination.currentPage,
+    perPage: pagination.itemsPerPage,
   });
 
-  const { exportToCSV, exportToExcel, exportToPDF } = useExportTeachers();
-
   const createTeacherMutation = useCreateTeacher();
+  const updateTeacherMutation = useUpdateTeacher();
   const assignTeacherMutation = useAssignTeacher();
   const deleteTeacherMutation = useDeleteTeacher();
 
   const [newTeacher, setNewTeacher] = useState({
-    name: '',
-    teacherId: '',
-    email: '',
-    phone: '',
-    subjects: [],
-    classes: []
+    first_name: "",
+    last_name: "",
+    email: "",
+    username: "",
+    phone: "",
+    password: "P@55word",
+    employee_no: "",
+    hire_date: "",
+    subjects: [] as string[],
   });
 
-  const [assignment, setAssignment] = useState<Assignment>({
-    academicYear: '2025-2026',
-    term: '1st',
-    class: '',
-    subjects: []
+  const [editTeacher, setEditTeacher] = useState({
+    email_verified: 0,
+    meta: [] as string[],
+    subjects: [] as string[],
   });
 
+  const [assignment, setAssignment] = useState({
+    class_group_id: 0,
+    subject_id: 0,
+    teacher_id: 0,
+    start_date: "",
+    end_date: "",
+    meta: {
+      semester: "First",
+      room: "",
+    },
+  });
+
+  // Fix: Handle the API response properly
+  const categories = categoriesResponse?.data || [];
+  const courses = coursesResponse?.data || [];
   const teachers = teachersResponse?.data || [];
+  const totalTeachers = teachers.length; // For now, use length since we don't have pagination meta
 
-  const handleCreateTeacher = () => {
-    createTeacherMutation.mutate(newTeacher, {
-      onSuccess: () => {
-        setIsCreateDialogOpen(false);
-        setNewTeacher({
-          name: '',
-          teacherId: '',
-          email: '',
-          phone: '',
-          subjects: [],
-          classes: []
-        });
-        toast.success('Teacher created successfully!');
-      },
-      onError: () => {
-        toast.error('Failed to create teacher');
-      }
+  // Reset to first page when filters change
+  useEffect(() => {
+    setPagination((prev) => ({ ...prev, currentPage: 1 }));
+  }, [debouncedSearchTerm, filters.category, filters.status]);
+
+  const handlePageChange = (page: number) => {
+    setPagination((prev) => ({ ...prev, currentPage: page }));
+  };
+
+  const handleItemsPerPageChange = (value: string) => {
+    setPagination({
+      currentPage: 1,
+      itemsPerPage: parseInt(value),
     });
   };
 
+  const handleCreateTeacher = () => {
+    const payload: CreateTeacherPayload = {
+      first_name: newTeacher.first_name,
+      last_name: newTeacher.last_name,
+      email: newTeacher.email,
+      username: newTeacher.username,
+      phone: newTeacher.phone,
+      password: newTeacher.password,
+      teacher: {
+        employee_no: newTeacher.employee_no,
+        hire_date: newTeacher.hire_date,
+        subjects: newTeacher.subjects,
+      },
+    };
+
+    createTeacherMutation.mutate(payload, {
+      onSuccess: () => {
+        setIsCreateDialogOpen(false);
+        setNewTeacher({
+          first_name: "",
+          last_name: "",
+          email: "",
+          username: "",
+          phone: "",
+          password: "P@55word",
+          employee_no: "",
+          hire_date: "",
+          subjects: [],
+        });
+        toast.success("Teacher created successfully!");
+      },
+      onError: (error: any) => {
+        toast.error(error.message || "Failed to create teacher");
+      },
+    });
+  };
+
+  const handleEditTeacher = () => {
+    if (!selectedTeacher) return;
+
+    const payload = {
+      email_verified: editTeacher.email_verified,
+      meta: editTeacher.meta,
+      teacher: {
+        subjects: editTeacher.subjects,
+      },
+    };
+
+    updateTeacherMutation.mutate(
+      {
+        id: selectedTeacher.id,
+        payload,
+      },
+      {
+        onSuccess: () => {
+          setIsEditDialogOpen(false);
+          setSelectedTeacher(null);
+          toast.success("Teacher updated successfully!");
+        },
+        onError: (error: any) => {
+          toast.error(error.message || "Failed to update teacher");
+        },
+      }
+    );
+  };
+
   const handleAssignTeacher = () => {
-    if (selectedTeacher && assignment.class && assignment.subjects.length > 0) {
-      assignTeacherMutation.mutate({
-        teacherId: selectedTeacher.id,
-        class: assignment.class,
-        subjects: assignment.subjects
-      }, {
+    if (selectedTeacher) {
+      const payload: AssignTeacherPayload = {
+        class_group_id: assignment.class_group_id,
+        subject_id: assignment.subject_id,
+        teacher_id: selectedTeacher.id,
+        start_date: assignment.start_date,
+        end_date: assignment.end_date,
+        meta: assignment.meta,
+      };
+
+      assignTeacherMutation.mutate(payload, {
         onSuccess: () => {
           setIsAssignDialogOpen(false);
           setAssignment({
-            academicYear: '2025-2026',
-            term: '1st',
-            class: '',
-            subjects: []
+            class_group_id: 0,
+            subject_id: 0,
+            teacher_id: 0,
+            start_date: "",
+            end_date: "",
+            meta: { semester: "First", room: "" },
           });
-          toast.success('Teacher assigned successfully!');
+          toast.success("Teacher assigned successfully!");
         },
-        onError: () => {
-          toast.error('Failed to assign teacher');
-        }
+        onError: (error: any) => {
+          toast.error(error.message || "Failed to assign teacher");
+        },
       });
     }
   };
 
   const handleDeleteTeacher = (teacherId: number) => {
     deleteTeacherMutation.mutate(teacherId, {
-      onSuccess: () => {
-        toast.success('Teacher deleted successfully!');
+      onError: (error: any) => {
+        toast.error(error.message || "Failed to delete teacher");
       },
-      onError: () => {
-        toast.error('Failed to delete teacher');
-      }
     });
   };
 
-  const handleExport = (format: ExportFormat) => {
-    if (teachers.length === 0) {
-      toast.error('No teachers available to export');
-      return;
-    }
-
-    try {
-      const filename = `teachers_${filters.subject === 'all' ? 'all_subjects' : filters.subject}`;
-      switch (format) {
-        case 'csv':
-          exportToCSV(teachers, filename);
-          toast.success(`Exported ${teachers.length} teachers as CSV`);
-          break;
-        case 'excel':
-          exportToExcel(teachers, filename);
-          toast.success(`Exported ${teachers.length} teachers as Excel`);
-          break;
-        case 'pdf':
-          exportToPDF(teachers, filename);
-          toast.success(`Exported ${teachers.length} teachers as PDF`);
-          break;
-        default:
-          toast.error('Unsupported export format');
-      }
-    } catch (error) {
-      toast.error('Failed to export teachers. Please try again.');
-      console.error('Export error:', error);
-    }
+  const openEditDialog = (teacher: any) => {
+    setSelectedTeacher(teacher);
+    setEditTeacher({
+      email_verified: teacher.email_verified || 0,
+      meta: teacher.meta || [],
+      subjects: teacher.teacher?.subjects || [],
+    });
+    setIsEditDialogOpen(true);
   };
 
-  const downloadTemplate = () => {
-    const templateHeaders = [
-      'teacherId',
-      'name',
-      'email',
-      'phone',
-      'subjects',
-      'classes'
-    ];
-    
-    const templateContent = [templateHeaders.join(',')].join('\n');
-    const blob = new Blob([templateContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = 'teacher_upload_template.csv';
-    link.click();
-    URL.revokeObjectURL(link.href);
-    toast.success('Template downloaded successfully!');
-  };
-
-  const handleBulkUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      // Implement bulk upload logic here
-      console.log('Bulk upload:', file);
-      toast.success('Bulk upload initiated!');
-      setIsBulkUploadDialogOpen(false);
-    }
+  const openAssignDialog = (teacher: any) => {
+    setSelectedTeacher(teacher);
+    setAssignment({
+      class_group_id: 0,
+      subject_id: 0,
+      teacher_id: teacher.id,
+      start_date: "",
+      end_date: "",
+      meta: { semester: "First", room: "" },
+    });
+    setIsAssignDialogOpen(true);
   };
 
   if (isLoading) {
     return (
       <div className="min-h-screen p-6 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <div>Loading teachers...</div>
-        </div>
+        <div className="text-center">Loading teachers...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen p-6">
+    <div className="min-h-screen p-6 bg-gray-50">
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-3xl font-bold">Teachers Management</h1>
-            <p className="text-muted-foreground">Manage all teachers and their assignments</p>
+            <h1 className="text-3xl font-bold text-gray-900">
+              Teachers Management
+            </h1>
+            <p className="text-gray-600">
+              Manage all teachers and their assignments
+            </p>
           </div>
           <div className="flex space-x-4">
-            <Button variant="outline" onClick={() => setIsBulkUploadDialogOpen(true)} className='dark:text-white dark:border-white'>
-              <Upload className="h-4 w-4 mr-2" />
-              Bulk Upload
-            </Button>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" className='dark:border-white dark:text-white'>
-                  <Download className="h-4 w-4 mr-2" />
-                  Export
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem 
-                  onClick={() => handleExport('csv')}
-                  className="flex items-center space-x-2"
-                >
-                  <Sheet className="h-4 w-4" />
-                  <span>Export as CSV</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  onClick={() => handleExport('excel')}
-                  className="flex items-center space-x-2"
-                >
-                  <FileDown className="h-4 w-4" />
-                  <span>Export as Excel</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  onClick={() => handleExport('pdf')}
-                  className="flex items-center space-x-2"
-                >
-                  <FileText className="h-4 w-4" />
-                  <span>Export as PDF</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
             <Button onClick={() => setIsCreateDialogOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
               Add Teacher
@@ -506,37 +444,42 @@ export default function TeachersPage() {
         </div>
 
         {/* Search and Filters */}
-        <Card className="mb-6">
+        <Card className="mb-6 bg-white border border-gray-200">
           <CardContent className="p-6">
             <div className="flex flex-col md:flex-row gap-4">
               <div className="flex-1">
                 <Input
-                  placeholder="Search teachers by name, ID, or subject..."
+                  placeholder="Search teachers by name, email, or employee number..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
-              <Select 
-                value={filters.subject} 
-                onValueChange={(value) => setFilters(prev => ({...prev, subject: value}))}
+              <Select
+                value={filters.category}
+                onValueChange={(value) =>
+                  setFilters({ ...filters, category: value })
+                }
               >
                 <SelectTrigger className="w-full md:w-[200px]">
-                  <SelectValue placeholder="Filter by subject" />
+                  <SelectValue placeholder="Category" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Subjects</SelectItem>
-                  <SelectItem value="Mathematics">Mathematics</SelectItem>
-                  <SelectItem value="English">English</SelectItem>
-                  <SelectItem value="Science">Science</SelectItem>
-                  <SelectItem value="Physics">Physics</SelectItem>
+                  <SelectItem value="all">All Categories</SelectItem>
+                  {categories.map((category: any) => (
+                    <SelectItem key={category.id} value={category.name}>
+                      {category.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
-              <Select 
-                value={filters.status} 
-                onValueChange={(value) => setFilters(prev => ({...prev, status: value}))}
+              <Select
+                value={filters.status}
+                onValueChange={(value) =>
+                  setFilters({ ...filters, status: value })
+                }
               >
                 <SelectTrigger className="w-full md:w-[200px]">
-                  <SelectValue placeholder="Filter by status" />
+                  <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Status</SelectItem>
@@ -544,88 +487,151 @@ export default function TeachersPage() {
                   <SelectItem value="inactive">Inactive</SelectItem>
                 </SelectContent>
               </Select>
+              <Select
+                value={pagination.itemsPerPage.toString()}
+                onValueChange={handleItemsPerPageChange}
+              >
+                <SelectTrigger className="w-full md:w-[200px]">
+                  <SelectValue placeholder="Show per page" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="5">5 per page</SelectItem>
+                  <SelectItem value="10">10 per page</SelectItem>
+                  <SelectItem value="20">20 per page</SelectItem>
+                  <SelectItem value="50">50 per page</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-            <div className="flex justify-between items-center mt-4">
-              <div className="text-sm text-muted-foreground">
-                {teachers.length} teachers found
-              </div>
-              <div className="text-sm">
-                Showing: {filters.subject === 'all' ? 'All subjects' : filters.subject} • {filters.status === 'all' ? 'All status' : filters.status}
-              </div>
+            <div className="mt-4 text-sm text-gray-600">
+              {totalTeachers} teachers found
+              {debouncedSearchTerm && ` for "${debouncedSearchTerm}"`}
             </div>
           </CardContent>
         </Card>
 
         {/* Teachers Table */}
-        <Card>
+        <Card className="bg-white border border-gray-200">
           <CardHeader>
             <CardTitle>All Teachers</CardTitle>
-            <CardDescription>{teachers.length} teachers in the system</CardDescription>
+            <CardDescription>
+              {totalTeachers} teachers in the system
+              {debouncedSearchTerm && ` matching "${debouncedSearchTerm}"`}
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Teacher ID</TableHead>
+                  <TableHead>Employee No</TableHead>
                   <TableHead>Name</TableHead>
+                  <TableHead>Contact</TableHead>
                   <TableHead>Subjects</TableHead>
-                  <TableHead>Classes</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Email Verified</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {teachers.map((teacher) => (
+                {teachers.map((teacher: any) => (
                   <TableRow key={teacher.id}>
-                    <TableCell className="font-medium">{teacher.teacherId}</TableCell>
+                    <TableCell className="font-medium">
+                      {teacher.teacher?.employee_no || "N/A"}
+                    </TableCell>
                     <TableCell>
                       <div>
-                        <div className="font-medium">{teacher.name}</div>
-                        <div className="text-sm text-muted-foreground">{teacher.email}</div>
+                        <button
+                          onClick={() =>
+                            router.push(`/admin/teachers/${teacher.id}`)
+                          }
+                          className="font-medium hover:text-blue-600 hover:underline text-left"
+                        >
+                          {teacher.first_name} {teacher.last_name}
+                        </button>
+                        <div className="text-sm text-gray-500">
+                          {teacher.username || "No username"}
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div>
+                        <div className="text-sm">{teacher.email}</div>
+                        <div className="text-sm text-gray-500">
+                          {teacher.phone}
+                        </div>
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex flex-wrap gap-1">
-                        {teacher.subjects.map((subject, index) => (
-                          <Badge key={index} variant="outline" className="text-xs">
-                            {subject}
-                          </Badge>
-                        ))}
+                        {/* Show subjects from teacher profile */}
+                        {teacher.teacher?.subjects?.map(
+                          (subject: string, index: number) => (
+                            <Badge
+                              key={index}
+                              variant="outline"
+                              className="text-xs"
+                            >
+                              {subject}
+                            </Badge>
+                          )
+                        )}
+
+                        {/* Show assigned subjects from assignments */}
+                        {getTeacherAssignedSubjects(teacher.id).map(
+                          (subject: string, index: number) => (
+                            <Badge
+                              key={`assigned-${index}`}
+                              variant="default"
+                              className="text-xs"
+                            >
+                              {subject} ✓
+                            </Badge>
+                          )
+                        )}
+
+                        {(!teacher.teacher?.subjects ||
+                          teacher.teacher.subjects.length === 0) &&
+                          getTeacherAssignedSubjects(teacher.id).length ===
+                            0 && (
+                            <span className="text-gray-400 text-xs">
+                              No subjects
+                            </span>
+                          )}
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="flex flex-wrap gap-1">
-                        {teacher.classes.map((cls, index) => (
-                          <Badge key={index} variant="secondary" className="text-xs">
-                            {cls}
-                          </Badge>
-                        ))}
-                      </div>
+                      <Badge
+                        variant={teacher.is_active ? "default" : "secondary"}
+                      >
+                        {teacher.is_active ? "Active" : "Inactive"}
+                      </Badge>
                     </TableCell>
                     <TableCell>
-                      <Badge variant={teacher.status === 'active' ? 'default' : 'secondary'}>
-                        {teacher.status}
+                      <Badge
+                        variant={teacher.email_verified ? "default" : "outline"}
+                      >
+                        {teacher.email_verified ? "Verified" : "Not Verified"}
                       </Badge>
                     </TableCell>
                     <TableCell>
                       <div className="flex space-x-2">
-                        <Button 
-                          variant="outline" 
+                        <Button
+                          variant="outline"
                           size="sm"
-                          onClick={() => {
-                            setSelectedTeacher(teacher);
-                            setIsAssignDialogOpen(true);
-                          }}
-                          className='dark:text-white dark:border-white'
+                          onClick={() => openEditDialog(teacher)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openAssignDialog(teacher)}
                         >
                           <BookOpen className="h-4 w-4" />
                         </Button>
-                        <Button 
-                          variant="outline" 
+                        <Button
+                          variant="outline"
                           size="sm"
                           onClick={() => handleDeleteTeacher(teacher.id)}
-                          className='dark:text-white dark:border-white'
-                          disabled={deleteTeacherMutation.isPending}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -635,6 +641,17 @@ export default function TeachersPage() {
                 ))}
               </TableBody>
             </Table>
+
+            {/* Pagination */}
+            {Math.ceil(totalTeachers / pagination.itemsPerPage) > 1 && (
+              <Pagination
+                currentPage={pagination.currentPage}
+                totalPages={Math.ceil(totalTeachers / pagination.itemsPerPage)}
+                onPageChange={handlePageChange}
+                totalItems={totalTeachers}
+                itemsPerPage={pagination.itemsPerPage}
+              />
+            )}
           </CardContent>
         </Card>
 
@@ -643,197 +660,289 @@ export default function TeachersPage() {
           <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>Add New Teacher</DialogTitle>
-              <DialogDescription>
-                Enter the teacher's details to add them to the system.
-              </DialogDescription>
             </DialogHeader>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Full Name</Label>
+                <Label>First Name *</Label>
                 <Input
-                  id="name"
-                  value={newTeacher.name}
-                  onChange={(e) => setNewTeacher({...newTeacher, name: e.target.value})}
+                  value={newTeacher.first_name}
+                  onChange={(e) =>
+                    setNewTeacher({ ...newTeacher, first_name: e.target.value })
+                  }
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="teacherId">Teacher ID</Label>
+                <Label>Last Name *</Label>
                 <Input
-                  id="teacherId"
-                  value={newTeacher.teacherId}
-                  onChange={(e) => setNewTeacher({...newTeacher, teacherId: e.target.value})}
+                  value={newTeacher.last_name}
+                  onChange={(e) =>
+                    setNewTeacher({ ...newTeacher, last_name: e.target.value })
+                  }
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label>Email *</Label>
                 <Input
-                  id="email"
                   type="email"
                   value={newTeacher.email}
-                  onChange={(e) => setNewTeacher({...newTeacher, email: e.target.value})}
+                  onChange={(e) =>
+                    setNewTeacher({ ...newTeacher, email: e.target.value })
+                  }
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="phone">Phone</Label>
+                <Label>Username *</Label>
                 <Input
-                  id="phone"
+                  value={newTeacher.username}
+                  onChange={(e) =>
+                    setNewTeacher({ ...newTeacher, username: e.target.value })
+                  }
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Phone *</Label>
+                <Input
                   value={newTeacher.phone}
-                  onChange={(e) => setNewTeacher({...newTeacher, phone: e.target.value})}
+                  onChange={(e) =>
+                    setNewTeacher({ ...newTeacher, phone: e.target.value })
+                  }
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Employee No *</Label>
+                <Input
+                  value={newTeacher.employee_no}
+                  onChange={(e) =>
+                    setNewTeacher({
+                      ...newTeacher,
+                      employee_no: e.target.value,
+                    })
+                  }
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Hire Date</Label>
+                <Input
+                  type="date"
+                  value={newTeacher.hire_date}
+                  onChange={(e) =>
+                    setNewTeacher({ ...newTeacher, hire_date: e.target.value })
+                  }
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Password *</Label>
+                <Input
+                  type="password"
+                  value={newTeacher.password}
+                  onChange={(e) =>
+                    setNewTeacher({ ...newTeacher, password: e.target.value })
+                  }
                 />
               </div>
             </div>
             <div className="flex justify-end space-x-4 mt-6">
-              <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
+              <Button
+                variant="outline"
+                onClick={() => setIsCreateDialogOpen(false)}
+              >
                 Cancel
               </Button>
-              <Button 
-                onClick={handleCreateTeacher}
-                disabled={createTeacherMutation.isPending}
-              >
-                {createTeacherMutation.isPending ? 'Adding...' : 'Add Teacher'}
-              </Button>
+              <Button onClick={handleCreateTeacher}>Add Teacher</Button>
             </div>
           </DialogContent>
         </Dialog>
 
-        {/* Bulk Upload Dialog */}
-        <Dialog open={isBulkUploadDialogOpen} onOpenChange={setIsBulkUploadDialogOpen}>
-          <DialogContent>
+        {/* Edit Teacher Dialog */}
+        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+          <DialogContent className="max-w-2xl">
             <DialogHeader>
-              <DialogTitle>Bulk Upload Teachers</DialogTitle>
+              <DialogTitle>Edit Teacher</DialogTitle>
               <DialogDescription>
-                Download the template, fill it with teacher data, and upload it here.
+                Update {selectedTeacher?.first_name}{" "}
+                {selectedTeacher?.last_name}'s information
               </DialogDescription>
             </DialogHeader>
-            <div className="space-y-6">
-              <div className="text-center p-6 border-2 border-dashed rounded-lg">
-                <Download className="h-8 w-8 mx-auto mb-4 text-blue-500" />
-                <h3 className="font-semibold mb-2">Download Template</h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Use this template to ensure your data is formatted correctly
-                </p>
-                <Button onClick={downloadTemplate}>
-                  <Download className="h-4 w-4 mr-2" />
-                  Download CSV Template
-                </Button>
-              </div>
-
+            <div className="space-y-4">
               <div className="space-y-2">
-                <Label>Upload Filled Template</Label>
+                <Label>Email Verified</Label>
+                <Select
+                  value={editTeacher.email_verified.toString()}
+                  onValueChange={(value) =>
+                    setEditTeacher({
+                      ...editTeacher,
+                      email_verified: parseInt(value),
+                    })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="0">Not Verified</SelectItem>
+                    <SelectItem value="1">Verified</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Subjects (comma-separated)</Label>
                 <Input
-                  type="file"
-                  accept=".csv,.xlsx,.xls"
-                  onChange={handleBulkUpload}
+                  placeholder="Math, Science, English"
+                  value={editTeacher.subjects.join(", ")}
+                  onChange={(e) =>
+                    setEditTeacher({
+                      ...editTeacher,
+                      subjects: e.target.value.split(",").map((s) => s.trim()),
+                    })
+                  }
                 />
-                <p className="text-sm text-muted-foreground">
-                  Supported formats: CSV, Excel (.xlsx, .xls)
-                </p>
               </div>
             </div>
             <div className="flex justify-end space-x-4 mt-6">
-              <Button variant="outline" onClick={() => setIsBulkUploadDialogOpen(false)}>
+              <Button
+                variant="outline"
+                onClick={() => setIsEditDialogOpen(false)}
+              >
                 Cancel
               </Button>
+              <Button onClick={handleEditTeacher}>Update Teacher</Button>
             </div>
           </DialogContent>
         </Dialog>
 
         {/* Assign Teacher Dialog */}
         <Dialog open={isAssignDialogOpen} onOpenChange={setIsAssignDialogOpen}>
-          <DialogContent>
+          <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle>Assign Teacher to Class</DialogTitle>
+              <DialogTitle>Assign Teacher to Course</DialogTitle>
               <DialogDescription>
-                Assign {selectedTeacher?.name} to a class and subjects for the current academic year.
+                Assign {selectedTeacher?.first_name}{" "}
+                {selectedTeacher?.last_name} to a course
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label>Academic Year</Label>
-                <Select value={assignment.academicYear} onValueChange={(value) => setAssignment({...assignment, academicYear: value})}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="2024-2025">2024-2025</SelectItem>
-                    <SelectItem value="2025-2026">2025-2026</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Term</Label>
-                <Select value={assignment.term} onValueChange={(value) => setAssignment({...assignment, term: value})}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="1st">1st Term</SelectItem>
-                    <SelectItem value="2nd">2nd Term</SelectItem>
-                    <SelectItem value="3rd">3rd Term</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Class</Label>
-                <Select value={assignment.class} onValueChange={(value) => setAssignment({...assignment, class: value})}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select class" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="JSS 1A">JSS 1A</SelectItem>
-                    <SelectItem value="JSS 1B">JSS 1B</SelectItem>
-                    <SelectItem value="JSS 2A">JSS 2A</SelectItem>
-                    <SelectItem value="JSS 2B">JSS 2B</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Subjects</Label>
-                <Select onValueChange={(value) => {
-                  if (!assignment.subjects.includes(value)) {
-                    setAssignment({...assignment, subjects: [...assignment.subjects, value]});
+                <Label>Category (Class Group)</Label>
+                <Select
+                  value={assignment.class_group_id.toString()}
+                  onValueChange={(value) =>
+                    setAssignment({
+                      ...assignment,
+                      class_group_id: parseInt(value),
+                    })
                   }
-                }}>
+                >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select subjects" />
+                    <SelectValue placeholder="Select category" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Mathematics">Mathematics</SelectItem>
-                    <SelectItem value="English">English</SelectItem>
-                    <SelectItem value="Science">Science</SelectItem>
-                    <SelectItem value="Social Studies">Social Studies</SelectItem>
-                    <SelectItem value="Physics">Physics</SelectItem>
-                    <SelectItem value="Chemistry">Chemistry</SelectItem>
+                    {categories.map((category: any) => (
+                      <SelectItem
+                        key={category.id}
+                        value={category.id.toString()}
+                      >
+                        {category.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
-                <div className="flex flex-wrap gap-1 mt-2">
-                  {assignment.subjects.map((subject, index) => (
-                    <Badge key={index} variant="secondary" className="flex items-center gap-1">
-                      {subject}
-                      <button 
-                        onClick={() => setAssignment({
-                          ...assignment, 
-                          subjects: assignment.subjects.filter(s => s !== subject)
-                        })}
-                        className="ml-1 hover:text-destructive"
-                      >
-                        ×
-                      </button>
-                    </Badge>
-                  ))}
+              </div>
+
+              <div className="space-y-2">
+                <Label>Course (Subject)</Label>
+                <Select
+                  value={assignment.subject_id.toString()}
+                  onValueChange={(value) =>
+                    setAssignment({
+                      ...assignment,
+                      subject_id: parseInt(value),
+                    })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select course" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {courses.map((course: any) => (
+                      <SelectItem key={course.id} value={course.id.toString()}>
+                        {course.fullname} ({course.shortname})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Start Date</Label>
+                  <Input
+                    type="date"
+                    value={assignment.start_date}
+                    onChange={(e) =>
+                      setAssignment({
+                        ...assignment,
+                        start_date: e.target.value,
+                      })
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>End Date</Label>
+                  <Input
+                    type="date"
+                    value={assignment.end_date}
+                    onChange={(e) =>
+                      setAssignment({ ...assignment, end_date: e.target.value })
+                    }
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Semester</Label>
+                  <Select
+                    value={assignment.meta.semester}
+                    onValueChange={(value) =>
+                      setAssignment({
+                        ...assignment,
+                        meta: { ...assignment.meta, semester: value },
+                      })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="First">First Semester</SelectItem>
+                      <SelectItem value="Second">Second Semester</SelectItem>
+                      <SelectItem value="Third">Third Semester</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Room</Label>
+                  <Input
+                    value={assignment.meta.room}
+                    onChange={(e) =>
+                      setAssignment({
+                        ...assignment,
+                        meta: { ...assignment.meta, room: e.target.value },
+                      })
+                    }
+                    placeholder="Room number"
+                  />
                 </div>
               </div>
             </div>
             <div className="flex justify-end space-x-4 mt-6">
-              <Button variant="outline" onClick={() => setIsAssignDialogOpen(false)}>
+              <Button
+                variant="outline"
+                onClick={() => setIsAssignDialogOpen(false)}
+              >
                 Cancel
               </Button>
-              <Button 
-                onClick={handleAssignTeacher}
-                disabled={assignTeacherMutation.isPending || !assignment.class || assignment.subjects.length === 0}
-              >
-                {assignTeacherMutation.isPending ? 'Assigning...' : 'Assign Teacher'}
-              </Button>
+              <Button onClick={handleAssignTeacher}>Assign Teacher</Button>
             </div>
           </DialogContent>
         </Dialog>
