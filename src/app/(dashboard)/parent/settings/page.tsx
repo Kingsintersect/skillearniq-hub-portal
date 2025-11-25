@@ -40,7 +40,7 @@ export default function SettingsPage() {
 
   return (
     <div className="min-h-screen p-6">
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-8xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl font-bold">Parent Settings</h1>
           <p className="text-muted-foreground">Manage your account preferences and notifications</p>
