@@ -15,8 +15,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { 
-  Bell, 
+import {
+  Bell,
   BellOff,
   FileText,
   MessageSquare,
@@ -106,7 +106,7 @@ export const NotificationsPage: React.FC = () => {
   const unreadCount = notifications.filter(n => !n.read && !n.archived).length;
 
   const markAsRead = (id: number) => {
-    setNotifications(notifications.map(n => 
+    setNotifications(notifications.map(n =>
       n.id === id ? { ...n, read: true } : n
     ));
     toast.success('Notification marked as read');
@@ -118,7 +118,7 @@ export const NotificationsPage: React.FC = () => {
   };
 
   const archiveNotification = (id: number) => {
-    setNotifications(notifications.map(n => 
+    setNotifications(notifications.map(n =>
       n.id === id ? { ...n, archived: true } : n
     ));
     toast.success('Notification archived');
@@ -162,7 +162,7 @@ export const NotificationsPage: React.FC = () => {
 
   return (
     <div className="min-h-screen p-6">
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-8xl mx-auto">
         {/* Header */}
         <div className="mb-8 text-center">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-primary rounded-2xl mb-4">
@@ -277,8 +277,8 @@ export const NotificationsPage: React.FC = () => {
           </TabsList>
 
           <TabsContent value="all" className="space-y-6">
-            <MessageListView 
-              messages={filteredNotifications} 
+            <MessageListView
+              messages={filteredNotifications}
               type="incoming"
               onMarkAsRead={markAsRead}
               onArchive={archiveNotification}
@@ -288,8 +288,8 @@ export const NotificationsPage: React.FC = () => {
           </TabsContent>
 
           <TabsContent value="unread">
-            <MessageListView 
-              messages={filteredNotifications.filter(m => !m.read)} 
+            <MessageListView
+              messages={filteredNotifications.filter(m => !m.read)}
               type="incoming"
               onMarkAsRead={markAsRead}
               onArchive={archiveNotification}
@@ -299,8 +299,8 @@ export const NotificationsPage: React.FC = () => {
           </TabsContent>
 
           <TabsContent value="sent">
-            <MessageListView 
-              messages={sentMessages} 
+            <MessageListView
+              messages={sentMessages}
               type="sent"
               onMarkAsRead={markAsRead}
               onArchive={archiveNotification}
@@ -310,8 +310,8 @@ export const NotificationsPage: React.FC = () => {
           </TabsContent>
 
           <TabsContent value="archived">
-            <MessageListView 
-              messages={notifications.filter(n => n.archived)} 
+            <MessageListView
+              messages={notifications.filter(n => n.archived)}
               type="incoming"
               onMarkAsRead={markAsRead}
               onArchive={archiveNotification}
@@ -465,7 +465,7 @@ const ComposeMessageDialog: React.FC<{
           </div>
 
           <div className="flex justify-end space-x-2 pt-4">
-            <Button type="button" variant="outline" onClick={() => {}}>
+            <Button type="button" variant="outline" onClick={() => { }}>
               Save Draft
             </Button>
             <Button type="submit">
@@ -545,14 +545,13 @@ const MessageItem: React.FC<{
   };
 
   return (
-    <div className={`p-4 hover:bg-muted/50 transition-colors ${
-      type === 'incoming' && !message.read ? 'bg-blue-50 dark:bg-blue-950/20' : ''
-    }`}>
+    <div className={`p-4 hover:bg-muted/50 transition-colors ${type === 'incoming' && !message.read ? 'bg-blue-50 dark:bg-blue-950/20' : ''
+      }`}>
       <div className="flex items-start space-x-3">
         <div className="flex-shrink-0 mt-1">
           {type === 'sent' ? <Send className="h-5 w-5 text-green-500" /> : getIcon(message.type)}
         </div>
-        
+
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between mb-1">
             <h4 className="font-medium text-foreground truncate">
@@ -565,16 +564,16 @@ const MessageItem: React.FC<{
               )}
             </div>
           </div>
-          
+
           <p className="text-sm text-muted-foreground mb-2">{message.message}</p>
-          
+
           <div className="flex items-center justify-between">
             <span className="text-xs text-muted-foreground">
               {new Date(message.timestamp).toLocaleDateString()} at{' '}
               {new Date(message.timestamp).toLocaleTimeString()}
               {type === 'sent' && ` • ${message.method.toUpperCase()}`}
             </span>
-            
+
             {type === 'incoming' && (
               <div className="flex space-x-1">
                 {!message.read && (
@@ -661,7 +660,7 @@ const NotificationSettings: React.FC<{
 
         <div className="space-y-3">
           <h4 className="font-medium">Message Types</h4>
-          
+
           <div className="flex items-center justify-between">
             <Label htmlFor="parent-messages" className="flex-1">
               <div className="text-sm">Parent Messages</div>

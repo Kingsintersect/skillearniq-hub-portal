@@ -199,7 +199,7 @@ const useExportPayments = () => {
       'Date',
       'Status'
     ];
-    
+
     const csvContent = [
       headers.join(','),
       ...payments.map(payment => [
@@ -227,7 +227,7 @@ const useExportPayments = () => {
       'Date',
       'Status'
     ];
-    
+
     const csvContent = [
       headers.join(','),
       ...payments.map(payment => [
@@ -282,7 +282,7 @@ export default function PaymentsPage() {
     try {
       const studentName = selectedStudent?.name || 'All_Children';
       const filename = `payments_${studentName.replace(/\s+/g, '_')}`;
-      
+
       switch (format) {
         case 'pdf':
           exportToPDF(filteredPayments, studentName, filename);
@@ -315,7 +315,7 @@ export default function PaymentsPage() {
 
   return (
     <div className="min-h-screen p-6">
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-8xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl font-bold">Payments</h1>
           <p className="text-muted-foreground">
@@ -353,7 +353,7 @@ export default function PaymentsPage() {
                 <div>
                   <CardTitle>Payment History</CardTitle>
                   <CardDescription>
-                    {selectedStudent 
+                    {selectedStudent
                       ? `All transactions for ${selectedStudent.name}`
                       : 'All transactions and payment records for your children'
                     }
@@ -367,21 +367,21 @@ export default function PaymentsPage() {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem 
+                    <DropdownMenuItem
                       onClick={() => handleExportPayments('pdf')}
                       className="flex items-center space-x-2"
                     >
                       <FileText className="h-4 w-4" />
                       <span>Export as PDF</span>
                     </DropdownMenuItem>
-                    <DropdownMenuItem 
+                    <DropdownMenuItem
                       onClick={() => handleExportPayments('csv')}
                       className="flex items-center space-x-2"
                     >
                       <Sheet className="h-4 w-4" />
                       <span>Export as CSV</span>
                     </DropdownMenuItem>
-                    <DropdownMenuItem 
+                    <DropdownMenuItem
                       onClick={() => handleExportPayments('excel')}
                       className="flex items-center space-x-2"
                     >
@@ -419,7 +419,7 @@ export default function PaymentsPage() {
                   ))}
                 </TableBody>
               </Table>
-              
+
               <div className="mt-6 p-4 bg-muted/50 rounded-lg">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                   <div className="text-center p-4 border rounded-lg bg-white">
@@ -435,7 +435,7 @@ export default function PaymentsPage() {
                     <div className="text-sm text-muted-foreground">Total Pending</div>
                   </div>
                 </div>
-                
+
                 <div className="flex justify-between items-center">
                   <div>
                     <h4 className="font-semibold">Summary</h4>

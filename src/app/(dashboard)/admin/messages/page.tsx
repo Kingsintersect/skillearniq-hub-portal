@@ -71,7 +71,7 @@ export default function MessagesPage() {
     }
 
     toast.success(`Message sent to ${recipientCount} ${recipientText}`);
-    
+
     // Reset form
     setMessage({
       recipientType: 'all',
@@ -84,8 +84,8 @@ export default function MessagesPage() {
 
   const toggleUserSelection = (userId: string, userType: string) => {
     const userKey = `${userType}-${userId}`;
-    setSelectedUsers(prev => 
-      prev.includes(userKey) 
+    setSelectedUsers(prev =>
+      prev.includes(userKey)
         ? prev.filter(u => u !== userKey)
         : [...prev, userKey]
     );
@@ -103,7 +103,7 @@ export default function MessagesPage() {
 
   return (
     <div className="min-h-screen p-6">
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-8xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl font-bold">Send Messages</h1>
           <p className="text-muted-foreground">Communicate with students, teachers, and parents</p>
@@ -121,9 +121,9 @@ export default function MessagesPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <Label>Send To</Label>
-                    <Select 
-                      value={message.recipientType} 
-                      onValueChange={(value) => setMessage({...message, recipientType: value})}
+                    <Select
+                      value={message.recipientType}
+                      onValueChange={(value) => setMessage({ ...message, recipientType: value })}
                     >
                       <SelectTrigger>
                         <SelectValue />
@@ -188,7 +188,7 @@ export default function MessagesPage() {
                   <Input
                     placeholder="Enter message subject"
                     value={message.subject}
-                    onChange={(e) => setMessage({...message, subject: e.target.value})}
+                    onChange={(e) => setMessage({ ...message, subject: e.target.value })}
                   />
                 </div>
 
@@ -198,7 +198,7 @@ export default function MessagesPage() {
                     placeholder="Type your message here..."
                     rows={8}
                     value={message.content}
-                    onChange={(e) => setMessage({...message, content: e.target.value})}
+                    onChange={(e) => setMessage({ ...message, content: e.target.value })}
                   />
                 </div>
 
@@ -318,7 +318,7 @@ export default function MessagesPage() {
                     </div>
                     <p className="text-xs">Progress reports for Term 1 are now available...</p>
                   </div>
-                  
+
                   <div className="p-3 border rounded-lg">
                     <div className="flex justify-between items-start mb-2">
                       <div>

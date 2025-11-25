@@ -1,13 +1,17 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { courseService } from '../services/course-service';
 import { useCourseStore } from '../stores/course-store';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { PaidCategory, VerifyPaymentResponse } from '../types/course.types';
 import { createQuery } from '@/core/queryHooks';
 import { useAuthContext } from '@/providers/AuthProvider';
 
 export const useCourseQueries = (userId: string) => {
+    const [unenrollModalOpen, setUnenrollModalOpen] = useState(false);
+    const [courseToUnenroll, setCourseToUnenroll] = useState<{ courseId: string, courseGroupId: number, courseName: string } | null>(null);
+
+
     const { setCategories, setEnrolledCourses, setPaidCategories, setLoading, unenrollFromCourse } = useCourseStore();
     const { user } = useAuthContext();
     const queryClient = useQueryClient();
@@ -144,7 +148,14 @@ export const useCourseQueries = (userId: string) => {
         isEnrollmentProcessing: enrollmentInCourseMutation.isPending,
         isUnenrollmentProcessing: unenrollFromCourseMutation.isPending,
         isLoading: mergedCategoriesQuery.isLoading || enrollmentsQuery.isLoading,
-        isFetching: mergedCategoriesQuery.isFetching || enrollmentsQuery.isFetching
+        isFetching: mergedCategoriesQuery.isFetching || enrollmentsQuery.isFetching,
+
+        // Unenrollment Modal
+        unenrollModalOpen,
+        setUnenrollModalOpen,
+        courseToUnenroll,
+        setCourseToUnenroll,
+        unenrollFromCourse,
     };
 };
 

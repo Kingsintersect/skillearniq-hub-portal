@@ -91,10 +91,10 @@ const useExportReports = () => {
           <td style="border: 1px solid #ddd; padding: 6px;">${subject.average}%</td>
           <td style="border: 1px solid #ddd; padding: 6px;">
             <span style="padding: 2px 6px; border-radius: 3px; font-size: 10px; 
-              ${subject.grade.includes('A') ? 'background: #d4edda; color: #155724;' : 
-                subject.grade.includes('B') ? 'background: #d1ecf1; color: #0c5460;' : 
-                subject.grade.includes('C') ? 'background: #fff3cd; color: #856404;' : 
-                'background: #f8d7da; color: #721c24;'}">
+              ${subject.grade.includes('A') ? 'background: #d4edda; color: #155724;' :
+          subject.grade.includes('B') ? 'background: #d1ecf1; color: #0c5460;' :
+            subject.grade.includes('C') ? 'background: #fff3cd; color: #856404;' :
+              'background: #f8d7da; color: #721c24;'}">
               ${subject.grade}
             </span>
           </td>
@@ -296,11 +296,11 @@ const useExportReports = () => {
   const exportToCSV = (report: any, filename: string = 'report') => {
     const headers = [
       'Student',
-      'Student ID', 
-      'Class', 
+      'Student ID',
+      'Class',
       'Academic Year',
       'Term',
-      'Overall Average', 
+      'Overall Average',
       'Position',
       'Attendance',
       'Final Grade',
@@ -308,7 +308,7 @@ const useExportReports = () => {
       'Mathematics Grade',
       'Mathematics Position',
       'English Score',
-      'English Grade', 
+      'English Grade',
       'English Position',
       'Science Score',
       'Science Grade',
@@ -320,7 +320,7 @@ const useExportReports = () => {
       'Computer Science Grade',
       'Computer Science Position'
     ];
-    
+
     const csvContent = [
       headers.join(','),
       [
@@ -367,11 +367,11 @@ const useExportReports = () => {
   const exportToExcel = (report: any, filename: string = 'report') => {
     const headers = [
       'Student',
-      'Student ID', 
-      'Class', 
+      'Student ID',
+      'Class',
       'Academic Year',
       'Term',
-      'Overall Average', 
+      'Overall Average',
       'Position',
       'Attendance',
       'Final Grade',
@@ -379,7 +379,7 @@ const useExportReports = () => {
       'Mathematics Grade',
       'Mathematics Position',
       'English Score',
-      'English Grade', 
+      'English Grade',
       'English Position',
       'Science Score',
       'Science Grade',
@@ -391,7 +391,7 @@ const useExportReports = () => {
       'Computer Science Grade',
       'Computer Science Position'
     ];
-    
+
     const csvContent = [
       headers.join(','),
       [
@@ -445,7 +445,7 @@ const useExportReports = () => {
 export default function ReportsPage() {
   const { selectedStudentId, children } = useParentStore();
   const { exportToPDF, exportToCSV, exportToExcel } = useExportReports();
-  
+
   const selectedStudent = children.find(child => child.id === selectedStudentId);
   const studentReport = studentReports.find(report => report.id === selectedStudentId);
 
@@ -457,7 +457,7 @@ export default function ReportsPage() {
 
     try {
       const filename = `${reportType.toLowerCase().replace(/\s+/g, '_')}_${studentReport.name.replace(/\s+/g, '_')}`;
-      
+
       switch (format) {
         case 'pdf':
           exportToPDF(studentReport, filename);
@@ -490,7 +490,7 @@ export default function ReportsPage() {
 
   return (
     <div className="min-h-screen p-6">
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-8xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl font-bold">Reports</h1>
           <p className="text-muted-foreground">
@@ -546,21 +546,21 @@ export default function ReportsPage() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem 
+                      <DropdownMenuItem
                         onClick={() => handleExportReport('pdf', 'Term 1 Progress Report')}
                         className="flex items-center space-x-2"
                       >
                         <FileText className="h-4 w-4" />
                         <span>Download PDF</span>
                       </DropdownMenuItem>
-                      <DropdownMenuItem 
+                      <DropdownMenuItem
                         onClick={() => handleExportReport('csv', 'Term 1 Progress Report')}
                         className="flex items-center space-x-2"
                       >
                         <Sheet className="h-4 w-4" />
                         <span>Download CSV</span>
                       </DropdownMenuItem>
-                      <DropdownMenuItem 
+                      <DropdownMenuItem
                         onClick={() => handleExportReport('excel', 'Term 1 Progress Report')}
                         className="flex items-center space-x-2"
                       >
@@ -586,21 +586,21 @@ export default function ReportsPage() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem 
+                      <DropdownMenuItem
                         onClick={() => handleExportReport('pdf', 'Mid-Term Assessment')}
                         className="flex items-center space-x-2"
                       >
                         <FileText className="h-4 w-4" />
                         <span>Download PDF</span>
                       </DropdownMenuItem>
-                      <DropdownMenuItem 
+                      <DropdownMenuItem
                         onClick={() => handleExportReport('csv', 'Mid-Term Assessment')}
                         className="flex items-center space-x-2"
                       >
                         <Sheet className="h-4 w-4" />
                         <span>Download CSV</span>
                       </DropdownMenuItem>
-                      <DropdownMenuItem 
+                      <DropdownMenuItem
                         onClick={() => handleExportReport('excel', 'Mid-Term Assessment')}
                         className="flex items-center space-x-2"
                       >
@@ -639,21 +639,21 @@ export default function ReportsPage() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem 
+                      <DropdownMenuItem
                         onClick={() => handleExportReport('pdf', 'Complete Academic Year Report')}
                         className="flex items-center space-x-2"
                       >
                         <FileText className="h-4 w-4" />
                         <span>Download PDF</span>
                       </DropdownMenuItem>
-                      <DropdownMenuItem 
+                      <DropdownMenuItem
                         onClick={() => handleExportReport('csv', 'Complete Academic Year Report')}
                         className="flex items-center space-x-2"
                       >
                         <Sheet className="h-4 w-4" />
                         <span>Download CSV</span>
                       </DropdownMenuItem>
-                      <DropdownMenuItem 
+                      <DropdownMenuItem
                         onClick={() => handleExportReport('excel', 'Complete Academic Year Report')}
                         className="flex items-center space-x-2"
                       >
