@@ -1,57 +1,52 @@
+// hooks/useAdminQueries.ts
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   teacherService, 
   Teacher, 
   CreateTeacherPayload, 
-  AssignTeacherPayload, 
+  UpdateTeacherPayload,
+  AssignTeacherPayload,
   TeacherFilterParams,
   Category,
   Course
 } from '@/lib/services/admin/teacherService';
+import { 
+  studentService, 
+  Student, 
+  CreateStudentPayload, 
+  StudentFilterParams 
+} from '@/lib/services/admin/studentService';
+import { 
+  parentService, 
+  Parent, 
+  CreateParentPayload, 
+  ParentFilterParams 
+} from '@/lib/services/admin/parentService';
+import { 
+  paymentService, 
+ 
+  PaymentFilterParams 
+} from '@/lib/services/admin/paymentService';
+import { Payment, PaymentWithDetails } from '@/types/auth';
+import { 
+  dashboardService, 
+  DashboardStats 
+} from '@/lib/services/admin/dashboardService';
 import { toast } from 'sonner';
 
 export const useAdminQueries = () => {
   const queryClient = useQueryClient();
 
-  // Get categories
-  const useCategories = () => {
+  // Dashboard
+  const useDashboardStats = () => {
     return useQuery({
-      queryKey: ['categories'],
-      queryFn: async () => {
-        try {
-          const categories = await teacherService.getCategories();
-          console.log('Categories in hook:', categories);
-          return categories;
-        } catch (error) {
-          console.error('Error in categories hook:', error);
-          return [];
-        }
-      },
-      staleTime: 10 * 60 * 1000,
-      retry: 2,
+      queryKey: ['dashboard-stats'],
+      queryFn: dashboardService.getDashboardStats,
+      staleTime: 5 * 60 * 1000,
     });
   };
 
-  // Get courses
-  const useCourses = () => {
-    return useQuery({
-      queryKey: ['courses'],
-      queryFn: async () => {
-        try {
-          const courses = await teacherService.getCourses();
-          console.log('Courses in hook:', courses);
-          return courses;
-        } catch (error) {
-          console.error('Error in courses hook:', error);
-          return [];
-        }
-      },
-      staleTime: 10 * 60 * 1000,
-      retry: 2,
-    });
-  };
-
-  // Get teachers with filtering
+  // Teachers - Fixed to accept parameters properly
   const useTeachers = (params?: TeacherFilterParams) => {
     return useQuery({
       queryKey: ['teachers', params],
@@ -60,7 +55,6 @@ export const useAdminQueries = () => {
     });
   };
 
-  // Get all teachers (for exports, etc.)
   const useAllTeachers = () => {
     return useQuery({
       queryKey: ['all-teachers'],
@@ -69,12 +63,48 @@ export const useAdminQueries = () => {
     });
   };
 
-  // Create teacher mutation
+  const useTeacher = (id: number) => {
+  return useQuery({
+    queryKey: ['teacher', id],
+    queryFn: () => teacherService.getTeacher(id),
+    enabled: !!id,
+    staleTime: 5 * 60 * 1000,
+  });
+};
+
+// Get teacher subjects
+const useTeacherSubjects = () => {
+  return useQuery({
+    queryKey: ['teacher-subjects'],
+    queryFn: teacherService.getTeacherSubjects,
+    staleTime: 5 * 60 * 1000,
+  });
+};
+
+  // Categories - Fixed to accept parameters
+  const useCategories = (params?: any) => {
+    return useQuery({
+      queryKey: ['categories', params],
+      queryFn: () => teacherService.getCategories(params),
+      staleTime: 5 * 60 * 1000,
+    });
+  };
+
+  // Courses - Fixed to accept parameters
+  const useCourses = (params?: any) => {
+    return useQuery({
+      queryKey: ['courses', params],
+      queryFn: () => teacherService.getCourses(params),
+      staleTime: 5 * 60 * 1000,
+    });
+  };
+
   const useCreateTeacher = () => {
     return useMutation({
       mutationFn: teacherService.createTeacher,
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ['teachers'] });
+        queryClient.invalidateQueries({ queryKey: ['all-teachers'] });
         toast.success('Teacher created successfully!');
       },
       onError: (error: any) => {
@@ -83,13 +113,13 @@ export const useAdminQueries = () => {
     });
   };
 
-  // Update teacher mutation
   const useUpdateTeacher = () => {
     return useMutation({
-      mutationFn: ({ id, payload }: { id: number; payload: any }) => 
+      mutationFn: ({ id, payload }: { id: number; payload: UpdateTeacherPayload }) =>
         teacherService.updateTeacher(id, payload),
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ['teachers'] });
+        queryClient.invalidateQueries({ queryKey: ['all-teachers'] });
         toast.success('Teacher updated successfully!');
       },
       onError: (error: any) => {
@@ -98,7 +128,6 @@ export const useAdminQueries = () => {
     });
   };
 
-  // Assign teacher mutation
   const useAssignTeacher = () => {
     return useMutation({
       mutationFn: teacherService.assignTeacher,
@@ -112,12 +141,12 @@ export const useAdminQueries = () => {
     });
   };
 
-  // Delete teacher mutation
   const useDeleteTeacher = () => {
     return useMutation({
       mutationFn: teacherService.deleteTeacher,
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ['teachers'] });
+        queryClient.invalidateQueries({ queryKey: ['all-teachers'] });
         toast.success('Teacher deleted successfully!');
       },
       onError: (error: any) => {
@@ -126,12 +155,12 @@ export const useAdminQueries = () => {
     });
   };
 
-  // Bulk upload mutation
   const useBulkUploadTeachers = () => {
     return useMutation({
       mutationFn: teacherService.bulkUploadTeachers,
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ['teachers'] });
+        queryClient.invalidateQueries({ queryKey: ['all-teachers'] });
         toast.success('Teachers uploaded successfully!');
       },
       onError: (error: any) => {
@@ -140,15 +169,175 @@ export const useAdminQueries = () => {
     });
   };
 
+  // Students
+  const useStudents = (params?: StudentFilterParams) => {
+    return useQuery({
+      queryKey: ['students', params],
+      queryFn: () => studentService.getStudents(params),
+      staleTime: 5 * 60 * 1000,
+    });
+  };
+
+  const useAllStudents = () => {
+    return useQuery({
+      queryKey: ['all-students'],
+      queryFn: studentService.getAllStudents,
+      staleTime: 5 * 60 * 1000,
+    });
+  };
+
+  const useCreateStudent = () => {
+    return useMutation({
+      mutationFn: studentService.createStudent,
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['students'] });
+        queryClient.invalidateQueries({ queryKey: ['all-students'] });
+        toast.success('Student created successfully!');
+      },
+      onError: (error: any) => {
+        toast.error(error.message || 'Failed to create student');
+      },
+    });
+  };
+
+  const useUpdateStudentStatus = () => {
+    return useMutation({
+      mutationFn: ({ id, is_active }: { id: number; is_active: number }) =>
+        studentService.updateStudentStatus(id, is_active),
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['students'] });
+        queryClient.invalidateQueries({ queryKey: ['all-students'] });
+        toast.success('Student status updated successfully!');
+      },
+      onError: (error: any) => {
+        toast.error(error.message || 'Failed to update student status');
+      },
+    });
+  };
+
+  const useDeleteStudent = () => {
+    return useMutation({
+      mutationFn: studentService.deleteStudent,
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['students'] });
+        queryClient.invalidateQueries({ queryKey: ['all-students'] });
+        toast.success('Student deleted successfully!');
+      },
+      onError: (error: any) => {
+        toast.error(error.message || 'Failed to delete student');
+      },
+    });
+  };
+
+  const useBulkUploadStudents = () => {
+    return useMutation({
+      mutationFn: studentService.bulkUploadStudents,
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['students'] });
+        queryClient.invalidateQueries({ queryKey: ['all-students'] });
+        toast.success('Students uploaded successfully!');
+      },
+      onError: (error: any) => {
+        toast.error(error.message || 'Failed to upload students');
+      },
+    });
+  };
+
+  // Parents
+  const useParents = (params?: ParentFilterParams) => {
+    return useQuery({
+      queryKey: ['parents', params],
+      queryFn: () => parentService.getParents(params),
+      staleTime: 5 * 60 * 1000,
+    });
+  };
+
+  const useAllParents = () => {
+    return useQuery({
+      queryKey: ['all-parents'],
+      queryFn: parentService.getAllParents,
+      staleTime: 5 * 60 * 1000,
+    });
+  };
+
+  const useCreateParent = () => {
+    return useMutation({
+      mutationFn: parentService.createParent,
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['parents'] });
+        queryClient.invalidateQueries({ queryKey: ['all-parents'] });
+        toast.success('Parent created successfully!');
+      },
+      onError: (error: any) => {
+        toast.error(error.message || 'Failed to create parent');
+      },
+    });
+  };
+
+  const useDeleteParent = () => {
+    return useMutation({
+      mutationFn: parentService.deleteParent,
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['parents'] });
+        queryClient.invalidateQueries({ queryKey: ['all-parents'] });
+        toast.success('Parent deleted successfully!');
+      },
+      onError: (error: any) => {
+        toast.error(error.message || 'Failed to delete parent');
+      },
+    });
+  };
+
+  // Payments - Fixed to use the correct endpoint
+  const usePayments = (params?: PaymentFilterParams) => {
+    return useQuery({
+      queryKey: ['payments', params],
+      queryFn: () => paymentService.getAllPayments(params),
+      staleTime: 5 * 60 * 1000,
+    });
+  };
+
+  const usePaymentDetails = (params?: PaymentFilterParams) => {
+    return useQuery({
+      queryKey: ['payment-details', params],
+      queryFn: () => paymentService.getPaymentsWithDetails(params),
+      staleTime: 5 * 60 * 1000,
+    });
+  };
+
   return {
+    // Dashboard
+    useDashboardStats,
+    
+    // Teachers
+    useTeachers,
+    useTeacher,
+    useTeacherSubjects,
+    useAllTeachers,
     useCategories,
     useCourses,
-    useTeachers,
-    useAllTeachers,
     useCreateTeacher,
     useUpdateTeacher,
     useAssignTeacher,
     useDeleteTeacher,
     useBulkUploadTeachers,
+    
+    // Students
+    useStudents,
+    useAllStudents,
+    useCreateStudent,
+    useUpdateStudentStatus,
+    useDeleteStudent,
+    useBulkUploadStudents,
+    
+    // Parents
+    useParents,
+    useAllParents,
+    useCreateParent,
+    useDeleteParent,
+    
+    // Payments
+    usePayments,
+    usePaymentDetails,
   };
 };

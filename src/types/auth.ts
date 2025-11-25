@@ -1,21 +1,21 @@
-
 import { UserRole } from "@/config";
 import { UserInterface } from "./global";
 
 export type Department =
-    | 'accounting'
-    | 'business-admin'
-    | 'economics'
-    | 'finance'
-    | 'marketing'
-    | 'management';
-export type Level = '100' | '200' | '300' | '400' | '500';
+    | "accounting"
+    | "business-admin"
+    | "economics"
+    | "finance"
+    | "marketing"
+    | "management";
+
+export type Level = "100" | "200" | "300" | "400" | "500";
 
 // SIGNUP RESPONSE TYPES
 export interface SignupResponse {
-    status: number,
-    response: string,
-    user: UserInterface
+    status: number;
+    response: string;
+    user: UserInterface;
 }
 
 // LOGIN TYPES
@@ -29,13 +29,11 @@ export interface LoginResponse {
     };
 }
 
-
-
 export interface Student extends UserInterface {
     role: UserRole.STUDENT;
     studentId: string;
     course: string;
-    enrollmentDate: string
+    enrollmentDate: string;
     passport: string;
 }
 
@@ -67,22 +65,24 @@ export interface AuthenState {
     isAuthenticated: boolean;
     isLoading: boolean;
     error: string | null;
-
     parentOTP: boolean;
 }
 
-export interface ApiResponse<T = unknown> { //or any
+export interface ApiResponse<T = unknown> {
     status: number;
     data: T;
     message: string;
     errors?: Record<string, string[]>;
+
     meta?: {
+        count?: number; // <-- ADD THIS
         pagination?: {
             total: number;
             perPage: number;
             currentPage: number;
             lastPage: number;
         };
+        [key: string]: any; // allows extra keys safely
     };
 }
 
@@ -97,5 +97,32 @@ export interface PaginationParams {
     perPage?: number;
     search?: string;
     sortBy?: string;
-    sortOrder?: 'asc' | 'desc';
+    sortOrder?: "asc" | "desc";
 }
+
+// ===============================
+// PAYMENT TYPES
+// ===============================
+
+export interface Payment {
+    id: number;
+    student_id: number;
+    amount: number;
+    reference: string;
+    status: "pending" | "successful" | "failed";
+    created_at: string;
+    updated_at: string;
+}
+
+export interface PaymentWithDetails extends Payment {
+    student: {
+        id: number;
+        first_name: string;
+        last_name: string;
+        email: string;
+        studentId?: string;
+        passport?: string;
+        course?: string;
+    };
+}
+

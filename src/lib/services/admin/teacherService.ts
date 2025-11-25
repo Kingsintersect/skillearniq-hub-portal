@@ -1,5 +1,6 @@
+// lib/services/admin/teacherService.ts
 import { ApiError, PaginationParams, ApiResponse } from "@/types/auth";
-import { apiClient } from "../client";
+import { apiClient } from "@/core/client";
 
 export interface Category {
   id: number;
@@ -18,62 +19,61 @@ export interface Course {
   summary: string;
 }
 
-export interface CategoriesResponse {
-  current_page: number;
-  data: Category[];
-  first_page_url: string;
-  from: number;
-  last_page: number;
-  last_page_url: string;
-  links: Array<{
-    url: string | null;
-    label: string;
-    active: boolean;
-  }>;
-  next_page_url: string | null;
-  path: string;
-  per_page: number;
-  prev_page_url: string | null;
-  to: number;
-  total: number;
-}
-
-export interface CoursesResponse {
-  current_page: number;
-  data: Course[];
-  first_page_url: string;
-  from: number;
-  last_page: number;
-  last_page_url: string;
-  links: Array<{
-    url: string | null;
-    label: string;
-    active: boolean;
-  }>;
-  next_page_url: string | null;
-  path: string;
-  per_page: number;
-  prev_page_url: string | null;
-  to: number;
-  total: number;
-}
-
 export interface Teacher {
   id: number;
-  teacherId: string;
-  username: string;
   first_name: string;
   last_name: string;
+  username: string | null;
   email: string;
-  phone?: string;
-  subjects: string[];
-  categories: string[];
-  status: 'active' | 'inactive';
-  employmentDate?: string;
-  employee_no?: string;
-  email_verified?: number;
-  meta?: string[];
-  hire_date?: string;
+  phone: string;
+  role: string;
+  country: string | null;
+  state: string | null;
+  lga: string | null;
+  is_active: number;
+  email_verified: number;
+  phone_verified: number;
+  created_at: string;
+  updated_at: string;
+  last_login_at: string | null;
+  meta: any;
+  teacher?: {
+    id: number;
+    user_id: number;
+    employee_no: string;
+    hire_date: string;
+    subjects: string[];
+    meta: any;
+    created_at: string;
+    updated_at: string;
+  };
+}
+
+export interface TeacherSubjectAssignment {
+  id: number;
+  term: string | null;
+  start_date: string;
+  end_date: string;
+  timetable_color: string | null;
+  meta: {
+    semester: string;
+    room: string | null;
+  };
+  teacher: {
+    id: number;
+    name: string;
+    email: string;
+  };
+  subject: {
+    id: number;
+    name: string;
+    shortname: string;
+  };
+  class_group: {
+    id: number;
+    name: string;
+    idnumber: string;
+  };
 }
 
 export interface CreateTeacherPayload {
@@ -119,74 +119,54 @@ export interface TeacherFilterParams extends PaginationParams {
 }
 
 export const teacherService = {
-  // Get all categories
-  getCategories: async (): Promise<Category[]> => {
+  // Get all categories with pagination
+  getCategories: async (params?: PaginationParams): Promise<ApiResponse<Category[]>> => {
     try {
-      console.log('Fetching categories from API...');
-      const response = await apiClient.get<any>('/odl/categories');
-      console.log('Raw Categories API Response:', response);
+      const queryParams = new URLSearchParams();
+      if (params?.page) queryParams.set('page', params.page.toString());
+      if (params?.perPage) queryParams.set('per_page', params.perPage.toString());
+
+      const url = `/odl/categories${queryParams.toString() ? `?${queryParams}` : ''}`;
+      const response = await apiClient.get<any>(url);
       
-      let categoriesData: Category[] = [];
-      
-      if (response.data && typeof response.data === 'object') {
-        if (Array.isArray(response.data.data)) {
-          categoriesData = response.data.data;
-          console.log('Extracted categories from response.data.data');
-        }
-        else if (Array.isArray(response.data)) {
-          categoriesData = response.data;
-          console.log('Extracted categories from response.data');
-        }
-      }
-      else if (Array.isArray(response.data)) {
-        categoriesData = response.data;
-        console.log('Extracted categories from direct array response');
-      }
-      
-      console.log('Final extracted categories:', categoriesData);
-      return categoriesData;
+      return {
+        data: response.data || [],
+        message: 'Success',
+        status: 200,
+        meta: response.meta
+      };
     } catch (error) {
       console.error('Failed to fetch categories:', error);
-      return [];
+      throw error as ApiError;
     }
   },
 
-  // Get all courses
-  getCourses: async (): Promise<Course[]> => {
+  // Get all courses with pagination
+  getCourses: async (params?: PaginationParams): Promise<ApiResponse<Course[]>> => {
     try {
-      console.log('Fetching courses from API...');
-      const response = await apiClient.get<any>('/odl/courses');
-      console.log('Raw Courses API Response:', response);
+      const queryParams = new URLSearchParams();
+      if (params?.page) queryParams.set('page', params.page.toString());
+      if (params?.perPage) queryParams.set('per_page', params.perPage.toString());
+
+      const url = `/odl/courses${queryParams.toString() ? `?${queryParams}` : ''}`;
+      const response = await apiClient.get<any>(url);
       
-      let coursesData: Course[] = [];
-      
-      if (response.data && typeof response.data === 'object') {
-        if (Array.isArray(response.data.data)) {
-          coursesData = response.data.data;
-          console.log('Extracted courses from response.data.data');
-        }
-        else if (Array.isArray(response.data)) {
-          coursesData = response.data;
-          console.log('Extracted courses from response.data');
-        }
-      }
-      else if (Array.isArray(response.data)) {
-        coursesData = response.data;
-        console.log('Extracted courses from direct array response');
-      }
-      
-      console.log('Final extracted courses:', coursesData);
-      return coursesData;
+      return {
+        data: response.data || [],
+        message: 'Success',
+        status: 200,
+        meta: response.meta
+      };
     } catch (error) {
       console.error('Failed to fetch courses:', error);
-      return [];
+      throw error as ApiError;
     }
   },
 
-  // Get all teachers
+  // Get all teachers (simple list)
   getAllTeachers: async (): Promise<Teacher[]> => {
     try {
-      const response = await apiClient.get<Teacher[]>('/account/allteachers');
+      const response = await apiClient.get<any>('/account/allteachers');
       return response.data || [];
     } catch (error) {
       console.error('Failed to fetch all teachers:', error);
@@ -194,7 +174,7 @@ export const teacherService = {
     }
   },
 
-  // Get teachers with filtering - FIXED: Proper search implementation
+  // Get teachers with filtering and pagination
   getTeachers: async (params?: TeacherFilterParams): Promise<ApiResponse<Teacher[]>> => {
     try {
       const queryParams = new URLSearchParams();
@@ -205,28 +185,57 @@ export const teacherService = {
       if (params?.category) queryParams.set('category', params.category);
       if (params?.status) queryParams.set('status', params.status);
       if (params?.page) queryParams.set('page', params.page.toString());
-      if (params?.perPage) queryParams.set('perPage', params.perPage.toString());
+      if (params?.perPage) queryParams.set('per_page', params.perPage.toString());
       if (params?.sortBy) queryParams.set('sortBy', params.sortBy);
       if (params?.sortOrder) queryParams.set('sortOrder', params.sortOrder);
 
       const url = `/admin/teacher${queryParams.toString() ? `?${queryParams}` : ''}`;
-      console.log('Fetching teachers from:', url);
-      console.log('Search params:', params);
+      const response = await apiClient.get<any>(url);
       
-      const response = await apiClient.get<Teacher[]>(url);
-      console.log('Teachers search response:', response);
-      
-      return response;
+      return {
+        data: response.data || [],
+        message: response.message || 'Success',
+        status: 200
+      };
     } catch (error) {
       console.error('Failed to fetch teachers:', error);
       throw error as ApiError;
     }
   },
 
+  getTeacher: async (id: number): Promise<ApiResponse<Teacher>> => {
+  try {
+    const response = await apiClient.get<any>(`/admin/teacher?id=${id}`);
+    return {
+      data: response.data?.[0] || null,
+      message: response.message || 'Success',
+      status: 200
+    };
+  } catch (error) {
+    console.error('Failed to fetch teacher:', error);
+    throw error as ApiError;
+  }
+},
+
+// Get teacher subjects assignments
+getTeacherSubjects: async (): Promise<ApiResponse<TeacherSubjectAssignment[]>> => {
+  try {
+    const response = await apiClient.get<any>('/admin/teacher/subjects');
+    return {
+      data: response.data || [],
+      message: response.message || 'Success',
+      status: 200,
+      meta: { count: response.data.count }
+    };
+  } catch (error) {
+    console.error('Failed to fetch teacher subjects:', error);
+    throw error as ApiError;
+  }
+},
   // Create a new teacher
   createTeacher: async (payload: CreateTeacherPayload): Promise<ApiResponse<Teacher>> => {
     try {
-      const response = await apiClient.post<Teacher>('/admin/teacher', payload);
+      const response = await apiClient.post<any>('/admin/teacher', payload);
       return response;
     } catch (error) {
       console.error('Failed to create teacher:', error);
@@ -234,10 +243,10 @@ export const teacherService = {
     }
   },
 
-  // Update a teacher
+  // Update a teacher - PUT request as specified
   updateTeacher: async (id: number, payload: UpdateTeacherPayload): Promise<ApiResponse<Teacher>> => {
     try {
-      const response = await apiClient.patch<Teacher>(`/admin/users/${id}`, payload);
+      const response = await apiClient.put<any>(`/admin/users/${id}`, payload);
       return response;
     } catch (error) {
       console.error('Failed to update teacher:', error);
@@ -245,11 +254,12 @@ export const teacherService = {
     }
   },
 
+  
+
   // Assign teacher to course
   assignTeacher: async (payload: AssignTeacherPayload): Promise<ApiResponse<any>> => {
     try {
       const response = await apiClient.post<any>('/admin/teacher/subject-assignment', payload);
-      console.log('Assign teacher response:', response);
       return response;
     } catch (error) {
       console.error('Failed to assign teacher:', error);
@@ -260,7 +270,7 @@ export const teacherService = {
   // Delete a teacher
   deleteTeacher: async (id: number): Promise<ApiResponse<void>> => {
     try {
-      const response = await apiClient.delete<void>(`/admin/teacher/${id}`);
+      const response = await apiClient.delete<any>(`/admin/delete-user/${id}`);
       return response;
     } catch (error) {
       console.error('Failed to delete teacher:', error);

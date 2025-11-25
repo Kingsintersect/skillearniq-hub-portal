@@ -1,520 +1,264 @@
+// app/admin/payments/page.tsx
 'use client'
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Search, Download, Sheet, FileDown, FileText } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import { useAdminQueries } from '@/hooks/useAdminQueries';
-import { toast } from 'sonner';
 
-type ExportFormat = 'csv' | 'excel' | 'pdf';
-
-// Custom hook for export functionality
-const useExportPayments = () => {
-  const exportToCSV = (payments: any[], filename: string = 'payments') => {
-    if (!payments.length) return;
+// Pagination Component
+const Pagination = ({ 
+  currentPage, 
+  totalPages, 
+  onPageChange,
+  totalItems,
+  itemsPerPage 
+}: { 
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
+  totalItems: number;
+  itemsPerPage: number;
+}) => {
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxVisiblePages = 5;
     
-    const headers = [
-      'Student',
-      'Student ID',
-      'Class', 
-      'Payment For', 
-      'Amount', 
-      'Date', 
-      'Due Date', 
-      'Status',
-      'Method',
-      'Reference'
-    ];
-    
-    const csvContent = [
-      headers.join(','),
-      ...payments.map(payment => [
-        `"${payment.student.replace(/"/g, '""')}"`,
-        payment.studentId,
-        payment.class,
-        `"${payment.paymentFor}"`,
-        payment.amount,
-        `"${payment.date || 'N/A'}"`,
-        `"${payment.dueDate}"`,
-        payment.status,
-        `"${payment.method || 'N/A'}"`,
-        `"${payment.reference || 'N/A'}"`
-      ].join(','))
-    ].join('\n');
-
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `${filename}_${new Date().toISOString().split('T')[0]}.csv`;
-    link.click();
-    URL.revokeObjectURL(link.href);
-  };
-
-  const exportToExcel = (payments: any[], filename: string = 'payments') => {
-    if (!payments.length) return;
-    
-    const headers = [
-      'Student',
-      'Student ID',
-      'Class', 
-      'Payment For', 
-      'Amount', 
-      'Date', 
-      'Due Date', 
-      'Status',
-      'Method',
-      'Reference'
-    ];
-    
-    const csvContent = [
-      headers.join(','),
-      ...payments.map(payment => [
-        `"${payment.student.replace(/"/g, '""')}"`,
-        payment.studentId,
-        payment.class,
-        `"${payment.paymentFor}"`,
-        payment.amount,
-        `"${payment.date || 'N/A'}"`,
-        `"${payment.dueDate}"`,
-        payment.status,
-        `"${payment.method || 'N/A'}"`,
-        `"${payment.reference || 'N/A'}"`
-      ].join(','))
-    ].join('\n');
-
-    const blob = new Blob([csvContent], { type: 'application/vnd.ms-excel;charset=utf-8' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `${filename}_${new Date().toISOString().split('T')[0]}.xls`;
-    link.click();
-    URL.revokeObjectURL(link.href);
-  };
-
-  const exportToPDF = (payments: any[], filename: string = 'payments') => {
-    const printWindow = window.open('', '_blank');
-    if (printWindow && payments.length > 0) {
-      const paymentData = payments.map(payment => `
-        <tr>
-          <td>${payment.student}</td>
-          <td>${payment.studentId}</td>
-          <td>${payment.class}</td>
-          <td>${payment.paymentFor}</td>
-          <td>₦${payment.amount.toLocaleString()}</td>
-          <td>${payment.date || '-'}</td>
-          <td>${payment.dueDate}</td>
-          <td>${payment.status}</td>
-          <td>${payment.method || '-'}</td>
-          <td>${payment.reference || '-'}</td>
-        </tr>
-      `).join('');
-
-      const totalCollected = payments
-        .filter(p => p.status === 'paid')
-        .reduce((sum, payment) => sum + payment.amount, 0);
-      const pendingPayments = payments
-        .filter(p => p.status === 'pending')
-        .reduce((sum, payment) => sum + payment.amount, 0);
-      const collectionRate = payments.length > 0 
-        ? Math.round((payments.filter(p => p.status === 'paid').length / payments.length) * 100)
-        : 0;
-
-      printWindow.document.write(`
-        <html>
-          <head>
-            <title>Payment Records - ${filename}</title>
-            <style>
-              body { 
-                font-family: Arial, sans-serif; 
-                margin: 20px; 
-                color: #333;
-                line-height: 1.4;
-              }
-              .header { 
-                text-align: center; 
-                margin-bottom: 30px; 
-                border-bottom: 2px solid #333;
-                padding-bottom: 20px;
-              }
-              .header h1 { 
-                margin: 0; 
-                color: #1a365d;
-                font-size: 24px;
-              }
-              .header p { 
-                margin: 5px 0; 
-                color: #666;
-              }
-              .summary { 
-                margin: 20px 0;
-                padding: 15px;
-                background-color: #f0f9ff;
-                border-radius: 5px;
-                border-left: 4px solid #007bff;
-              }
-              .summary-grid {
-                display: grid;
-                grid-template-columns: repeat(3, 1fr);
-                gap: 15px;
-                margin: 15px 0;
-              }
-              .summary-item {
-                text-align: center;
-                padding: 10px;
-                background: white;
-                border-radius: 5px;
-                border: 1px solid #e1e5e9;
-              }
-              .summary-value {
-                font-size: 18px;
-                font-weight: bold;
-                color: #1a365d;
-              }
-              .summary-label {
-                font-size: 12px;
-                color: #666;
-                margin-top: 5px;
-              }
-              table { 
-                width: 100%; 
-                border-collapse: collapse; 
-                margin: 20px 0;
-                font-size: 10px;
-              }
-              th, td { 
-                border: 1px solid #ddd; 
-                padding: 6px; 
-                text-align: left; 
-              }
-              th { 
-                background-color: #f5f5f5; 
-                font-weight: bold;
-                color: #333;
-              }
-              tr:nth-child(even) {
-                background-color: #f9f9f9;
-              }
-              .status-paid { background-color: #d4edda; color: #155724; }
-              .status-pending { background-color: #fff3cd; color: #856404; }
-              .status-overdue { background-color: #f8d7da; color: #721c24; }
-              .footer {
-                margin-top: 30px;
-                text-align: center;
-                color: #666;
-                font-size: 11px;
-                border-top: 1px solid #ddd;
-                padding-top: 15px;
-              }
-              @media print {
-                body { margin: 0; }
-                .no-print { display: none; }
-              }
-            </style>
-          </head>
-          <body>
-            <div class="header">
-              <h1>Payment Management Records</h1>
-              <p>Generated on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}</p>
-              <p>Total Payments: ${payments.length}</p>
-            </div>
-
-            <div class="summary">
-              <h3 style="margin: 0 0 10px 0; color: #1a365d;">Payment Summary</h3>
-              <div class="summary-grid">
-                <div class="summary-item">
-                  <div class="summary-value">₦${totalCollected.toLocaleString()}</div>
-                  <div class="summary-label">Total Collected</div>
-                </div>
-                <div class="summary-item">
-                  <div class="summary-value">₦${pendingPayments.toLocaleString()}</div>
-                  <div class="summary-label">Pending Payments</div>
-                </div>
-                <div class="summary-item">
-                  <div class="summary-value">${collectionRate}%</div>
-                  <div class="summary-label">Collection Rate</div>
-                </div>
-              </div>
-            </div>
-
-            <table>
-              <thead>
-                <tr>
-                  <th>Student</th>
-                  <th>Student ID</th>
-                  <th>Class</th>
-                  <th>Payment For</th>
-                  <th>Amount</th>
-                  <th>Date</th>
-                  <th>Due Date</th>
-                  <th>Status</th>
-                  <th>Method</th>
-                  <th>Reference</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${paymentData}
-              </tbody>
-            </table>
-
-            <div class="footer">
-              <p>Confidential Payment Records - For Administrative Use Only</p>
-              <p>Generated by School Management System</p>
-            </div>
-
-            <div class="no-print" style="margin-top: 20px; text-align: center;">
-              <button onclick="window.print()" style="padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; margin: 5px;">
-                Print PDF
-              </button>
-              <button onclick="window.close()" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 5px; cursor: pointer; margin: 5px;">
-                Close
-              </button>
-            </div>
-
-            <script>
-              setTimeout(() => {
-                window.print();
-              }, 500);
-            </script>
-          </body>
-        </html>
-      `);
-      printWindow.document.close();
+    if (totalPages <= maxVisiblePages) {
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      const startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+      const endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+      
+      if (startPage > 1) {
+        pages.push(1);
+        if (startPage > 2) pages.push('...');
+      }
+      
+      for (let i = startPage; i <= endPage; i++) {
+        pages.push(i);
+      }
+      
+      if (endPage < totalPages) {
+        if (endPage < totalPages - 1) pages.push('...');
+        pages.push(totalPages);
+      }
     }
+    
+    return pages;
   };
 
-  return {
-    exportToCSV,
-    exportToExcel,
-    exportToPDF
-  };
+  const startItem = (currentPage - 1) * itemsPerPage + 1;
+  const endItem = Math.min(currentPage * itemsPerPage, totalItems);
+
+  return (
+    <div className="flex items-center justify-between px-2 py-4">
+      <div className="flex-1 text-sm text-muted-foreground">
+        Showing {startItem} to {endItem} of {totalItems} entries
+      </div>
+      <div className="flex items-center space-x-2">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onPageChange(1)}
+          disabled={currentPage === 1}
+          className="hidden sm:flex"
+        >
+          <ChevronsLeft className="h-4 w-4" />
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onPageChange(currentPage - 1)}
+          disabled={currentPage === 1}
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
+        
+        <div className="flex items-center space-x-1">
+          {getPageNumbers().map((page, index) => (
+            page === '...' ? (
+              <span key={index} className="px-2 py-1 text-sm">...</span>
+            ) : (
+              <Button
+                key={index}
+                variant={currentPage === page ? "default" : "outline"}
+                size="sm"
+                onClick={() => onPageChange(page as number)}
+                className="h-8 w-8 p-0"
+              >
+                {page}
+              </Button>
+            )
+          ))}
+        </div>
+
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onPageChange(currentPage + 1)}
+          disabled={currentPage === totalPages}
+        >
+          <ChevronRight className="h-4 w-4" />
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onPageChange(totalPages)}
+          disabled={currentPage === totalPages}
+          className="hidden sm:flex"
+        >
+          <ChevronsRight className="h-4 w-4" />
+        </Button>
+      </div>
+    </div>
+  );
+};
+
+const useDebounce = <T,>(value: T, delay: number): T => {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+  useEffect(() => {
+    const handler = setTimeout(() => setDebouncedValue(value), delay);
+    return () => clearTimeout(handler);
+  }, [value, delay]);
+  return debouncedValue;
 };
 
 export default function PaymentsPage() {
   const [filters, setFilters] = useState({
-    academicYear: '2025-2026',
-    term: '1st',
-    class: 'all',
-    student: 'all',
-    status: 'all'
+    status: 'all',
+    student_id: ''
   });
   const [searchTerm, setSearchTerm] = useState('');
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    itemsPerPage: 10
+  });
 
   const { usePayments } = useAdminQueries();
 
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
+
   const { data: paymentsResponse, isLoading } = usePayments({
-    academicYear: filters.academicYear,
-    term: filters.term,
-    class: filters.class,
-    student: filters.student,
-    status: filters.status,
-    search: searchTerm
+    status: filters.status !== 'all' ? filters.status : undefined,
+    student_id: filters.student_id ? parseInt(filters.student_id) : undefined,
+    search: searchTerm,
+    page: pagination.currentPage,
+    perPage: pagination.itemsPerPage
   });
 
-  const { exportToCSV, exportToExcel, exportToPDF } = useExportPayments();
-
+  // Fix: Handle the payment data properly based on your API response
   const payments = paymentsResponse?.data || [];
+  const totalPayments = payments.length;
 
-  const handleExport = (format: ExportFormat) => {
-    if (payments.length === 0) {
-      toast.error('No payments available to export');
-      return;
-    }
+  useEffect(() => {
+    setPagination(prev => ({ ...prev, currentPage: 1 }));
+  }, [debouncedSearchTerm, filters.status, filters.student_id]);
 
-    try {
-      const filename = `payments_${filters.academicYear}_${filters.term}`;
-      switch (format) {
-        case 'csv':
-          exportToCSV(payments, filename);
-          toast.success(`Exported ${payments.length} payments as CSV`);
-          break;
-        case 'excel':
-          exportToExcel(payments, filename);
-          toast.success(`Exported ${payments.length} payments as Excel`);
-          break;
-        case 'pdf':
-          exportToPDF(payments, filename);
-          toast.success(`Exported ${payments.length} payments as PDF`);
-          break;
-        default:
-          toast.error('Unsupported export format');
-      }
-    } catch (error) {
-      toast.error('Failed to export payments. Please try again.');
-      console.error('Export error:', error);
-    }
+  const handlePageChange = (page: number) => {
+    setPagination(prev => ({ ...prev, currentPage: page }));
   };
 
-  // Calculate summary statistics
-  const summaryStats = useMemo(() => {
-    const totalCollected = payments
-      .filter(p => p.status === 'paid')
-      .reduce((sum, payment) => sum + payment.amount, 0);
+  const handleItemsPerPageChange = (value: string) => {
+    setPagination({
+      currentPage: 1,
+      itemsPerPage: parseInt(value)
+    });
+  };
 
-    const pendingPayments = payments
-      .filter(p => p.status === 'pending')
-      .reduce((sum, payment) => sum + payment.amount, 0);
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString();
+  };
 
-    const collectionRate = payments.length > 0 
-      ? Math.round((payments.filter(p => p.status === 'paid').length / payments.length) * 100)
-      : 0;
-
-    return {
-      totalCollected,
-      pendingPayments,
-      collectionRate
-    };
-  }, [payments]);
+  const formatAmount = (amount: string) => {
+    return `₦${parseFloat(amount).toLocaleString()}`;
+  };
 
   if (isLoading) {
     return (
       <div className="min-h-screen p-6 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <div>Loading payments...</div>
-        </div>
+        <div className="text-center">Loading payments...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen p-6">
+    <div className="min-h-screen p-6 bg-gray-50">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold">Payment History</h1>
-          <p className="text-muted-foreground">View and manage all student payments</p>
+          <h1 className="text-3xl font-bold text-gray-900">Payment History</h1>
+          <p className="text-gray-600">View and manage all student payments</p>
         </div>
 
         {/* Filters and Search */}
-        <Card className="mb-6">
+        <Card className="mb-6 bg-white border border-gray-200">
           <CardContent className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-6 gap-4 mb-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
               <div>
-                <label className="text-sm font-medium">Academic Year</label>
-                <Select value={filters.academicYear} onValueChange={(value) => setFilters({...filters, academicYear: value})}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="2024-2025">2024-2025</SelectItem>
-                    <SelectItem value="2025-2026">2025-2026</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div>
-                <label className="text-sm font-medium">Term</label>
-                <Select value={filters.term} onValueChange={(value) => setFilters({...filters, term: value})}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="1st">1st Term</SelectItem>
-                    <SelectItem value="2nd">2nd Term</SelectItem>
-                    <SelectItem value="3rd">3rd Term</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div>
-                <label className="text-sm font-medium">Class</label>
-                <Select value={filters.class} onValueChange={(value) => setFilters({...filters, class: value})}>
-                  <SelectTrigger>
-                    <SelectValue>All Classes</SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Classes</SelectItem>
-                    <SelectItem value="JSS 1A">JSS 1A</SelectItem>
-                    <SelectItem value="JSS 1B">JSS 1B</SelectItem>
-                    <SelectItem value="JSS 2A">JSS 2A</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div>
-                <label className="text-sm font-medium">Student</label>
-                <Select value={filters.student} onValueChange={(value) => setFilters({...filters, student: value})}>
-                  <SelectTrigger>
-                    <SelectValue>All Students</SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Students</SelectItem>
-                    <SelectItem value="Alex Johnson">Alex Johnson</SelectItem>
-                    <SelectItem value="Sarah Johnson">Sarah Johnson</SelectItem>
-                    <SelectItem value="Michael Smith">Michael Smith</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <label className="text-sm font-medium">Status</label>
+                <label className="text-sm font-medium text-gray-700">Status</label>
                 <Select value={filters.status} onValueChange={(value) => setFilters({...filters, status: value})}>
                   <SelectTrigger>
-                    <SelectValue>All Status</SelectValue>
+                    <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Status</SelectItem>
-                    <SelectItem value="paid">Paid</SelectItem>
-                    <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="overdue">Overdue</SelectItem>
+                    <SelectItem value="PAID">Paid</SelectItem>
+                    <SelectItem value="PENDING">Pending</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
+              
+              <div>
+                <label className="text-sm font-medium text-gray-700">Student ID</label>
+                <Input
+                  placeholder="Student ID"
+                  value={filters.student_id}
+                  onChange={(e) => setFilters({...filters, student_id: e.target.value})}
+                />
+              </div>
 
               <div>
-                <label className="text-sm font-medium">Search</label>
+                <label className="text-sm font-medium text-gray-700">Search</label>
                 <Input
-                  placeholder="Search payments..."
+                  placeholder="Search references..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
+
+              <div>
+                <label className="text-sm font-medium text-gray-700">Show per page</label>
+                <Select 
+                  value={pagination.itemsPerPage.toString()} 
+                  onValueChange={handleItemsPerPageChange}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="5">5 per page</SelectItem>
+                    <SelectItem value="10">10 per page</SelectItem>
+                    <SelectItem value="20">20 per page</SelectItem>
+                    <SelectItem value="50">50 per page</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
-            <div className="flex justify-between items-center">
-              <div className="text-sm text-muted-foreground">
-                {payments.length} payments found
-              </div>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className='dark:text-white dark:border-white'>
-                    <Download className="h-4 w-4 mr-2" />
-                    Export Report
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem 
-                    onClick={() => handleExport('csv')}
-                    className="flex items-center space-x-2"
-                  >
-                    <Sheet className="h-4 w-4" />
-                    <span>Export as CSV</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem 
-                    onClick={() => handleExport('excel')}
-                    className="flex items-center space-x-2"
-                  >
-                    <FileDown className="h-4 w-4" />
-                    <span>Export as Excel</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem 
-                    onClick={() => handleExport('pdf')}
-                    className="flex items-center space-x-2"
-                  >
-                    <FileText className="h-4 w-4" />
-                    <span>Export as PDF</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+            <div className="text-sm text-gray-600">
+              {totalPayments} payments found
             </div>
           </CardContent>
         </Card>
 
         {/* Payments Table */}
-        <Card>
+        <Card className="bg-white border border-gray-200">
           <CardHeader>
             <CardTitle>Payment Records</CardTitle>
             <CardDescription>All payment transactions and records</CardDescription>
@@ -523,62 +267,56 @@ export default function PaymentsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Student</TableHead>
-                  <TableHead>Class</TableHead>
-                  <TableHead>Payment For</TableHead>
-                  <TableHead>Amount</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Due Date</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Method</TableHead>
                   <TableHead>Reference</TableHead>
+                  <TableHead>Student ID</TableHead>
+                  <TableHead>Amount</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Course Group</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {payments.map((payment) => (
+                {payments.map((payment: any) => (
                   <TableRow key={payment.id}>
-                    <TableCell className="font-medium">{payment.student}</TableCell>
-                    <TableCell>{payment.class}</TableCell>
-                    <TableCell>{payment.paymentFor}</TableCell>
-                    <TableCell>₦{payment.amount.toLocaleString()}</TableCell>
-                    <TableCell>{payment.date || '-'}</TableCell>
-                    <TableCell>{payment.dueDate}</TableCell>
+                    <TableCell className="font-mono text-sm">
+                      {payment.reference}
+                    </TableCell>
+                    <TableCell>{payment.student_id}</TableCell>
+                    <TableCell>
+                      {formatAmount(payment.amount)} {payment.currency}
+                    </TableCell>
                     <TableCell>
                       <Badge variant={
-                        payment.status === 'paid' ? 'default' :
-                        payment.status === 'pending' ? 'secondary' : 'destructive'
+                        payment.status === 'PAID' ? 'default' :
+                        payment.status === 'PENDING' ? 'secondary' : 'destructive'
                       }>
                         {payment.status}
                       </Badge>
                     </TableCell>
-                    <TableCell>{payment.method || '-'}</TableCell>
-                    <TableCell className="font-mono text-sm">{payment.reference || '-'}</TableCell>
+                    <TableCell>{formatDate(payment.created_at)}</TableCell>
+                    <TableCell>{payment.course_group_id}</TableCell>
                   </TableRow>
                 ))}
+                {payments.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center py-8 text-gray-500">
+                      No payments found
+                    </TableCell>
+                  </TableRow>
+                )}
               </TableBody>
             </Table>
-
-            {/* Summary */}
-            <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Card>
-                <CardContent className="p-4">
-                  <div className="text-2xl font-bold text-green-600">₦{summaryStats.totalCollected.toLocaleString()}</div>
-                  <div className="text-sm text-muted-foreground">Total Collected</div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="p-4">
-                  <div className="text-2xl font-bold text-orange-600">₦{summaryStats.pendingPayments.toLocaleString()}</div>
-                  <div className="text-sm text-muted-foreground">Pending Payments</div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="p-4">
-                  <div className="text-2xl font-bold text-blue-600">{summaryStats.collectionRate}%</div>
-                  <div className="text-sm text-muted-foreground">Collection Rate</div>
-                </CardContent>
-              </Card>
-            </div>
+            
+            {/* Pagination */}
+            {Math.ceil(totalPayments / pagination.itemsPerPage) > 1 && (
+              <Pagination
+                currentPage={pagination.currentPage}
+                totalPages={Math.ceil(totalPayments / pagination.itemsPerPage)}
+                onPageChange={handlePageChange}
+                totalItems={totalPayments}
+                itemsPerPage={pagination.itemsPerPage}
+              />
+            )}
           </CardContent>
         </Card>
       </div>
