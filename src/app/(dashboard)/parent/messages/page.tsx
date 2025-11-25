@@ -24,7 +24,7 @@ export default function MessagesPage() {
 
   return (
     <div className="min-h-screen p-6">
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-8xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl font-bold">Messages</h1>
           <p className="text-muted-foreground">

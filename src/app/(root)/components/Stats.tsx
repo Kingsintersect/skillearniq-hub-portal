@@ -13,7 +13,7 @@ export const Stats: React.FC = () => {
             ref={statsRef}
             className="bg-gradient-to-br from-blue-800 to-blue-600 text-white py-16 px-6 text-center"
         >
-            <div className="max-w-6xl mx-auto">
+            <div className="max-w-8xl mx-auto">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-10">
                     {STATS.map((stat, index) => (
                         <div key={index} className="text-center">

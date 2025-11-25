@@ -3,10 +3,10 @@ import React, { useEffect } from 'react';
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { 
-  Users, 
-  BookOpen, 
-  Calendar, 
+import {
+  Users,
+  BookOpen,
+  Calendar,
   FileText,
   ArrowRight,
   MessageCircle,
@@ -15,25 +15,28 @@ import {
 } from 'lucide-react';
 import { useParentStore } from '@/store/parentStore';
 import { useParentQueries } from '@/hooks/useParentQueries';
+import { useAuthContext } from '@/providers/AuthProvider';
 
 export default function ParentsDashboard() {
-  const { 
-    selectedStudentId, 
-    children, 
+  const {
+    selectedStudentId,
+    children,
     setChildren,
     setSelectedStudentId
   } = useParentStore();
 
   const { useDashboardStats, useChildren } = useParentQueries();
-  
+  const { access_token } = useAuthContext()
+  console.log('access_token', access_token)
+
   const { data: statsResponse, isLoading: statsLoading } = useDashboardStats();
   const { data: childrenResponse, isLoading: childrenLoading } = useChildren();
 
-  
+
   useEffect(() => {
     if (childrenResponse?.data) {
       setChildren(childrenResponse.data);
-      
+
       if (!selectedStudentId && childrenResponse.data.length > 0) {
         setSelectedStudentId(childrenResponse.data[0].id);
       }
@@ -42,7 +45,7 @@ export default function ParentsDashboard() {
 
   const stats = statsResponse?.data;
   const dashboardStats = stats?.childrenStats || [];
-  
+
   const selectedStudent = children.find(child => child.id === selectedStudentId);
   const currentStats = dashboardStats.find(stats => stats.name === selectedStudent?.name) || dashboardStats[0];
 
@@ -51,7 +54,7 @@ export default function ParentsDashboard() {
   if (isLoading) {
     return (
       <div className="min-h-screen p-6">
-        <div className="max-w-6xl mx-auto">
+        <div className="max-w-8xl mx-auto">
           <div className="flex justify-center items-center h-64">
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
@@ -65,7 +68,7 @@ export default function ParentsDashboard() {
 
   return (
     <div className="min-h-screen p-6">
-      <div className="max-w-6xl mx-auto space-y-8">
+      <div className="max-w-8xl mx-auto space-y-8">
         {/* Header Section */}
         <div className="space-y-1">
           <h1 className="text-3xl font-bold tracking-tight">Parents Dashboard</h1>
@@ -184,15 +187,14 @@ export default function ParentsDashboard() {
                     {children.map((child, index) => {
                       const stats = dashboardStats.find(s => s.name === child.name) || dashboardStats[index];
                       const isSelected = child.id === selectedStudentId;
-                      
+
                       return (
-                        <Card 
-                          key={child.id} 
-                          className={`cursor-pointer transition-all border-2 ${
-                            isSelected 
-                              ? 'border-blue-500 bg-blue-50 dark:bg-blue-950' 
-                              : 'border-transparent hover:border-gray-300'
-                          }`}
+                        <Card
+                          key={child.id}
+                          className={`cursor-pointer transition-all border-2 ${isSelected
+                            ? 'border-blue-500 bg-blue-50 dark:bg-blue-950'
+                            : 'border-transparent hover:border-gray-300'
+                            }`}
                           onClick={() => setSelectedStudentId(child.id)}
                         >
                           <CardContent className="p-4">
@@ -207,7 +209,7 @@ export default function ParentsDashboard() {
                                 </div>
                               )}
                             </div>
-                            
+
                             <div className="space-y-2 mb-4">
                               <div className="flex justify-between text-sm">
                                 <span className="text-muted-foreground">Avg Grade</span>
@@ -219,8 +221,8 @@ export default function ParentsDashboard() {
                               </div>
                             </div>
 
-                            <Button 
-                              variant={isSelected ? "default" : "outline"} 
+                            <Button
+                              variant={isSelected ? "default" : "outline"}
                               className="w-full"
                               onClick={(e) => {
                                 e.stopPropagation();
