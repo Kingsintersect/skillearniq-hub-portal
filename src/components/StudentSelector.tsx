@@ -2,12 +2,15 @@
 import React, { useEffect, useState } from 'react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useParentStore } from '@/store/parentStore'
+import { ParentChild } from '@/lib/services/parentService'
 
 export function StudentSelector() {
-    const { 
-        selectedStudentId, 
-        setSelectedStudentId, 
-        children 
+    const {
+        selectedStudentId,
+        children,
+        selectedChild,
+        setSelectedStudentId,
+        setSelectedChild,
     } = useParentStore()
 
     const [isMounted, setIsMounted] = useState(false)
@@ -15,8 +18,6 @@ export function StudentSelector() {
     useEffect(() => {
         setIsMounted(true)
     }, [])
-
-    const selectedStudent = children.find(child => child.id === selectedStudentId)
 
     if (!isMounted) {
         return (
@@ -27,29 +28,39 @@ export function StudentSelector() {
     if (children.length === 0) {
         return null
     }
+    const handleSelectedChild = (childId: string) => {
+        setSelectedStudentId(childId)
+        setSelectedChild(children.find(child => child.id.toString() === childId) as ParentChild)
+    }
 
     return (
         <div className="w-64">
-            <Select value={selectedStudentId || ''} onValueChange={setSelectedStudentId}>
-                <SelectTrigger className="w-full ">
-                    <SelectValue>
-                        {selectedStudent ? (
-                            <div className="flex space-x-6 text-left">
-                                <span className="font-medium text-sm">{selectedStudent.name}</span>
-                                <span className="text-xs text-muted-foreground">{selectedStudent.grade}</span>
+            <Select value={selectedStudentId || ''} onValueChange={(value) => {
+                handleSelectedChild(value)
+            }}>
+                <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select a student">
+                        {selectedChild ? (
+                            <div className="flex justify-between items-center w-full">
+                                <span className="font-medium text-sm">{selectedChild.first_name}</span>
+                                <span className="text-xs text-muted-foreground">{selectedChild.grade}</span>
                             </div>
                         ) : (
                             "Select a student"
                         )}
                     </SelectValue>
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-background border border-border">
                     {children.map((child) => (
-                        <SelectItem key={child.id} value={child.id}>
-                            <div className="flex flex-col">
-                                <span className="font-medium">{child.name}</span>
+                        <SelectItem
+                            key={child.id}
+                            value={child.id.toString()}
+                            className="focus:bg-accent focus:text-accent-foreground"
+                        >
+                            <div className="flex w-full space-x-2 items-center justify-start">
+                                <span className="font-medium">{child.first_name}</span>
                                 <span className="text-sm text-muted-foreground">
-                                    {child.grade} • {child.relationship}
+                                    {child.grade} • {child.relationship ?? "Child"}
                                 </span>
                             </div>
                         </SelectItem>
