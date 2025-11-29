@@ -1,8 +1,7 @@
 'use client'
 import React, { useEffect, useState } from 'react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { useParentStore } from '@/store/parentStore'
-import { ParentChild } from '@/lib/services/parentService'
+import { ParentChild, useParentStore } from '@/store/parentStore'
 
 export function StudentSelector() {
     const {
