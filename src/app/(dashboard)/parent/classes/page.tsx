@@ -1,31 +1,30 @@
 'use client'
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useParentStore } from '@/store/parentStore';
-import { useParentQueries } from '@/hooks/useParentQueries';
+import { useChildAcademicData } from '../hooks/useChildAcademicData';
 
 export default function ClassesPage() {
   const [filters, setFilters] = useState({
-    academicYear: '2025-2026',
-    term: '1st',
-    subject: 'all',
+    paidPrograms: 'all',
+    course: 'all',
     teacher: 'all'
   });
+  const { selectedChild } = useParentStore();
+  const {
+    // allReports,
+    selectedReport,
+    isReportsLoading: isLoading,
+  } = useChildAcademicData();
+  const academicData = selectedReport;
 
-  const { selectedStudentId } = useParentStore();
-  const { useChildAcademicData } = useParentQueries();
-
-  const { data: academicDataResponse, isLoading } = useChildAcademicData(selectedStudentId || undefined);
-
-  const academicData = academicDataResponse?.data || [];
-
-  const subjects = ['Mathematics', 'English', 'Science', 'Social Studies'];
+  const paidPrograms = ['Sciences', 'Art Studies'];
+  const courses = ['Mathematics', 'English', 'Science', 'Social Studies'];
   const teachers = ['Mr. Smith', 'Mrs. Johnson', 'Mr. Brown', 'Mrs. Davis', 'Mr. Wilson', 'Mrs. Parker'];
 
   if (isLoading) {
@@ -49,44 +48,41 @@ export default function ClassesPage() {
         {/* Filters */}
         <Card className="mb-6">
           <CardContent className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+              <div className="col-span-full lg:col-span-2">
+                <label className="text-sm font-medium">Student</label>
+                <h1 className="text-3xl font-bold">{selectedChild?.first_name}</h1>
+              </div>
               <div>
-                <label className="text-sm font-medium">Academic Year</label>
-                <Select value={filters.academicYear} onValueChange={(value) => setFilters(prev => ({...prev, academicYear: value}))}>
-                  <SelectTrigger>
-                    <SelectValue />
+                <label className="text-sm font-medium">Paid Programs</label>
+                <Select
+                  value={filters.paidPrograms}
+                  onValueChange={(value) => setFilters(prev => ({ ...prev, paidPrograms: value }))}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select Paid Program" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="2024-2025">2024-2025</SelectItem>
-                    <SelectItem value="2025-2026">2025-2026</SelectItem>
+                    <SelectItem value="all">All Paid Programs</SelectItem>
+                    {paidPrograms.map(program => (
+                      <SelectItem key={program} value={program}>{program}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
-
               <div>
-                <label className="text-sm font-medium">Term</label>
-                <Select value={filters.term} onValueChange={(value) => setFilters(prev => ({...prev, term: value}))}>
-                  <SelectTrigger>
-                    <SelectValue />
+                <label className="text-sm font-medium">Courses</label>
+                <Select
+                  value={filters.course}
+                  onValueChange={(value) => setFilters(prev => ({ ...prev, course: value }))}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select Course" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="1st">1st Term</SelectItem>
-                    <SelectItem value="2nd">2nd Term</SelectItem>
-                    <SelectItem value="3rd">3rd Term</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <label className="text-sm font-medium">Subject</label>
-                <Select value={filters.subject} onValueChange={(value) => setFilters(prev => ({...prev, subject: value}))}>
-                  <SelectTrigger>
-                    <SelectValue>Select Subject</SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Subjects</SelectItem>
-                    {subjects.map(subject => (
-                      <SelectItem key={subject} value={subject}>{subject}</SelectItem>
+                    <SelectItem value="all">All Courses</SelectItem>
+                    {courses.map(course => (
+                      <SelectItem key={course} value={course}>{course}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -94,9 +90,12 @@ export default function ClassesPage() {
 
               <div>
                 <label className="text-sm font-medium">Teacher</label>
-                <Select value={filters.teacher} onValueChange={(value) => setFilters(prev => ({...prev, teacher: value}))}>
-                  <SelectTrigger>
-                    <SelectValue>Select Teacher</SelectValue>
+                <Select
+                  value={filters.teacher}
+                  onValueChange={(value) => setFilters(prev => ({ ...prev, teacher: value }))}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select Teacher"></SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Teachers</SelectItem>
@@ -116,7 +115,7 @@ export default function ClassesPage() {
             <TabsTrigger value="performance">Performance</TabsTrigger>
             <TabsTrigger value="attendance">Attendance</TabsTrigger>
             <TabsTrigger value="assignments">Assignments</TabsTrigger>
-            <TabsTrigger value="subjects">Subjects & Teachers</TabsTrigger>
+            <TabsTrigger value="courses">Courses & Teachers</TabsTrigger>
           </TabsList>
 
           <TabsContent value="performance">
@@ -126,47 +125,45 @@ export default function ClassesPage() {
                 <CardDescription>Test scores, quiz results, and exam performance</CardDescription>
               </CardHeader>
               <CardContent>
-                {academicData.map(child => (
-                  <div key={child.id} className="mb-8">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-xl font-semibold">{child.name} - {child.class}</h3>
-                      <Badge variant="secondary">Class Teacher: {child.classTeacher}</Badge>
-                    </div>
-                    
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Subject</TableHead>
-                          <TableHead>Teacher</TableHead>
-                          <TableHead>Tests (30%)</TableHead>
-                          <TableHead>Quizzes (10%)</TableHead>
-                          <TableHead>Exam (60%)</TableHead>
-                          <TableHead>Total</TableHead>
-                          <TableHead>Average</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {child.subjects.map((subject, index) => (
-                          <TableRow key={index}>
-                            <TableCell className="font-medium">{subject.name}</TableCell>
-                            <TableCell>{subject.teacher}</TableCell>
-                            <TableCell>{Math.max(...subject.testScores)}/30</TableCell>
-                            <TableCell>{Math.max(...subject.quizScores)}/10</TableCell>
-                            <TableCell>{subject.examScore}/60</TableCell>
-                            <TableCell className="font-semibold">
-                              {Math.max(...subject.testScores) + Math.max(...subject.quizScores) + subject.examScore}/100
-                            </TableCell>
-                            <TableCell>
-                              <Badge variant="default">
-                                {((Math.max(...subject.testScores) + Math.max(...subject.quizScores) + subject.examScore) / 100 * 100).toFixed(1)}%
-                              </Badge>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
+                <div key={academicData?.id} className="mb-8">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-xl font-semibold">{academicData?.name} - {academicData?.class}</h3>
+                    <Badge variant="secondary">Class Teacher: {academicData?.classTeacher}</Badge>
                   </div>
-                ))}
+
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Subject</TableHead>
+                        <TableHead>Teacher</TableHead>
+                        <TableHead>Tests (30%)</TableHead>
+                        <TableHead>Quizzes (10%)</TableHead>
+                        <TableHead>Exam (60%)</TableHead>
+                        <TableHead>Total</TableHead>
+                        <TableHead>Average</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {selectedReport?.courses.map((course, index) => (
+                        <TableRow key={index}>
+                          <TableCell className="font-medium">{course.course_name}</TableCell>
+                          <TableCell>{course.teacher}</TableCell>
+                          <TableCell>{Math.max(...course.testScores)}/30</TableCell>
+                          <TableCell>{Math.max(...course.quizScores)}/10</TableCell>
+                          <TableCell>{course.examScore}/60</TableCell>
+                          <TableCell className="font-semibold">
+                            {Math.max(...course.testScores) + Math.max(...course.quizScores) + course.examScore}/100
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="default">
+                              {((Math.max(...course.testScores) + Math.max(...course.quizScores) + course.examScore) / 100 * 100).toFixed(1)}%
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
@@ -178,27 +175,25 @@ export default function ClassesPage() {
                 <CardDescription>Class attendance and participation</CardDescription>
               </CardHeader>
               <CardContent>
-                {academicData.map(child => (
-                  <div key={child.id} className="mb-6">
-                    <h3 className="text-lg font-semibold mb-4">{child.name} - {child.class}</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {child.subjects.map((subject, index) => (
-                        <Card key={index}>
-                          <CardContent className="p-4">
-                            <div className="flex justify-between items-center mb-2">
-                              <span className="font-medium">{subject.name}</span>
-                              <Badge>{subject.attendance}%</Badge>
-                            </div>
-                            <Progress value={subject.attendance} className="h-2" />
-                            <div className="text-sm text-muted-foreground mt-2">
-                              Teacher: {subject.teacher}
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
+                <div key={selectedReport?.id} className="mb-6">
+                  <h3 className="text-lg font-semibold mb-4">{selectedReport?.name} - {selectedReport?.class}</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {selectedReport?.courses.map((course, index) => (
+                      <Card key={index}>
+                        <CardContent className="p-4">
+                          <div className="flex justify-between items-center mb-2">
+                            <span className="font-medium">{course.course_name}</span>
+                            <Badge>{course.attendance}%</Badge>
+                          </div>
+                          <Progress value={course.attendance} className="h-2" />
+                          <div className="text-sm text-muted-foreground mt-2">
+                            Teacher: {course.teacher}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
                   </div>
-                ))}
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
@@ -210,80 +205,76 @@ export default function ClassesPage() {
                 <CardDescription>Homework, projects, and submitted work</CardDescription>
               </CardHeader>
               <CardContent>
-                {academicData.map(child => (
-                  <div key={child.id} className="mb-6">
-                    <h3 className="text-lg font-semibold mb-4">{child.name} - {child.class}</h3>
-                    <div className="space-y-3">
-                      {child.subjects.flatMap((subject, subjectIndex) =>
-                        subject.assignments.map((assignment, assignmentIndex) => (
-                          <Card key={`${subjectIndex}-${assignmentIndex}`}>
-                            <CardContent className="p-4">
-                              <div className="flex justify-between items-center">
-                                <div>
-                                  <div className="font-medium">{assignment.title}</div>
-                                  <div className="text-sm text-muted-foreground">
-                                    {subject.name} • Due: {assignment.dueDate}
-                                  </div>
-                                </div>
-                                <div className="text-right">
-                                  <Badge variant={assignment.status === 'submitted' ? 'default' : 'secondary'}>
-                                    {assignment.status}
-                                  </Badge>
-                                  {assignment.score && (
-                                    <div className="text-sm font-medium">Score: {assignment.score}</div>
-                                  )}
-                                </div>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        ))
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="subjects">
-            <Card>
-              <CardHeader>
-                <CardTitle>Subjects & Teachers</CardTitle>
-                <CardDescription>Classes, groups, and teaching staff</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {academicData.map(child => (
-                  <div key={child.id} className="mb-6">
-                    <div className="flex justify-between items-center mb-4">
-                      <h3 className="text-xl font-semibold">{child.name} - {child.class}</h3>
-                      <div className="text-right">
-                        <div className="font-medium">Class Teacher: {child.classTeacher}</div>
-                        <div className="text-sm text-muted-foreground">Groups: {child.groups.join(', ')}</div>
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {child.subjects.map((subject, index) => (
-                        <Card key={index}>
+                <div key={selectedReport?.id} className="mb-6">
+                  <h3 className="text-lg font-semibold mb-4">{selectedReport?.name} - {selectedReport?.class}</h3>
+                  <div className="space-y-3">
+                    {selectedReport?.courses.flatMap((course, subjectIndex) =>
+                      course.assignments.map((assignment, assignmentIndex) => (
+                        <Card key={`${subjectIndex}-${assignmentIndex}`}>
                           <CardContent className="p-4">
-                            <div className="font-medium text-lg mb-2">{subject.name}</div>
-                            <div className="text-sm text-muted-foreground mb-3">Teacher: {subject.teacher}</div>
-                            <div className="space-y-2 text-sm">
-                              <div className="flex justify-between">
-                                <span>Attendance:</span>
-                                <span className="font-medium">{subject.attendance}%</span>
+                            <div className="flex justify-between items-center">
+                              <div>
+                                <div className="font-medium">{assignment.title}</div>
+                                <div className="text-sm text-muted-foreground">
+                                  {course.course_name} • Due: {assignment.dueDate}
+                                </div>
                               </div>
-                              <div className="flex justify-between">
-                                <span>Best Test Score:</span>
-                                <span className="font-medium">{Math.max(...subject.testScores)}/30</span>
+                              <div className="text-right">
+                                <Badge variant={assignment.status === 'submitted' ? 'default' : 'secondary'}>
+                                  {assignment.status}
+                                </Badge>
+                                {assignment.score && (
+                                  <div className="text-sm font-medium">Score: {assignment.score}</div>
+                                )}
                               </div>
                             </div>
                           </CardContent>
                         </Card>
-                      ))}
+                      ))
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="courses">
+            <Card>
+              <CardHeader>
+                <CardTitle>Courses & Teachers</CardTitle>
+                <CardDescription>Classes, groups, and teaching staff</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div key={selectedReport?.id} className="mb-6">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-xl font-semibold">{selectedReport?.name} - {selectedReport?.class}</h3>
+                    <div className="text-right">
+                      <div className="font-medium">Class Teacher: {selectedReport?.classTeacher}</div>
+                      {/* <div className="text-sm text-muted-foreground">Groups: {selectedReport?.groups.join(', ')}</div> */}
                     </div>
                   </div>
-                ))}
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {selectedReport?.courses.map((course, index) => (
+                      <Card key={index}>
+                        <CardContent className="p-4">
+                          <div className="font-medium text-lg mb-2">{course.course_name}</div>
+                          <div className="text-sm text-muted-foreground mb-3">Teacher: {course.teacher}</div>
+                          <div className="space-y-2 text-sm">
+                            <div className="flex justify-between">
+                              <span>Attendance:</span>
+                              <span className="font-medium">{course.attendance}%</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Best Test Score:</span>
+                              <span className="font-medium">{Math.max(...course.testScores)}/30</span>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>

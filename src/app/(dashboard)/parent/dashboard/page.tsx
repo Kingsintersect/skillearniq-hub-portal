@@ -15,7 +15,6 @@ import {
 } from 'lucide-react';
 import { useParentStore } from '@/store/parentStore';
 import { useParentQueries } from '@/hooks/useParentQueries';
-import { useAuthContext } from '@/providers/AuthProvider';
 
 export default function ParentsDashboard() {
   const {
@@ -26,9 +25,6 @@ export default function ParentsDashboard() {
   } = useParentStore();
 
   const { useDashboardStats, useChildren } = useParentQueries();
-  const { access_token } = useAuthContext()
-  console.log('access_token', access_token)
-
   const { data: statsResponse, isLoading: statsLoading } = useDashboardStats();
   const { data: childrenResponse, isLoading: childrenLoading } = useChildren();
 
@@ -46,8 +42,8 @@ export default function ParentsDashboard() {
   const stats = statsResponse?.data;
   const dashboardStats = stats?.childrenStats || [];
 
-  const selectedStudent = children.find(child => child.id === selectedStudentId);
-  const currentStats = dashboardStats.find(stats => stats.name === selectedStudent?.name) || dashboardStats[0];
+  const selectedStudent = children.find(child => child.id.toString() === selectedStudentId);
+  const currentStats = dashboardStats.find(stats => stats.first_name === selectedStudent?.first_name) || dashboardStats[0];
 
   const isLoading = statsLoading || childrenLoading;
 
@@ -73,7 +69,7 @@ export default function ParentsDashboard() {
         <div className="space-y-1">
           <h1 className="text-3xl font-bold tracking-tight">Parents Dashboard</h1>
           <p className="text-muted-foreground text-lg">
-            {selectedStudent ? `Viewing ${selectedStudent.name}'s progress` : 'Select a student to view progress'}
+            {selectedStudent ? `Viewing ${selectedStudent.first_name}'s progress` : 'Select a student to view progress'}
           </p>
         </div>
 
@@ -129,7 +125,7 @@ export default function ParentsDashboard() {
             {selectedStudent && (
               <Card>
                 <CardHeader className="pb-4">
-                  <CardTitle className="text-xl">{selectedStudent.name}'s Overview</CardTitle>
+                  <CardTitle className="text-xl">{selectedStudent.first_name}'s Overview</CardTitle>
                   <CardDescription>
                     {selectedStudent.grade} • Student ID: {selectedStudent.studentId}
                   </CardDescription>
@@ -185,8 +181,8 @@ export default function ParentsDashboard() {
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {children.map((child, index) => {
-                      const stats = dashboardStats.find(s => s.name === child.name) || dashboardStats[index];
-                      const isSelected = child.id === selectedStudentId;
+                      const stats = dashboardStats.find(s => s.first_name === child.first_name) || dashboardStats[index];
+                      const isSelected = child.id.toString() === selectedStudentId;
 
                       return (
                         <Card
@@ -195,12 +191,12 @@ export default function ParentsDashboard() {
                             ? 'border-blue-500 bg-blue-50 dark:bg-blue-950'
                             : 'border-transparent hover:border-gray-300'
                             }`}
-                          onClick={() => setSelectedStudentId(child.id)}
+                          onClick={() => setSelectedStudentId(child.id.toString())}
                         >
                           <CardContent className="p-4">
                             <div className="flex justify-between items-start mb-4">
                               <div className="space-y-1">
-                                <h3 className="font-semibold text-lg">{child.name}</h3>
+                                <h3 className="font-semibold text-lg">{child.first_name}</h3>
                                 <p className="text-sm text-muted-foreground">{child.grade}</p>
                               </div>
                               {isSelected && (
