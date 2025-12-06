@@ -8,12 +8,12 @@ import { Progress } from '@/components/ui/progress';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { 
-  BookOpen, 
-  Calendar, 
-  Award, 
-  Users, 
-  MessageSquare, 
+import {
+  BookOpen,
+  Calendar,
+  Award,
+  Users,
+  MessageSquare,
   TrendingUp,
   Star,
   Trophy,
@@ -191,8 +191,8 @@ export const Dashboard: React.FC = () => {
           </TabsList>
 
           <TabsContent value="overview">
-            <DashboardOverview 
-              studentData={studentData} 
+            <DashboardOverview
+              studentData={studentData}
               recentActivities={dashboardData.recentActivities}
               upcomingDeadlines={dashboardData.upcomingDeadlines}
               leaderboard={dashboardData.leaderboard}
@@ -225,8 +225,8 @@ export const Dashboard: React.FC = () => {
 };
 
 // Dashboard Overview Component
-const DashboardOverview: React.FC<{ 
-  studentData: any; 
+const DashboardOverview: React.FC<{
+  studentData: any;
   recentActivities: any[];
   upcomingDeadlines: any[];
   leaderboard: any[];
@@ -256,7 +256,7 @@ const DashboardOverview: React.FC<{
               <div className="text-right">
                 <Avatar className="h-16 w-16 border-4 border-primary-foreground/20">
                   <AvatarFallback className="bg-primary-foreground/20 text-primary-foreground text-2xl">
-                    {studentData.name.split(' ').map((n:any) => n[0]).join('')}
+                    {studentData.name.split(' ').map((n: any) => n[0]).join('')}
                   </AvatarFallback>
                 </Avatar>
                 <Badge variant="secondary" className="mt-2 bg-primary-foreground/20 text-primary-foreground">
@@ -280,12 +280,11 @@ const DashboardOverview: React.FC<{
               {recentActivities.map((activity, index) => (
                 <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
                   <div className="flex items-center space-x-3">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                      activity.type === 'assignment' ? 'bg-blue-100 text-blue-600' :
-                      activity.type === 'quiz' ? 'bg-green-100 text-green-600' :
-                      activity.type === 'message' ? 'bg-purple-100 text-purple-600' :
-                      'bg-yellow-100 text-yellow-600'
-                    }`}>
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${activity.type === 'assignment' ? 'bg-blue-100 text-blue-600' :
+                        activity.type === 'quiz' ? 'bg-green-100 text-green-600' :
+                          activity.type === 'message' ? 'bg-purple-100 text-purple-600' :
+                            'bg-yellow-100 text-yellow-600'
+                      }`}>
                       {activity.type === 'assignment' && <FileText className="h-5 w-5" />}
                       {activity.type === 'quiz' && <Award className="h-5 w-5" />}
                       {activity.type === 'message' && <MessageSquare className="h-5 w-5" />}
@@ -322,8 +321,8 @@ const DashboardOverview: React.FC<{
             <div className="space-y-3">
               {upcomingDeadlines.map((deadline, index) => (
                 <div key={index} className="p-3 rounded-lg border-l-4 bg-muted/50" style={{
-                  borderLeftColor: deadline.priority === 'high' ? '#ef4444' : 
-                                 deadline.priority === 'medium' ? '#f59e0b' : '#10b981'
+                  borderLeftColor: deadline.priority === 'high' ? '#ef4444' :
+                    deadline.priority === 'medium' ? '#f59e0b' : '#10b981'
                 }}>
                   <div className="flex justify-between items-start">
                     <div>
@@ -332,7 +331,7 @@ const DashboardOverview: React.FC<{
                     </div>
                     <Badge variant={
                       deadline.priority === 'high' ? 'destructive' :
-                      deadline.priority === 'medium' ? 'secondary' : 'default'
+                        deadline.priority === 'medium' ? 'secondary' : 'default'
                     }>
                       {deadline.due}
                     </Badge>
@@ -354,16 +353,14 @@ const DashboardOverview: React.FC<{
           <CardContent>
             <div className="space-y-3">
               {leaderboard.map((student, index) => (
-                <div key={index} className={`flex items-center justify-between p-2 rounded-lg ${
-                  student.name === studentData.name ? 'bg-primary/10' : 'bg-muted/50'
-                }`}>
+                <div key={index} className={`flex items-center justify-between p-2 rounded-lg ${student.name === studentData.name ? 'bg-primary/10' : 'bg-muted/50'
+                  }`}>
                   <div className="flex items-center space-x-3">
-                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
-                      student.rank === 1 ? 'bg-yellow-100 text-yellow-600' :
-                      student.rank === 2 ? 'bg-gray-100 text-gray-600' :
-                      student.rank === 3 ? 'bg-orange-100 text-orange-600' :
-                      'bg-muted text-muted-foreground'
-                    }`}>
+                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${student.rank === 1 ? 'bg-yellow-100 text-yellow-600' :
+                        student.rank === 2 ? 'bg-gray-100 text-gray-600' :
+                          student.rank === 3 ? 'bg-orange-100 text-orange-600' :
+                            'bg-muted text-muted-foreground'
+                      }`}>
                       {student.rank}
                     </div>
                     <div className="text-sm font-medium">{student.name}</div>
@@ -383,7 +380,6 @@ const DashboardOverview: React.FC<{
 const ClassesView: React.FC = () => {
   const { useClasses } = useStudentQueries();
   const { data: classesResponse, isLoading, error } = useClasses({
-    academicYear: '2025-2026',
     term: '1st'
   });
 
@@ -434,17 +430,17 @@ const ClassesView: React.FC = () => {
               </div>
               <Progress value={classItem.progress} className="h-2" />
             </div>
-            
+
             <div className="text-sm">
               <div className="text-muted-foreground mb-1">Next Topic:</div>
               <div className="font-medium">{classItem.nextTopic}</div>
             </div>
-            
+
             <div className="text-sm text-muted-foreground flex items-center space-x-2">
               <Calendar className="h-4 w-4" />
               <span>{classItem.schedule}</span>
             </div>
-            
+
             <div className="flex space-x-2">
               <Button variant="outline" size="sm" className="flex-1">
                 <BookOpen className="h-4 w-4 mr-2" />

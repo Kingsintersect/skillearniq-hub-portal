@@ -74,7 +74,6 @@ export interface DashboardStats {
   activeClasses: number;
   attendanceRate: number;
   feeCollection: number;
-  academicYear: string;
 }
 
 export interface MessageData {
@@ -198,10 +197,10 @@ const dummyReports: Report[] = [
 
 // Service functions with dummy data
 export const adminService = {
-    getDashboardStats: async (): Promise<DashboardStats> => {
+  getDashboardStats: async (): Promise<DashboardStats> => {
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 500));
-    
+
     return {
       totalStudents: 1247,
       totalTeachers: 48,
@@ -209,27 +208,26 @@ export const adminService = {
       activeClasses: 36,
       attendanceRate: 94.2,
       feeCollection: 82,
-      academicYear: '2025-2026'
     };
   },
 
   // Students
   getStudents: async (params?: PaginationParams & { search?: string; class?: string; status?: string }): Promise<ApiResponse<Student[]>> => {
     await new Promise(resolve => setTimeout(resolve, 500));
-    
+
     let filteredStudents = [...dummyStudents];
-    
+
     if (params?.search) {
-      filteredStudents = filteredStudents.filter(student => 
+      filteredStudents = filteredStudents.filter(student =>
         student.name.toLowerCase().includes(params.search!.toLowerCase()) ||
         student.studentId.toLowerCase().includes(params.search!.toLowerCase())
       );
     }
-    
+
     if (params?.class && params.class !== 'all') {
       filteredStudents = filteredStudents.filter(student => student.class === params.class);
     }
-    
+
     if (params?.status && params.status !== 'all') {
       filteredStudents = filteredStudents.filter(student => student.status === params.status);
     }
@@ -251,15 +249,15 @@ export const adminService = {
 
   createStudent: async (student: Omit<Student, 'id' | 'status'>): Promise<ApiResponse<Student>> => {
     await new Promise(resolve => setTimeout(resolve, 500));
-    
+
     const newStudent: Student = {
       ...student,
       id: Math.max(...dummyStudents.map(s => s.id)) + 1,
       status: 'active'
     };
-    
+
     dummyStudents.push(newStudent);
-    
+
     return {
       status: 201,
       data: newStudent,
@@ -269,14 +267,14 @@ export const adminService = {
 
   updateStudentStatus: async (studentId: number, status: 'active' | 'suspended'): Promise<ApiResponse<Student>> => {
     await new Promise(resolve => setTimeout(resolve, 500));
-    
+
     const studentIndex = dummyStudents.findIndex(s => s.id === studentId);
     if (studentIndex === -1) {
       throw new Error('Student not found');
     }
-    
+
     dummyStudents[studentIndex].status = status;
-    
+
     return {
       status: 200,
       data: dummyStudents[studentIndex],
@@ -286,14 +284,14 @@ export const adminService = {
 
   deleteStudent: async (studentId: number): Promise<ApiResponse<void>> => {
     await new Promise(resolve => setTimeout(resolve, 500));
-    
+
     const studentIndex = dummyStudents.findIndex(s => s.id === studentId);
     if (studentIndex === -1) {
       throw new Error('Student not found');
     }
-    
+
     dummyStudents.splice(studentIndex, 1);
-    
+
     return {
       status: 200,
       data: undefined,
@@ -304,22 +302,22 @@ export const adminService = {
   // Teachers
   getTeachers: async (params?: PaginationParams & { search?: string; subject?: string; status?: string }): Promise<ApiResponse<Teacher[]>> => {
     await new Promise(resolve => setTimeout(resolve, 500));
-    
+
     let filteredTeachers = [...dummyTeachers];
-    
+
     if (params?.search) {
-      filteredTeachers = filteredTeachers.filter(teacher => 
+      filteredTeachers = filteredTeachers.filter(teacher =>
         teacher.name.toLowerCase().includes(params.search!.toLowerCase()) ||
         teacher.teacherId.toLowerCase().includes(params.search!.toLowerCase())
       );
     }
-    
+
     if (params?.subject && params.subject !== 'all') {
-      filteredTeachers = filteredTeachers.filter(teacher => 
+      filteredTeachers = filteredTeachers.filter(teacher =>
         teacher.subjects.includes(params.subject!)
       );
     }
-    
+
     if (params?.status && params.status !== 'all') {
       filteredTeachers = filteredTeachers.filter(teacher => teacher.status === params.status);
     }
@@ -333,15 +331,15 @@ export const adminService = {
 
   createTeacher: async (teacher: Omit<Teacher, 'id' | 'status'>): Promise<ApiResponse<Teacher>> => {
     await new Promise(resolve => setTimeout(resolve, 500));
-    
+
     const newTeacher: Teacher = {
       ...teacher,
       id: Math.max(...dummyTeachers.map(t => t.id)) + 1,
       status: 'active'
     };
-    
+
     dummyTeachers.push(newTeacher);
-    
+
     return {
       status: 201,
       data: newTeacher,
@@ -351,16 +349,16 @@ export const adminService = {
 
   assignTeacher: async (teacherId: number, className: string, subjects: string[]): Promise<ApiResponse<Teacher>> => {
     await new Promise(resolve => setTimeout(resolve, 500));
-    
+
     const teacherIndex = dummyTeachers.findIndex(t => t.id === teacherId);
     if (teacherIndex === -1) {
       throw new Error('Teacher not found');
     }
-    
+
     const teacher = dummyTeachers[teacherIndex];
     teacher.classes = [...new Set([...teacher.classes, className])];
     teacher.subjects = [...new Set([...teacher.subjects, ...subjects])];
-    
+
     return {
       status: 200,
       data: teacher,
@@ -370,14 +368,14 @@ export const adminService = {
 
   deleteTeacher: async (teacherId: number): Promise<ApiResponse<void>> => {
     await new Promise(resolve => setTimeout(resolve, 500));
-    
+
     const teacherIndex = dummyTeachers.findIndex(t => t.id === teacherId);
     if (teacherIndex === -1) {
       throw new Error('Teacher not found');
     }
-    
+
     dummyTeachers.splice(teacherIndex, 1);
-    
+
     return {
       status: 200,
       data: undefined,
@@ -388,17 +386,17 @@ export const adminService = {
   // Parents
   getParents: async (params?: PaginationParams & { search?: string; status?: string }): Promise<ApiResponse<Parent[]>> => {
     await new Promise(resolve => setTimeout(resolve, 500));
-    
+
     let filteredParents = [...dummyParents];
-    
+
     if (params?.search) {
-      filteredParents = filteredParents.filter(parent => 
+      filteredParents = filteredParents.filter(parent =>
         parent.name.toLowerCase().includes(params.search!.toLowerCase()) ||
         parent.email.toLowerCase().includes(params.search!.toLowerCase()) ||
         parent.children.some(child => child.toLowerCase().includes(params.search!.toLowerCase()))
       );
     }
-    
+
     if (params?.status && params.status !== 'all') {
       filteredParents = filteredParents.filter(parent => parent.status === params.status);
     }
@@ -412,15 +410,15 @@ export const adminService = {
 
   createParent: async (parent: Omit<Parent, 'id' | 'status'>): Promise<ApiResponse<Parent>> => {
     await new Promise(resolve => setTimeout(resolve, 500));
-    
+
     const newParent: Parent = {
       ...parent,
       id: Math.max(...dummyParents.map(p => p.id)) + 1,
       status: 'active'
     };
-    
+
     dummyParents.push(newParent);
-    
+
     return {
       status: 201,
       data: newParent,
@@ -430,14 +428,14 @@ export const adminService = {
 
   deleteParent: async (parentId: number): Promise<ApiResponse<void>> => {
     await new Promise(resolve => setTimeout(resolve, 500));
-    
+
     const parentIndex = dummyParents.findIndex(p => p.id === parentId);
     if (parentIndex === -1) {
       throw new Error('Parent not found');
     }
-    
+
     dummyParents.splice(parentIndex, 1);
-    
+
     return {
       status: 200,
       data: undefined,
@@ -446,30 +444,29 @@ export const adminService = {
   },
 
   // Payments
-  getPayments: async (params?: { 
-    academicYear?: string; 
-    term?: string; 
-    class?: string; 
-    student?: string; 
+  getPayments: async (params?: {
+    term?: string;
+    class?: string;
+    student?: string;
     status?: string;
     search?: string;
   }): Promise<ApiResponse<Payment[]>> => {
     await new Promise(resolve => setTimeout(resolve, 500));
-    
+
     let filteredPayments = [...dummyPayments];
-    
+
     if (params?.search) {
-      filteredPayments = filteredPayments.filter(payment => 
+      filteredPayments = filteredPayments.filter(payment =>
         payment.student.toLowerCase().includes(params.search!.toLowerCase()) ||
         payment.class.toLowerCase().includes(params.search!.toLowerCase()) ||
         payment.paymentFor.toLowerCase().includes(params.search!.toLowerCase())
       );
     }
-    
+
     if (params?.class && params.class !== 'all') {
       filteredPayments = filteredPayments.filter(payment => payment.class === params.class);
     }
-    
+
     if (params?.status && params.status !== 'all') {
       filteredPayments = filteredPayments.filter(payment => payment.status === params.status);
     }
@@ -482,20 +479,19 @@ export const adminService = {
   },
 
   // Reports
-  getReports: async (params?: { 
-    academicYear?: string; 
-    term?: string; 
-    class?: string; 
+  getReports: async (params?: {
+    term?: string;
+    class?: string;
     student?: string;
   }): Promise<ApiResponse<Report[]>> => {
     await new Promise(resolve => setTimeout(resolve, 500));
-    
+
     let filteredReports = [...dummyReports];
-    
+
     if (params?.class && params.class !== 'all') {
       filteredReports = filteredReports.filter(report => report.class === params.class);
     }
-    
+
     if (params?.student && params.student !== 'all') {
       filteredReports = filteredReports.filter(report => report.student === params.student);
     }
@@ -510,10 +506,10 @@ export const adminService = {
   // Messages
   sendMessage: async (message: MessageData): Promise<ApiResponse<void>> => {
     await new Promise(resolve => setTimeout(resolve, 1000));
-    
+
     // Simulate message sending
     console.log('Message sent:', message);
-    
+
     return {
       status: 200,
       data: undefined,

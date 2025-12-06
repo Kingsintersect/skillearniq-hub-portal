@@ -203,7 +203,6 @@ export interface SubjectGrade {
 
 export interface TermGrade {
   term: 'First' | 'Second' | 'Third';
-  academicYear: string;
   subjects: SubjectGrade[];
   attendance: {
     present: number;

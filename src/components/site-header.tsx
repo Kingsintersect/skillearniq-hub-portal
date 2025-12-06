@@ -6,7 +6,7 @@ import {
     SidebarTrigger,
 } from "@/components/ui/sidebar"
 import { ModeToggle } from './ui/mood-toggle'
-import { ThemeSelector } from './theme-selector'
+// import { ThemeSelector } from './theme-selector'
 import { DynamicBreadcrumb } from './ui/dynamic-breadcrumb'
 import SignOutButton from './core/signout-button'
 import { StudentSelector } from './StudentSelector'
@@ -37,7 +37,7 @@ const SiteHeader = () => {
                         Enroll In Courses
                     </Link>
                 </div>}
-                <ThemeSelector />
+                {/* <ThemeSelector /> */}
                 <ModeToggle />
                 <SignOutButton />
             </div>

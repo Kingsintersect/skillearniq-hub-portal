@@ -10,10 +10,10 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
-import { 
-  Award, 
-  Download, 
-  FileText, 
+import {
+  Award,
+  Download,
+  FileText,
   BarChart3,
   TrendingUp,
   BookOpen,
@@ -30,28 +30,28 @@ type ExportFormat = 'csv' | 'excel' | 'pdf';
 const useExportResults = () => {
   const exportToCSV = (results: any, filters: any, overallStats: any) => {
     if (!results) return;
-    
+
     const headers = [
-      'Subject', 
-      'Code', 
-      'Teacher', 
-      'Test Score', 
-      'Quiz Score', 
-      'Exam Score', 
-      'Total Score', 
+      'Subject',
+      'Code',
+      'Teacher',
+      'Test Score',
+      'Quiz Score',
+      'Exam Score',
+      'Total Score',
       'Max Score',
-      'Percentage', 
-      'Grade', 
+      'Percentage',
+      'Grade',
       'Attendance'
     ];
-    
+
     const csvContent = [
       headers.join(','),
       ...results.subjects.map((subject: any) => {
         const testScore = subject.assessments.find((a: any) => a.type === 'test')?.score || 0;
         const quizScore = subject.assessments.find((a: any) => a.type === 'quiz')?.score || 0;
         const examScore = subject.assessments.find((a: any) => a.type === 'exam')?.score || 0;
-        
+
         const testMax = subject.assessments.find((a: any) => a.type === 'test')?.maxScore || 0;
         const quizMax = subject.assessments.find((a: any) => a.type === 'quiz')?.maxScore || 0;
         const examMax = subject.assessments.find((a: any) => a.type === 'exam')?.maxScore || 0;
@@ -87,35 +87,35 @@ const useExportResults = () => {
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = `student-results-${filters.academicYear}-${filters.term}-term.csv`;
+    link.download = `student-results-${filters.term}-term.csv`;
     link.click();
     URL.revokeObjectURL(link.href);
   };
 
   const exportToExcel = (results: any, filters: any, overallStats: any) => {
     if (!results) return;
-    
+
     const headers = [
-      'Subject', 
-      'Code', 
-      'Teacher', 
-      'Test Score', 
-      'Quiz Score', 
-      'Exam Score', 
-      'Total Score', 
+      'Subject',
+      'Code',
+      'Teacher',
+      'Test Score',
+      'Quiz Score',
+      'Exam Score',
+      'Total Score',
       'Max Score',
-      'Percentage', 
-      'Grade', 
+      'Percentage',
+      'Grade',
       'Attendance'
     ];
-    
+
     const csvContent = [
       headers.join(','),
       ...results.subjects.map((subject: any) => {
         const testScore = subject.assessments.find((a: any) => a.type === 'test')?.score || 0;
         const quizScore = subject.assessments.find((a: any) => a.type === 'quiz')?.score || 0;
         const examScore = subject.assessments.find((a: any) => a.type === 'exam')?.score || 0;
-        
+
         const testMax = subject.assessments.find((a: any) => a.type === 'test')?.maxScore || 0;
         const quizMax = subject.assessments.find((a: any) => a.type === 'quiz')?.maxScore || 0;
         const examMax = subject.assessments.find((a: any) => a.type === 'exam')?.maxScore || 0;
@@ -151,7 +151,7 @@ const useExportResults = () => {
     const blob = new Blob([csvContent], { type: 'application/vnd.ms-excel;charset=utf-8' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = `student-results-${filters.academicYear}-${filters.term}-term.xls`;
+    link.download = `student-results-${filters.term}-term.xls`;
     link.click();
     URL.revokeObjectURL(link.href);
   };
@@ -163,7 +163,7 @@ const useExportResults = () => {
         const testScore = subject.assessments.find((a: any) => a.type === 'test')?.score || 0;
         const quizScore = subject.assessments.find((a: any) => a.type === 'quiz')?.score || 0;
         const examScore = subject.assessments.find((a: any) => a.type === 'exam')?.score || 0;
-        
+
         const testMax = subject.assessments.find((a: any) => a.type === 'test')?.maxScore || 0;
         const quizMax = subject.assessments.find((a: any) => a.type === 'quiz')?.maxScore || 0;
         const examMax = subject.assessments.find((a: any) => a.type === 'exam')?.maxScore || 0;
@@ -211,7 +211,7 @@ const useExportResults = () => {
       printWindow.document.write(`
         <html>
           <head>
-            <title>Student Results - ${filters.academicYear} ${filters.term} Term</title>
+            <title>Student Results -${filters.term} Term</title>
             <style>
               body { 
                 font-family: Arial, sans-serif; 
@@ -313,7 +313,7 @@ const useExportResults = () => {
           <body>
             <div class="header">
               <h1>Student Academic Results</h1>
-              <p>${filters.academicYear} - ${filters.term} Term</p>
+              <p>${filters.term} Term</p>
               <p>Generated on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}</p>
             </div>
 
@@ -413,7 +413,6 @@ const useExportResults = () => {
 
 export const StudentResultsPage: React.FC = () => {
   const [filters, setFilters] = useState({
-    academicYear: '2024-2025',
     term: '1st'
   });
 
@@ -422,13 +421,11 @@ export const StudentResultsPage: React.FC = () => {
 
   const { exportToCSV, exportToExcel, exportToPDF } = useExportResults();
 
-  const academicYears = ['2024-2025', '2023-2024'];
   const terms = ['1st', '2nd', '3rd'];
 
   // Get filtered results
   const currentResults = useMemo(() => {
-    return resultsResponse?.data?.find(r => 
-      r.academicYear === filters.academicYear && 
+    return resultsResponse?.data?.find(r =>
       r.term === filters.term
     );
   }, [resultsResponse, filters]);
@@ -444,7 +441,7 @@ export const StudentResultsPage: React.FC = () => {
     currentResults.subjects.forEach((subject: any) => {
       const subjectTotal = subject.assessments.reduce((sum: number, a: any) => sum + a.score, 0);
       const subjectMax = subject.assessments.reduce((sum: number, a: any) => sum + a.maxScore, 0);
-      
+
       totalScore += subjectTotal;
       totalMax += subjectMax;
       subjectCount++;
@@ -522,7 +519,7 @@ export const StudentResultsPage: React.FC = () => {
           <CardContent className="text-center py-12">
             <Award className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-foreground mb-2">No Results Found</h3>
-            <p className="text-muted-foreground">No results available for the selected academic year and term</p>
+            <p className="text-muted-foreground">No results available for the selected and term</p>
           </CardContent>
         </Card>
       </div>
@@ -546,23 +543,6 @@ export const StudentResultsPage: React.FC = () => {
           <CardContent className="p-6">
             <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
               <div className="flex flex-col sm:flex-row gap-4 flex-1">
-                <div className="space-y-2">
-                  <Label htmlFor="academicYear">Academic Year</Label>
-                  <Select
-                    value={filters.academicYear}
-                    onValueChange={(value) => setFilters(prev => ({ ...prev, academicYear: value }))}
-                  >
-                    <SelectTrigger className="w-40">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {academicYears.map(year => (
-                        <SelectItem key={year} value={year}>{year}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
                 <div className="space-y-2">
                   <Label htmlFor="term">Term</Label>
                   <Select
@@ -590,21 +570,21 @@ export const StudentResultsPage: React.FC = () => {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem 
+                    <DropdownMenuItem
                       onClick={() => handleExport('csv')}
                       className="flex items-center space-x-2"
                     >
                       <Sheet className="h-4 w-4" />
                       <span>Export as CSV</span>
                     </DropdownMenuItem>
-                    <DropdownMenuItem 
+                    <DropdownMenuItem
                       onClick={() => handleExport('excel')}
                       className="flex items-center space-x-2"
                     >
                       <FileDown className="h-4 w-4" />
                       <span>Export as Excel</span>
                     </DropdownMenuItem>
-                    <DropdownMenuItem 
+                    <DropdownMenuItem
                       onClick={() => handleExport('pdf')}
                       className="flex items-center space-x-2"
                     >
@@ -666,7 +646,7 @@ export const StudentResultsPage: React.FC = () => {
         {/* Results Table */}
         <Card>
           <CardHeader>
-            <CardTitle>Detailed Results - {filters.academicYear} {filters.term} Term</CardTitle>
+            <CardTitle>Detailed Results - {filters.term} Term</CardTitle>
             <CardDescription>Breakdown of assessments, quizzes, and exams</CardDescription>
           </CardHeader>
           <CardContent>
@@ -675,7 +655,7 @@ export const StudentResultsPage: React.FC = () => {
                 const testScore = subject.assessments.find((a: any) => a.type === 'test')?.score || 0;
                 const quizScore = subject.assessments.find((a: any) => a.type === 'quiz')?.score || 0;
                 const examScore = subject.assessments.find((a: any) => a.type === 'exam')?.score || 0;
-                
+
                 const testMax = subject.assessments.find((a: any) => a.type === 'test')?.maxScore || 0;
                 const quizMax = subject.assessments.find((a: any) => a.type === 'quiz')?.maxScore || 0;
                 const examMax = subject.assessments.find((a: any) => a.type === 'exam')?.maxScore || 0;
@@ -713,13 +693,13 @@ export const StudentResultsPage: React.FC = () => {
                         {subject.assessments.map((assessment: any, assIndex: number) => {
                           const assPercentage = (assessment.score / assessment.maxScore) * 100;
                           const assGrade = getGradeFromPercentage(assPercentage);
-                          
+
                           return (
                             <TableRow key={assIndex}>
                               <TableCell>
                                 <Badge variant={
                                   assessment.type === 'test' ? 'default' :
-                                  assessment.type === 'quiz' ? 'secondary' : 'outline'
+                                    assessment.type === 'quiz' ? 'secondary' : 'outline'
                                 }>
                                   {assessment.type}
                                 </Badge>

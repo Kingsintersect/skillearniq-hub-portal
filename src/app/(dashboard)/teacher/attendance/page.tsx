@@ -14,27 +14,23 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
-import { 
-  Calendar, 
-  Download, 
-  Users, 
-  CheckCircle, 
-  XCircle, 
+import {
+  Calendar,
+  Download,
+  Users,
+  CheckCircle,
+  XCircle,
   Clock,
   TrendingUp,
   BarChart3,
-  Search,
-  Filter
 } from 'lucide-react';
 
 export const AttendancePage: React.FC = () => {
   const [filters, setFilters] = useState({
-    academicYear: '2024-2025',
     term: '1st',
     classId: 1,
   });
   const [view, setView] = useState<'daily' | 'monthly'>('daily');
-  const [dateFilter, setDateFilter] = useState('');
 
   const currentTeacherId = 1;
   const { data: classes, isLoading } = useTeacherClasses(currentTeacherId);
@@ -42,11 +38,11 @@ export const AttendancePage: React.FC = () => {
   // Mock attendance data
   const attendanceData = {
     daily: [
-      { 
-        date: '2024-01-15', 
-        present: 28, 
-        absent: 2, 
-        late: 1, 
+      {
+        date: '2024-01-15',
+        present: 28,
+        absent: 2,
+        late: 1,
         rate: 93.3,
         students: [
           { id: 1, name: 'John Doe', status: 'present', time: '08:00 AM' },
@@ -54,11 +50,11 @@ export const AttendancePage: React.FC = () => {
           { id: 3, name: 'Mike Johnson', status: 'late', time: '08:15 AM' },
         ]
       },
-      { 
-        date: '2024-01-16', 
-        present: 29, 
-        absent: 1, 
-        late: 1, 
+      {
+        date: '2024-01-16',
+        present: 29,
+        absent: 1,
+        late: 1,
         rate: 96.7,
         students: [
           { id: 1, name: 'John Doe', status: 'present', time: '07:55 AM' },
@@ -74,7 +70,6 @@ export const AttendancePage: React.FC = () => {
     ]
   };
 
-  const academicYears = ['2023-2024', '2024-2025', '2025-2026'];
   const terms = ['1st', '2nd', '3rd'];
 
   const handleExport = () => {
@@ -168,23 +163,6 @@ export const AttendancePage: React.FC = () => {
           <CardContent className="p-6">
             <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
               <div className="flex flex-col sm:flex-row gap-4 flex-1">
-                <div className="flex-1">
-                  <Label htmlFor="academicYear">Academic Year</Label>
-                  <Select
-                    value={filters.academicYear}
-                    onValueChange={(value) => setFilters(prev => ({ ...prev, academicYear: value }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {academicYears.map(year => (
-                        <SelectItem key={year} value={year}>{year}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
                 <div className="flex-1">
                   <Label htmlFor="term">Term</Label>
                   <Select
@@ -285,11 +263,10 @@ const DailyAttendanceView: React.FC<{ data: any[] }> = ({ data }) => {
               </TableHeader>
               <TableBody>
                 {data.map((day) => (
-                  <TableRow 
-                    key={day.date} 
-                    className={`cursor-pointer hover:bg-muted/50 ${
-                      selectedDate === day.date ? 'bg-muted' : ''
-                    }`}
+                  <TableRow
+                    key={day.date}
+                    className={`cursor-pointer hover:bg-muted/50 ${selectedDate === day.date ? 'bg-muted' : ''
+                      }`}
                     onClick={() => setSelectedDate(day.date)}
                   >
                     <TableCell className="font-medium">
@@ -313,8 +290,8 @@ const DailyAttendanceView: React.FC<{ data: any[] }> = ({ data }) => {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Button 
-                        variant="outline" 
+                      <Button
+                        variant="outline"
                         size="sm"
                         onClick={(e) => {
                           e.stopPropagation();
@@ -335,8 +312,8 @@ const DailyAttendanceView: React.FC<{ data: any[] }> = ({ data }) => {
       {/* Day Details */}
       {selectedDate && selectedDayData && (
         <div className="lg:col-span-1">
-          <DayAttendanceDetails 
-            data={selectedDayData} 
+          <DayAttendanceDetails
+            data={selectedDayData}
             onClose={() => setSelectedDate(null)}
           />
         </div>
@@ -354,11 +331,11 @@ const DayAttendanceDetails: React.FC<{ data: any; onClose: () => void }> = ({ da
           <div>
             <CardTitle>Attendance Details</CardTitle>
             <CardDescription>
-              {new Date(data.date).toLocaleDateString('en-US', { 
-                weekday: 'long', 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
+              {new Date(data.date).toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
               })}
             </CardDescription>
           </div>
@@ -403,14 +380,14 @@ const DayAttendanceDetails: React.FC<{ data: any; onClose: () => void }> = ({ da
                 {data.students.map((student: any) => (
                   <div key={student.id} className="flex justify-between items-center p-2 border rounded text-sm">
                     <span>{student.name}</span>
-                    <Badge 
+                    <Badge
                       variant={
                         student.status === 'present' ? 'default' :
-                        student.status === 'absent' ? 'destructive' : 'outline'
+                          student.status === 'absent' ? 'destructive' : 'outline'
                       }
                       className={
                         student.status === 'present' ? 'bg-green-500' :
-                        student.status === 'absent' ? '' : 'bg-orange-500'
+                          student.status === 'absent' ? '' : 'bg-orange-500'
                       }
                     >
                       {student.status} {student.time && `(${student.time})`}

@@ -73,7 +73,7 @@ const Pagination = ({
           size="sm"
           onClick={() => onPageChange(1)}
           disabled={currentPage === 1}
-          className="hidden sm:flex"
+          className="hidden sm:flex border-border"
         >
           <ChevronsLeft className="h-4 w-4" />
         </Button>
@@ -82,6 +82,7 @@ const Pagination = ({
           size="sm"
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1}
+          className="border-border"
         >
           <ChevronLeft className="h-4 w-4" />
         </Button>
@@ -89,7 +90,7 @@ const Pagination = ({
         <div className="flex items-center space-x-1">
           {getPageNumbers().map((page, index) =>
             page === "..." ? (
-              <span key={index} className="px-2 py-1 text-sm">
+              <span key={index} className="px-2 py-1 text-sm text-muted-foreground">
                 ...
               </span>
             ) : (
@@ -98,7 +99,7 @@ const Pagination = ({
                 variant={currentPage === page ? "default" : "outline"}
                 size="sm"
                 onClick={() => onPageChange(page as number)}
-                className="h-8 w-8 p-0"
+                className="h-8 w-8 p-0 border-border"
               >
                 {page}
               </Button>
@@ -111,6 +112,7 @@ const Pagination = ({
           size="sm"
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
+          className="border-border"
         >
           <ChevronRight className="h-4 w-4" />
         </Button>
@@ -119,7 +121,7 @@ const Pagination = ({
           size="sm"
           onClick={() => onPageChange(totalPages)}
           disabled={currentPage === totalPages}
-          className="hidden sm:flex"
+          className="hidden sm:flex border-border"
         >
           <ChevronsRight className="h-4 w-4" />
         </Button>
@@ -133,7 +135,7 @@ type ExportFormat = 'csv' | 'excel' | 'pdf';
 const useExportStudents = () => {
   const exportToCSV = (students: any[], filename: string = 'students') => {
     if (!students.length) return;
-    
+
     const headers = [
       'Student ID',
       'First Name',
@@ -146,7 +148,7 @@ const useExportStudents = () => {
       'Last Login',
       'Created Date'
     ];
-    
+
     const csvContent = [
       headers.join(','),
       ...students.map(student => [
@@ -173,7 +175,7 @@ const useExportStudents = () => {
 
   const exportToExcel = (students: any[], filename: string = 'students') => {
     if (!students.length) return;
-    
+
     const headers = [
       'Student ID',
       'First Name',
@@ -186,7 +188,7 @@ const useExportStudents = () => {
       'Last Login',
       'Created Date'
     ];
-    
+
     const csvContent = [
       headers.join(','),
       ...students.map(student => [
@@ -289,13 +291,13 @@ export default function StudentsPage() {
     currentPage: 1,
     itemsPerPage: 10,
   });
-  
-  const { 
+
+  const {
     useAllStudents,
-    useCreateStudent, 
+    useCreateStudent,
     useUpdateStudentStatus,
     useDeleteStudent,
-    useBulkUploadStudents 
+    useBulkUploadStudents
   } = useAdminQueries();
 
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
@@ -324,16 +326,16 @@ export default function StudentsPage() {
   const students = allStudentsResponse || [];
 
   const filteredStudents = students.filter(student => {
-    const matchesSearch = debouncedSearchTerm === '' || 
+    const matchesSearch = debouncedSearchTerm === '' ||
       student.first_name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
       student.last_name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
       student.email.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
       student.phone.includes(debouncedSearchTerm);
-    
-    const matchesStatus = filters.status === 'all' || 
+
+    const matchesStatus = filters.status === 'all' ||
       (filters.status === 'active' && student.is_active === 1) ||
       (filters.status === 'inactive' && student.is_active === 0);
-    
+
     return matchesSearch && matchesStatus;
   });
 
@@ -448,40 +450,43 @@ export default function StudentsPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen p-6 flex items-center justify-center">
-        <div className="text-center">Loading students...</div>
+      <div className="min-h-screen p-6 flex items-center justify-center bg-background">
+        <div className="text-center text-foreground">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          Loading students...
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen p-6 bg-gray-50">
+    <div className="min-h-screen p-6 bg-background">
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Students Management</h1>
-            <p className="text-gray-600">Manage all students and their information</p>
+            <h1 className="text-3xl font-bold text-foreground">Students Management</h1>
+            <p className="text-muted-foreground">Manage all students and their information</p>
           </div>
           <div className="flex space-x-4">
-            {/* <Button variant="outline" onClick={() => setIsBulkUploadDialogOpen(true)}>
+            {/* <Button variant="outline" onClick={() => setIsBulkUploadDialogOpen(true)} className="border-border">
               <Upload className="h-4 w-4 mr-2" />
               Bulk Upload
             </Button> */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline">
+                <Button variant="outline" className="border-border">
                   <Download className="h-4 w-4 mr-2" />
                   Export
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem onClick={() => handleExport('csv')}>
+              <DropdownMenuContent className="bg-background border-border">
+                <DropdownMenuItem onClick={() => handleExport('csv')} className="text-foreground">
                   <Sheet className="h-4 w-4 mr-2" /> CSV
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleExport('excel')}>
+                <DropdownMenuItem onClick={() => handleExport('excel')} className="text-foreground">
                   <FileDown className="h-4 w-4 mr-2" /> Excel
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleExport('pdf')}>
+                <DropdownMenuItem onClick={() => handleExport('pdf')} className="text-foreground">
                   <FileText className="h-4 w-4 mr-2" /> PDF
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -494,7 +499,7 @@ export default function StudentsPage() {
         </div>
 
         {/* Search and Filters */}
-        <Card className="mb-6 bg-white border border-gray-200">
+        <Card className="mb-6 bg-card border-border">
           <CardContent className="p-6">
             <div className="flex flex-col md:flex-row gap-4">
               <div className="flex-1">
@@ -502,34 +507,35 @@ export default function StudentsPage() {
                   placeholder="Search students by name, email, or phone..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
+                  className="bg-background border-border"
                 />
               </div>
               <Select value={filters.status} onValueChange={(value) => setFilters({ status: value })}>
-                <SelectTrigger className="w-full md:w-[200px]">
+                <SelectTrigger className="w-full md:w-[200px] bg-background border-border">
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="inactive">Inactive</SelectItem>
+                <SelectContent className="bg-background border-border">
+                  <SelectItem value="all" className="text-foreground">All Status</SelectItem>
+                  <SelectItem value="active" className="text-foreground">Active</SelectItem>
+                  <SelectItem value="inactive" className="text-foreground">Inactive</SelectItem>
                 </SelectContent>
               </Select>
               <Select
                 value={pagination.itemsPerPage.toString()}
                 onValueChange={handleItemsPerPageChange}
               >
-                <SelectTrigger className="w-full md:w-[200px]">
+                <SelectTrigger className="w-full md:w-[200px] bg-background border-border">
                   <SelectValue placeholder="Show per page" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="5">5 per page</SelectItem>
-                  <SelectItem value="10">10 per page</SelectItem>
-                  <SelectItem value="20">20 per page</SelectItem>
-                  <SelectItem value="50">50 per page</SelectItem>
+                <SelectContent className="bg-background border-border">
+                  <SelectItem value="5" className="text-foreground">5 per page</SelectItem>
+                  <SelectItem value="10" className="text-foreground">10 per page</SelectItem>
+                  <SelectItem value="20" className="text-foreground">20 per page</SelectItem>
+                  <SelectItem value="50" className="text-foreground">50 per page</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-            <div className="mt-4 text-sm text-gray-600">
+            <div className="mt-4 text-sm text-muted-foreground">
               {filteredStudents.length} students found
               {debouncedSearchTerm && ` for "${debouncedSearchTerm}"`}
             </div>
@@ -537,9 +543,9 @@ export default function StudentsPage() {
         </Card>
 
         {/* Students Table */}
-        <Card className="bg-white border border-gray-200">
+        <Card className="bg-card border-border">
           <CardHeader>
-            <CardTitle>All Students</CardTitle>
+            <CardTitle className="text-foreground">All Students</CardTitle>
             <CardDescription>
               {filteredStudents.length} students in the system
               {debouncedSearchTerm && ` matching "${debouncedSearchTerm}"`}
@@ -549,32 +555,32 @@ export default function StudentsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Contact</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Verification</TableHead>
-                  <TableHead>Last Login</TableHead>
-                  <TableHead>Actions</TableHead>
+                  <TableHead className="text-foreground">Name</TableHead>
+                  <TableHead className="text-foreground">Contact</TableHead>
+                  <TableHead className="text-foreground">Status</TableHead>
+                  <TableHead className="text-foreground">Verification</TableHead>
+                  <TableHead className="text-foreground">Last Login</TableHead>
+                  <TableHead className="text-foreground">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {paginatedStudents.map((student) => (
-                  <TableRow key={student.id}>
+                  <TableRow key={student.id} className="hover:bg-muted/50">
                     <TableCell>
                       <div>
-                        <div className="font-medium">{student.first_name} {student.last_name}</div>
-                        <div className="text-sm text-gray-500">{student.username || 'No username'}</div>
+                        <div className="font-medium text-foreground">{student.first_name} {student.last_name}</div>
+                        <div className="text-sm text-muted-foreground">{student.username || 'No username'}</div>
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="space-y-1">
                         <div className="flex items-center space-x-2">
-                          <Mail className="h-3 w-3 text-gray-500" />
-                          <span className="text-sm">{student.email}</span>
+                          <Mail className="h-3 w-3 text-muted-foreground" />
+                          <span className="text-sm text-foreground">{student.email}</span>
                         </div>
                         <div className="flex items-center space-x-2">
-                          <Phone className="h-3 w-3 text-gray-500" />
-                          <span className="text-sm">{student.phone}</span>
+                          <Phone className="h-3 w-3 text-muted-foreground" />
+                          <span className="text-sm text-foreground">{student.phone}</span>
                         </div>
                       </div>
                     </TableCell>
@@ -594,23 +600,25 @@ export default function StudentsPage() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="text-sm text-gray-500">
+                      <div className="text-sm text-muted-foreground">
                         {formatDate(student.last_login_at)}
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex space-x-2">
-                        <Button 
-                          variant="outline" 
+                        <Button
+                          variant="outline"
                           size="sm"
                           onClick={() => handleSuspendStudent(student.id, student.is_active)}
+                          className="border-border hover:bg-yellow-500/10 hover:text-yellow-600"
                         >
                           <Ban className="h-4 w-4" />
                         </Button>
-                        <Button 
-                          variant="outline" 
+                        <Button
+                          variant="outline"
                           size="sm"
                           onClick={() => handleDeleteStudent(student.id)}
+                          className="border-border hover:bg-destructive/10 hover:text-destructive"
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -636,87 +644,99 @@ export default function StudentsPage() {
 
         {/* Create Student Dialog */}
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-2xl bg-background border-border">
             <DialogHeader>
-              <DialogTitle>Add New Student</DialogTitle>
+              <DialogTitle className="text-foreground">Add New Student</DialogTitle>
             </DialogHeader>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>First Name</Label>
+                <Label className="text-foreground">First Name</Label>
                 <Input
                   value={newStudent.first_name}
-                  onChange={(e) => setNewStudent({...newStudent, first_name: e.target.value})}
+                  onChange={(e) => setNewStudent({ ...newStudent, first_name: e.target.value })}
+                  className="bg-background border-border"
                 />
               </div>
               <div className="space-y-2">
-                <Label>Last Name</Label>
+                <Label className="text-foreground">Last Name</Label>
                 <Input
                   value={newStudent.last_name}
-                  onChange={(e) => setNewStudent({...newStudent, last_name: e.target.value})}
+                  onChange={(e) => setNewStudent({ ...newStudent, last_name: e.target.value })}
+                  className="bg-background border-border"
                 />
               </div>
               <div className="space-y-2">
-                <Label>Email</Label>
+                <Label className="text-foreground">Email</Label>
                 <Input
                   type="email"
                   value={newStudent.email}
-                  onChange={(e) => setNewStudent({...newStudent, email: e.target.value})}
+                  onChange={(e) => setNewStudent({ ...newStudent, email: e.target.value })}
+                  className="bg-background border-border"
                 />
               </div>
               <div className="space-y-2">
-                <Label>Username</Label>
+                <Label className="text-foreground">Username</Label>
                 <Input
                   value={newStudent.username}
-                  onChange={(e) => setNewStudent({...newStudent, username: e.target.value})}
+                  onChange={(e) => setNewStudent({ ...newStudent, username: e.target.value })}
+                  className="bg-background border-border"
                 />
               </div>
               <div className="space-y-2">
-                <Label>Phone</Label>
+                <Label className="text-foreground">Phone</Label>
                 <Input
                   value={newStudent.phone}
-                  onChange={(e) => setNewStudent({...newStudent, phone: e.target.value})}
+                  onChange={(e) => setNewStudent({ ...newStudent, phone: e.target.value })}
+                  className="bg-background border-border"
                 />
               </div>
               <div className="space-y-2">
-                <Label>Password</Label>
+                <Label className="text-foreground">Password</Label>
                 <Input
                   type="password"
                   value={newStudent.password}
-                  onChange={(e) => setNewStudent({...newStudent, password: e.target.value})}
+                  onChange={(e) => setNewStudent({ ...newStudent, password: e.target.value })}
+                  className="bg-background border-border"
                 />
               </div>
               <div className="space-y-2">
-                <Label>Parent First Name</Label>
+                <Label className="text-foreground">Parent First Name</Label>
                 <Input
                   value={newStudent.parent_first_name}
-                  onChange={(e) => setNewStudent({...newStudent, parent_first_name: e.target.value})}
+                  onChange={(e) => setNewStudent({ ...newStudent, parent_first_name: e.target.value })}
+                  className="bg-background border-border"
                 />
               </div>
               <div className="space-y-2">
-                <Label>Parent Last Name</Label>
+                <Label className="text-foreground">Parent Last Name</Label>
                 <Input
                   value={newStudent.parent_last_name}
-                  onChange={(e) => setNewStudent({...newStudent, parent_last_name: e.target.value})}
+                  onChange={(e) => setNewStudent({ ...newStudent, parent_last_name: e.target.value })}
+                  className="bg-background border-border"
                 />
               </div>
               <div className="space-y-2">
-                <Label>Parent Email</Label>
+                <Label className="text-foreground">Parent Email</Label>
                 <Input
                   type="email"
                   value={newStudent.parent_email}
-                  onChange={(e) => setNewStudent({...newStudent, parent_email: e.target.value})}
+                  onChange={(e) => setNewStudent({ ...newStudent, parent_email: e.target.value })}
+                  className="bg-background border-border"
                 />
               </div>
               <div className="space-y-2">
-                <Label>Parent Phone</Label>
+                <Label className="text-foreground">Parent Phone</Label>
                 <Input
                   value={newStudent.parent_phone_number}
-                  onChange={(e) => setNewStudent({...newStudent, parent_phone_number: e.target.value})}
+                  onChange={(e) => setNewStudent({ ...newStudent, parent_phone_number: e.target.value })}
+                  className="bg-background border-border"
                 />
               </div>
             </div>
             <div className="flex justify-end space-x-4 mt-6">
-              <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>Cancel</Button>
+              <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)} className="border-border">
+                Cancel
+              </Button>
               <Button onClick={handleCreateStudent}>Add Student</Button>
             </div>
           </DialogContent>
