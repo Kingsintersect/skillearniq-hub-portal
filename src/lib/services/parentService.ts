@@ -539,7 +539,6 @@ export const parentService = {
         terms: [
           {
             term: 'First',
-            academicYear: '2024/2025',
             attendance: {
               present: 85,
               total: 90,
@@ -570,7 +569,6 @@ export const parentService = {
           },
           {
             term: 'Second',
-            academicYear: '2024/2025',
             attendance: {
               present: 88,
               total: 92,
@@ -611,7 +609,6 @@ export const parentService = {
         terms: [
           {
             term: 'First',
-            academicYear: '2024/2025',
             attendance: {
               present: 82,
               total: 90,
@@ -652,7 +649,6 @@ export const parentService = {
         terms: [
           {
             term: 'First',
-            academicYear: '2024/2025',
             attendance: {
               present: 78,
               total: 90,

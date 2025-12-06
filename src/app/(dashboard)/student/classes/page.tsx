@@ -14,13 +14,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { 
-  BookOpen, 
-  Users, 
-  Calendar, 
-  FileText, 
-  MessageSquare, 
-  Download, 
+import {
+  BookOpen,
+  Users,
+  Calendar,
+  FileText,
+  MessageSquare,
+  Download,
   Search,
   Award,
   TrendingUp,
@@ -34,12 +34,11 @@ import { useStudentQueries } from '@/hooks/useStudentQueries';
 
 export const StudentClassesPage: React.FC = () => {
   const [filters, setFilters] = useState({
-    academicYear: '2025-2026',
     term: '1st',
     teacher: 'all',
     subject: 'all'
   });
-  
+
   const [selectedClass, setSelectedClass] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -51,7 +50,6 @@ export const StudentClassesPage: React.FC = () => {
   const classes = classesResponse?.data || [];
 
   // Get unique values for filters
-  const academicYears = ['2024-2025', '2025-2026'];
   const terms = ['1st', '2nd', '3rd'];
   const teachers = [...new Set(classes.map(c => c.teacher.name))];
   const subjects = [...new Set(classes.map(c => c.subject))];
@@ -62,8 +60,8 @@ export const StudentClassesPage: React.FC = () => {
       (filters.teacher === 'all' || cls.teacher.name === filters.teacher) &&
       (filters.subject === 'all' || cls.subject === filters.subject) &&
       (cls.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-       cls.teacher.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-       cls.subject.toLowerCase().includes(searchTerm.toLowerCase()))
+        cls.teacher.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        cls.subject.toLowerCase().includes(searchTerm.toLowerCase()))
     );
   }, [classes, filters, searchTerm]);
 
@@ -114,23 +112,6 @@ export const StudentClassesPage: React.FC = () => {
         <Card className="mb-6">
           <CardContent className="p-6">
             <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="academicYear">Academic Year</Label>
-                <Select
-                  value={filters.academicYear}
-                  onValueChange={(value) => setFilters(prev => ({ ...prev, academicYear: value }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {academicYears.map(year => (
-                      <SelectItem key={year} value={year}>{year}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
               <div className="space-y-2">
                 <Label htmlFor="term">Term</Label>
                 <Select
@@ -203,9 +184,9 @@ export const StudentClassesPage: React.FC = () => {
         {/* Classes Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredClasses.map((classItem) => (
-            <ClassCard 
-              key={classItem.id} 
-              classItem={classItem} 
+            <ClassCard
+              key={classItem.id}
+              classItem={classItem}
               isSelected={selectedClass === classItem.id}
               onSelect={() => setSelectedClass(classItem.id)}
               onExport={handleExportClassData}
@@ -245,7 +226,7 @@ const ClassCard: React.FC<{
 }> = ({ classItem, isSelected, onSelect, onExport }) => {
   // Calculate totals and averages
   const totalAssessments = classItem.assessments.length;
-  const averageScore = totalAssessments > 0 
+  const averageScore = totalAssessments > 0
     ? classItem.assessments.reduce((sum: number, a: any) => sum + (a.score / a.maxScore) * 100, 0) / totalAssessments
     : 0;
 
@@ -254,10 +235,9 @@ const ClassCard: React.FC<{
   const examScore = classItem.assessments.find((a: any) => a.type === 'exam')?.score || 0;
 
   return (
-    <Card 
-      className={`cursor-pointer hover:shadow-lg transition-all duration-300 ${
-        isSelected ? 'ring-2 ring-primary' : ''
-      }`}
+    <Card
+      className={`cursor-pointer hover:shadow-lg transition-all duration-300 ${isSelected ? 'ring-2 ring-primary' : ''
+        }`}
       onClick={onSelect}
     >
       <CardHeader className="pb-3">
@@ -357,7 +337,7 @@ const ClassDetailsDialog: React.FC<{
         <DialogHeader>
           <DialogTitle className="flex justify-between items-center">
             <span>
-              {classItem.name} - {classItem.academicYear} {classItem.term} Term
+              {classItem.name} - {classItem.term} Term
             </span>
             <Badge variant="secondary">{classItem.currentGrade}</Badge>
           </DialogTitle>
@@ -491,8 +471,8 @@ const ClassDetailsDialog: React.FC<{
                                       assessment.type === "test"
                                         ? "default"
                                         : assessment.type === "quiz"
-                                        ? "secondary"
-                                        : "outline"
+                                          ? "secondary"
+                                          : "outline"
                                     }
                                   >
                                     {assessment.type}

@@ -8,7 +8,6 @@ const demoClasses: Class[] = [
 		shortName: 'JSS1A',
 		level: 'JSS1',
 		arm: 'A',
-		academicYear: '2024-2025',
 		term: '1st',
 		teacherId: 1,
 		studentCount: 35,
@@ -20,7 +19,6 @@ const demoClasses: Class[] = [
 		shortName: 'JSS1B',
 		level: 'JSS1',
 		arm: 'B',
-		academicYear: '2024-2025',
 		term: '1st',
 		teacherId: 1,
 		studentCount: 32,
@@ -32,7 +30,6 @@ const demoClasses: Class[] = [
 		shortName: 'SSS2A',
 		level: 'SSS2',
 		arm: 'A',
-		academicYear: '2024-2025',
 		term: '1st',
 		teacherId: 1,
 		studentCount: 28,
@@ -44,7 +41,6 @@ const demoClasses: Class[] = [
 		shortName: 'JSS1A',
 		level: 'JSS1',
 		arm: 'A',
-		academicYear: '2023-2024',
 		term: '3rd',
 		teacherId: 1,
 		studentCount: 30,
@@ -122,14 +118,10 @@ const demoClassStudents: ClassStudent[] = [
 
 export const classService = {
 	// Get all classes for the current teacher
-	getTeacherClasses: async (teacherId: number, filters?: { academicYear?: string; term?: string }): Promise<Class[]> => {
+	getTeacherClasses: async (teacherId: number, filters?: { term?: string }): Promise<Class[]> => {
 		await new Promise(resolve => setTimeout(resolve, 500));
 
 		let filteredClasses = demoClasses.filter(cls => cls.teacherId === teacherId);
-
-		if (filters?.academicYear) {
-			filteredClasses = filteredClasses.filter(cls => cls.academicYear === filters.academicYear);
-		}
 
 		if (filters?.term) {
 			filteredClasses = filteredClasses.filter(cls => cls.term === filters.term);
@@ -143,17 +135,6 @@ export const classService = {
 		await new Promise(resolve => setTimeout(resolve, 300));
 
 		return demoClassStudents.filter(student => student.classId === classId);
-	},
-
-	// Get available academic years for filter
-	getAcademicYears: async (teacherId: number): Promise<string[]> => {
-		await new Promise(resolve => setTimeout(resolve, 100));
-
-		const years = demoClasses
-			.filter(cls => cls.teacherId === teacherId)
-			.map(cls => cls.academicYear);
-
-		return Array.from(new Set(years)).sort().reverse();
 	},
 
 	// Get students with pagination for infinite scroll

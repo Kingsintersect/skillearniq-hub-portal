@@ -1,4 +1,3 @@
-
 'use client'
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -102,59 +101,59 @@ export default function MessagesPage() {
   };
 
   return (
-    <div className="min-h-screen p-6">
+    <div className="min-h-screen p-6 bg-background">
       <div className="max-w-8xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold">Send Messages</h1>
+          <h1 className="text-3xl font-bold text-foreground">Send Messages</h1>
           <p className="text-muted-foreground">Communicate with students, teachers, and parents</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Compose Message */}
           <div className="lg:col-span-2">
-            <Card>
+            <Card className="bg-card border-border">
               <CardHeader>
-                <CardTitle>Compose Message</CardTitle>
+                <CardTitle className="text-foreground">Compose Message</CardTitle>
                 <CardDescription>Send announcements, updates, or individual messages</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <Label>Send To</Label>
+                    <Label className="text-foreground">Send To</Label>
                     <Select
                       value={message.recipientType}
                       onValueChange={(value) => setMessage({ ...message, recipientType: value })}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className="bg-background border-border">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="bg-background border-border">
                         <SelectItem value="all">
-                          <div className="flex items-center">
+                          <div className="flex items-center text-foreground">
                             <Users className="h-4 w-4 mr-2" />
                             All Users
                           </div>
                         </SelectItem>
                         <SelectItem value="students">
-                          <div className="flex items-center">
+                          <div className="flex items-center text-foreground">
                             <User className="h-4 w-4 mr-2" />
                             All Students
                           </div>
                         </SelectItem>
                         <SelectItem value="teachers">
-                          <div className="flex items-center">
+                          <div className="flex items-center text-foreground">
                             <UserCheck className="h-4 w-4 mr-2" />
                             All Teachers
                           </div>
                         </SelectItem>
                         <SelectItem value="parents">
-                          <div className="flex items-center">
+                          <div className="flex items-center text-foreground">
                             <Users className="h-4 w-4 mr-2" />
                             All Parents
                           </div>
                         </SelectItem>
                         <SelectItem value="specific">
-                          <div className="flex items-center">
+                          <div className="flex items-center text-foreground">
                             <User className="h-4 w-4 mr-2" />
                             Specific Users
                           </div>
@@ -165,14 +164,14 @@ export default function MessagesPage() {
 
                   {message.recipientType === 'specific' && (
                     <div className="space-y-2">
-                      <Label>Selected Users</Label>
-                      <div className="text-sm border rounded-lg p-3 min-h-[42px]">
+                      <Label className="text-foreground">Selected Users</Label>
+                      <div className="text-sm border border-border rounded-lg p-3 min-h-[42px] bg-background">
                         {selectedUsers.length === 0 ? (
                           <span className="text-muted-foreground">No users selected</span>
                         ) : (
                           <div className="flex flex-wrap gap-1">
                             {selectedUsers.map(userKey => (
-                              <Badge key={userKey} variant="secondary" className="text-xs">
+                              <Badge key={userKey} variant="secondary" className="text-xs bg-secondary text-secondary-foreground">
                                 {userKey.split('-')[1]}
                               </Badge>
                             ))}
@@ -184,21 +183,23 @@ export default function MessagesPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Subject</Label>
+                  <Label className="text-foreground">Subject</Label>
                   <Input
                     placeholder="Enter message subject"
                     value={message.subject}
                     onChange={(e) => setMessage({ ...message, subject: e.target.value })}
+                    className="bg-background border-border"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Message Content</Label>
+                  <Label className="text-foreground">Message Content</Label>
                   <Textarea
                     placeholder="Type your message here..."
                     rows={8}
                     value={message.content}
                     onChange={(e) => setMessage({ ...message, content: e.target.value })}
+                    className="bg-background border-border resize-none"
                   />
                 </div>
 
@@ -215,30 +216,33 @@ export default function MessagesPage() {
           {/* User Selection & Recent Messages */}
           <div className="space-y-6">
             {message.recipientType === 'specific' && (
-              <Card>
+              <Card className="bg-card border-border">
                 <CardHeader>
-                  <CardTitle>Select Users</CardTitle>
+                  <CardTitle className="text-foreground">Select Users</CardTitle>
                   <CardDescription>Choose specific recipients</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4 max-h-[400px] overflow-y-auto">
                     {/* Students */}
                     <div>
-                      <h4 className="font-semibold mb-2 flex items-center">
+                      <h4 className="font-semibold mb-2 flex items-center text-foreground">
                         <User className="h-4 w-4 mr-2" />
                         Students
                       </h4>
                       <div className="space-y-1">
                         {users.students.map(student => (
-                          <div key={student.id} className="flex items-center space-x-2 p-2 hover:bg-muted rounded">
+                          <div
+                            key={student.id}
+                            className="flex items-center space-x-2 p-2 hover:bg-muted rounded-lg transition-colors"
+                          >
                             <input
                               type="checkbox"
                               checked={selectedUsers.includes(`student-${student.id}`)}
                               onChange={() => toggleUserSelection(student.id.toString(), 'student')}
-                              className="h-4 w-4"
+                              className="h-4 w-4 text-primary bg-background border-border rounded"
                             />
                             <div>
-                              <div className="text-sm font-medium">{student.name}</div>
+                              <div className="text-sm font-medium text-foreground">{student.name}</div>
                               <div className="text-xs text-muted-foreground">{student.class}</div>
                             </div>
                           </div>
@@ -248,21 +252,24 @@ export default function MessagesPage() {
 
                     {/* Teachers */}
                     <div>
-                      <h4 className="font-semibold mb-2 flex items-center">
+                      <h4 className="font-semibold mb-2 flex items-center text-foreground">
                         <UserCheck className="h-4 w-4 mr-2" />
                         Teachers
                       </h4>
                       <div className="space-y-1">
                         {users.teachers.map(teacher => (
-                          <div key={teacher.id} className="flex items-center space-x-2 p-2 hover:bg-muted rounded">
+                          <div
+                            key={teacher.id}
+                            className="flex items-center space-x-2 p-2 hover:bg-muted rounded-lg transition-colors"
+                          >
                             <input
                               type="checkbox"
                               checked={selectedUsers.includes(`teacher-${teacher.id}`)}
                               onChange={() => toggleUserSelection(teacher.id.toString(), 'teacher')}
-                              className="h-4 w-4"
+                              className="h-4 w-4 text-primary bg-background border-border rounded"
                             />
                             <div>
-                              <div className="text-sm font-medium">{teacher.name}</div>
+                              <div className="text-sm font-medium text-foreground">{teacher.name}</div>
                               <div className="text-xs text-muted-foreground">{teacher.subject}</div>
                             </div>
                           </div>
@@ -272,21 +279,24 @@ export default function MessagesPage() {
 
                     {/* Parents */}
                     <div>
-                      <h4 className="font-semibold mb-2 flex items-center">
+                      <h4 className="font-semibold mb-2 flex items-center text-foreground">
                         <Users className="h-4 w-4 mr-2" />
                         Parents
                       </h4>
                       <div className="space-y-1">
                         {users.parents.map(parent => (
-                          <div key={parent.id} className="flex items-center space-x-2 p-2 hover:bg-muted rounded">
+                          <div
+                            key={parent.id}
+                            className="flex items-center space-x-2 p-2 hover:bg-muted rounded-lg transition-colors"
+                          >
                             <input
                               type="checkbox"
                               checked={selectedUsers.includes(`parent-${parent.id}`)}
                               onChange={() => toggleUserSelection(parent.id.toString(), 'parent')}
-                              className="h-4 w-4"
+                              className="h-4 w-4 text-primary bg-background border-border rounded"
                             />
                             <div>
-                              <div className="text-sm font-medium">{parent.name}</div>
+                              <div className="text-sm font-medium text-foreground">{parent.name}</div>
                               <div className="text-xs text-muted-foreground">
                                 Children: {parent.children.join(', ')}
                               </div>
@@ -301,44 +311,50 @@ export default function MessagesPage() {
             )}
 
             {/* Recent Messages */}
-            <Card>
+            <Card className="bg-card border-border">
               <CardHeader>
-                <CardTitle>Recent Messages</CardTitle>
+                <CardTitle className="text-foreground">Recent Messages</CardTitle>
                 <CardDescription>Your recently sent communications</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div className="p-3 border rounded-lg">
+                  <div className="p-3 border border-border rounded-lg bg-background/50 hover:bg-muted/50 transition-colors">
                     <div className="flex justify-between items-start mb-2">
                       <div>
-                        <div className="font-semibold text-sm">Term 1 Progress Reports</div>
+                        <div className="font-semibold text-sm text-foreground">Term 1 Progress Reports</div>
                         <div className="text-xs text-muted-foreground">To: All Parents</div>
                       </div>
-                      <Badge variant="outline" className="text-xs">2 days ago</Badge>
+                      <Badge variant="outline" className="text-xs bg-secondary text-secondary-foreground">
+                        2 days ago
+                      </Badge>
                     </div>
-                    <p className="text-xs">Progress reports for Term 1 are now available...</p>
+                    <p className="text-xs text-muted-foreground">Progress reports for Term 1 are now available...</p>
                   </div>
 
-                  <div className="p-3 border rounded-lg">
+                  <div className="p-3 border border-border rounded-lg bg-background/50 hover:bg-muted/50 transition-colors">
                     <div className="flex justify-between items-start mb-2">
                       <div>
-                        <div className="font-semibold text-sm">Staff Meeting Reminder</div>
+                        <div className="font-semibold text-sm text-foreground">Staff Meeting Reminder</div>
                         <div className="text-xs text-muted-foreground">To: All Teachers</div>
                       </div>
-                      <Badge variant="outline" className="text-xs">1 week ago</Badge>
+                      <Badge variant="outline" className="text-xs bg-secondary text-secondary-foreground">
+                        1 week ago
+                      </Badge>
                     </div>
-                    <p className="text-xs">Reminder about the staff meeting this Friday...</p>
+                    <p className="text-xs text-muted-foreground">Reminder about the staff meeting this Friday...</p>
                   </div>
 
-                  <div className="p-3 border rounded-lg">
+                  <div className="p-3 border border-border rounded-lg bg-background/50 hover:bg-muted/50 transition-colors">
                     <div className="flex justify-between items-start mb-2">
                       <div>
-                        <div className="font-semibold text-sm">Science Fair Update</div>
+                        <div className="font-semibold text-sm text-foreground">Science Fair Update</div>
                         <div className="text-xs text-muted-foreground">To: JSS 2A Students</div>
                       </div>
-                      <Badge variant="outline" className="text-xs">3 days ago</Badge>
+                      <Badge variant="outline" className="text-xs bg-secondary text-secondary-foreground">
+                        3 days ago
+                      </Badge>
                     </div>
-                    <p className="text-xs">Science fair projects due next Monday...</p>
+                    <p className="text-xs text-muted-foreground">Science fair projects due next Monday...</p>
                   </div>
                 </div>
               </CardContent>

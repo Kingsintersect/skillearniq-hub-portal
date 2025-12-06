@@ -23,13 +23,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
-import { 
-  Users, 
-  UserPlus, 
-  Search, 
-  Download, 
-  Mail, 
-  Phone, 
+import {
+  Users,
+  UserPlus,
+  Search,
+  Download,
+  Mail,
+  Phone,
   MoreVertical,
   Calendar,
   Award,
@@ -57,9 +57,9 @@ type ExportFormat = 'csv' | 'excel' | 'pdf';
 const useExportStudents = () => {
   const exportToCSV = (students: any[], filename: string = 'students') => {
     if (!students.length) return;
-    
+
     const headers = ['ID', 'Name', 'Email', 'Phone', 'Class', 'Enrollment Date', 'Average Score', 'Status', 'Subjects'];
-    
+
     const csvContent = [
       headers.join(','),
       ...students.map(student => [
@@ -86,9 +86,9 @@ const useExportStudents = () => {
   const exportToExcel = (students: any[], filename: string = 'students') => {
     // For Excel, we'll create a CSV with proper formatting that Excel can open
     if (!students.length) return;
-    
+
     const headers = ['ID', 'Name', 'Email', 'Phone', 'Class', 'Enrollment Date', 'Average Score', 'Status', 'Subjects'];
-    
+
     const csvContent = [
       headers.join(','),
       ...students.map(student => [
@@ -257,12 +257,11 @@ const useExportStudents = () => {
 
 // Custom hooks for student management
 const useStudentManagement = (teacherId: number, filters: any) => {
-  const { useStudents, useClasses, useAttendance, useAcademicYears, useGroups } = useTeacherQueries();
-  
+  const { useStudents, useClasses, useAttendance, useGroups } = useTeacherQueries();
+
   const studentsQuery = useStudents(teacherId, filters);
   const classesQuery = useClasses(teacherId, filters);
   const attendanceQuery = useAttendance(teacherId, filters);
-  const academicYearsQuery = useAcademicYears(teacherId);
   const groupsQuery = useGroups(teacherId, filters.classId);
   // console.log('Students Query Data:', studentsQuery.data);
   // console.log('Classes Query Data:', classesQuery.data);
@@ -275,7 +274,6 @@ const useStudentManagement = (teacherId: number, filters: any) => {
     classes: classesQuery.data?.data || [],
     groups: groupsQuery.data?.data || [],
     attendance: attendanceQuery.data?.data || { daily: [], monthly: [] },
-    academicYears: academicYearsQuery.data?.data || [],
     isLoading: studentsQuery.isLoading || classesQuery.isLoading || groupsQuery.isLoading,
     isError: studentsQuery.isError || classesQuery.isError
   };
@@ -283,39 +281,37 @@ const useStudentManagement = (teacherId: number, filters: any) => {
 
 const StudentManagementPage: React.FC = () => {
   const teacherId = 1; // This should come from your auth context or props
-  
+
   const [activeTab, setActiveTab] = useState<'students' | 'groups' | 'attendance'>('students');
   const [dialogOpen, setDialogOpen] = useState<'createGroup' | 'manageGroup' | 'sendMessage' | null>(null);
   const [selectedGroup, setSelectedGroup] = useState<any>(null);
   const [selectedStudents, setSelectedStudents] = useState<number[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState({
-    academicYear: '2024-2025',
     term: '1st',
     classId: 1,
   });
 
   // Use actual service data
-  const { 
-    students, 
-    classes, 
-    groups, 
-    attendance, 
-    academicYears, 
-    isLoading 
+  const {
+    students,
+    classes,
+    groups,
+    attendance,
+    isLoading
   } = useStudentManagement(teacherId, filters);
 
   // Export functionality
   const { exportToCSV, exportToExcel, exportToPDF } = useExportStudents();
 
   // Group mutations
-  const { 
-    useCreateGroup, 
-    useDeleteGroup, 
-    useAddStudentToGroup, 
-    useRemoveStudentFromGroup 
+  const {
+    useCreateGroup,
+    useDeleteGroup,
+    useAddStudentToGroup,
+    useRemoveStudentFromGroup
   } = useTeacherQueries();
-  
+
   const createGroupMutation = useCreateGroup();
   const deleteGroupMutation = useDeleteGroup();
   const addStudentMutation = useAddStudentToGroup();
@@ -357,7 +353,7 @@ const StudentManagementPage: React.FC = () => {
       toast.success(`"${data.name}" group created successfully!`);
       reset();
       setDialogOpen(null);
-    } catch(error) {
+    } catch (error) {
       toast.error('Failed to create group. Please try again.');
     }
   };
@@ -396,7 +392,7 @@ const StudentManagementPage: React.FC = () => {
     }
 
     const className = availableClasses.find(c => c.id === filters.classId)?.name || 'students';
-    const filename = `${className}_${filters.academicYear}_${filters.term}`;
+    const filename = `${className}_${filters.term}`;
 
     try {
       switch (format) {
@@ -427,8 +423,8 @@ const StudentManagementPage: React.FC = () => {
   };
 
   const toggleStudentSelection = (studentId: number) => {
-    setSelectedStudents(prev => 
-      prev.includes(studentId) 
+    setSelectedStudents(prev =>
+      prev.includes(studentId)
         ? prev.filter(id => id !== studentId)
         : [...prev, studentId]
     );
@@ -501,8 +497,8 @@ const StudentManagementPage: React.FC = () => {
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Attendance Rate</p>
                   <p className="text-2xl font-bold text-foreground">
-                    {attendance.monthly.length > 0 
-                      ? `${attendance.monthly[attendance.monthly.length - 1].rate}%` 
+                    {attendance.monthly.length > 0
+                      ? `${attendance.monthly[attendance.monthly.length - 1].rate}%`
                       : '0%'
                     }
                   </p>
@@ -520,8 +516,8 @@ const StudentManagementPage: React.FC = () => {
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Avg Performance</p>
                   <p className="text-2xl font-bold text-foreground">
-                    {students.length > 0 
-                      ? `${(students.reduce((acc, student) => acc + student.averageScore, 0) / students.length).toFixed(1)}%` 
+                    {students.length > 0
+                      ? `${(students.reduce((acc, student) => acc + student.averageScore, 0) / students.length).toFixed(1)}%`
                       : '0%'
                     }
                   </p>
@@ -539,23 +535,6 @@ const StudentManagementPage: React.FC = () => {
           <CardContent className="p-6">
             <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
               <div className="flex flex-col sm:flex-row gap-4 flex-1">
-                <div className="flex-1">
-                  <Label htmlFor="academicYear" className="text-sm font-medium">Academic Year</Label>
-                  <Select
-                    value={filters.academicYear}
-                    onValueChange={(value) => setFilters(prev => ({ ...prev, academicYear: value }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {academicYears.map(year => (
-                        <SelectItem key={year} value={year}>{year}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
                 <div className="flex-1">
                   <Label htmlFor="term" className="text-sm font-medium">Term</Label>
                   <Select
@@ -602,21 +581,21 @@ const StudentManagementPage: React.FC = () => {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem 
+                    <DropdownMenuItem
                       onClick={() => handleExportData('csv', filteredStudents)}
                       className="flex items-center space-x-2"
                     >
                       <Sheet className="h-4 w-4" />
                       <span>Export as CSV</span>
                     </DropdownMenuItem>
-                    <DropdownMenuItem 
+                    <DropdownMenuItem
                       onClick={() => handleExportData('excel', filteredStudents)}
                       className="flex items-center space-x-2"
                     >
                       <FileDown className="h-4 w-4" />
                       <span>Export as Excel</span>
                     </DropdownMenuItem>
-                    <DropdownMenuItem 
+                    <DropdownMenuItem
                       onClick={() => handleExportData('pdf', filteredStudents)}
                       className="flex items-center space-x-2"
                     >
@@ -654,7 +633,7 @@ const StudentManagementPage: React.FC = () => {
                 <p className="text-sm text-muted-foreground">Send messages or export selected students</p>
               </div>
               <div className="flex flex-wrap gap-2">
-                <Button 
+                <Button
                   variant="outline"
                   onClick={() => setDialogOpen('sendMessage')}
                   disabled={selectedStudents.length === 0}
@@ -664,7 +643,7 @@ const StudentManagementPage: React.FC = () => {
                 </Button>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button 
+                    <Button
                       variant="outline"
                       disabled={selectedStudents.length === 0}
                     >
@@ -673,21 +652,21 @@ const StudentManagementPage: React.FC = () => {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem 
+                    <DropdownMenuItem
                       onClick={() => handleExportData('csv', students.filter(s => selectedStudents.includes(s.id)))}
                       className="flex items-center space-x-2"
                     >
                       <Sheet className="h-4 w-4" />
                       <span>Export as CSV</span>
                     </DropdownMenuItem>
-                    <DropdownMenuItem 
+                    <DropdownMenuItem
                       onClick={() => handleExportData('excel', students.filter(s => selectedStudents.includes(s.id)))}
                       className="flex items-center space-x-2"
                     >
                       <FileDown className="h-4 w-4" />
                       <span>Export as Excel</span>
                     </DropdownMenuItem>
-                    <DropdownMenuItem 
+                    <DropdownMenuItem
                       onClick={() => handleExportData('pdf', students.filter(s => selectedStudents.includes(s.id)))}
                       className="flex items-center space-x-2"
                     >
@@ -696,8 +675,8 @@ const StudentManagementPage: React.FC = () => {
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={selectAllStudents}
                 >
                   {selectedStudents.length === students.length ? 'Deselect All' : 'Select All'}
@@ -726,7 +705,7 @@ const StudentManagementPage: React.FC = () => {
 
           {/* Students Tab */}
           <TabsContent value="students">
-            <StudentsOverview 
+            <StudentsOverview
               students={filteredStudents}
               selectedStudents={selectedStudents}
               onStudentSelect={toggleStudentSelection}
@@ -749,9 +728,8 @@ const StudentManagementPage: React.FC = () => {
 
           {/* Attendance Tab */}
           <TabsContent value="attendance">
-            <AttendanceOverview 
+            <AttendanceOverview
               attendance={attendance}
-              academicYear={filters.academicYear}
               term={filters.term}
             />
           </TabsContent>
@@ -828,19 +806,19 @@ const StudentManagementPage: React.FC = () => {
         <Dialog open={dialogOpen === 'sendMessage'} onOpenChange={(open) => setDialogOpen(open ? 'sendMessage' : null)}>
           <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
             <ScrollArea className='h-[400px]'>
-            <DialogHeader>
-              <DialogTitle>Send Message to Students</DialogTitle>
-              <DialogDescription>
-                Send messages to individual students or groups via SMS, email, or in-app notification.
-              </DialogDescription>
-            </DialogHeader>
-            <MessageDialog 
-              students={students}
-              selectedStudents={selectedStudents}
-              onStudentSelect={toggleStudentSelection}
-              onSelectAll={selectAllStudents}
-              onSendMessage={handleSendMessage}
-            />
+              <DialogHeader>
+                <DialogTitle>Send Message to Students</DialogTitle>
+                <DialogDescription>
+                  Send messages to individual students or groups via SMS, email, or in-app notification.
+                </DialogDescription>
+              </DialogHeader>
+              <MessageDialog
+                students={students}
+                selectedStudents={selectedStudents}
+                onStudentSelect={toggleStudentSelection}
+                onSelectAll={selectAllStudents}
+                onSendMessage={handleSendMessage}
+              />
             </ScrollArea>
           </DialogContent>
         </Dialog>
@@ -850,8 +828,8 @@ const StudentManagementPage: React.FC = () => {
 };
 
 // Students Overview Component
-const StudentsOverview: React.FC<{ 
-  students: any[]; 
+const StudentsOverview: React.FC<{
+  students: any[];
   selectedStudents: number[];
   onStudentSelect: (studentId: number) => void;
   className: string;
@@ -879,7 +857,7 @@ const StudentsOverview: React.FC<{
                 <TableHead className="w-12">
                   <Switch
                     checked={students.length > 0 && selectedStudents.length === students.length}
-                    onCheckedChange={() => {}}
+                    onCheckedChange={() => { }}
                   />
                 </TableHead>
                 <TableHead>Student</TableHead>
@@ -904,7 +882,7 @@ const StudentsOverview: React.FC<{
                       <Avatar>
                         <AvatarImage src={student.avatar} />
                         <AvatarFallback>
-                          {student.name.split(' ').map((n:any) => n[0]).join('')}
+                          {student.name.split(' ').map((n: any) => n[0]).join('')}
                         </AvatarFallback>
                       </Avatar>
                       <div>
@@ -921,7 +899,7 @@ const StudentsOverview: React.FC<{
                       <span>{student.phone}</span>
                     </div>
                   </TableCell>
-                 
+
                   <TableCell>
                     <div className="flex flex-wrap gap-1 max-w-[200px]">
                       {(student?.subjects ?? []).slice(0, 3).map((subject: string) => (
@@ -1008,16 +986,16 @@ const GroupsOverview: React.FC<{
                 </div>
                 <Separator />
                 <div className="flex space-x-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
+                  <Button
+                    variant="outline"
+                    size="sm"
                     className="flex-1"
                     onClick={() => onManageGroup(group)}
                   >
                     Manage
                   </Button>
-                  <Button 
-                    variant="ghost" 
+                  <Button
+                    variant="ghost"
                     size="sm"
                     onClick={() => onDeleteGroup(group.id)}
                     className="text-red-600 hover:text-red-700 hover:bg-red-50"
@@ -1030,7 +1008,7 @@ const GroupsOverview: React.FC<{
           </Card>
         );
       })}
-      
+
       {groups.length === 0 && (
         <div className="col-span-full text-center py-12">
           <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
@@ -1049,104 +1027,102 @@ const GroupsOverview: React.FC<{
 };
 
 // Attendance Overview Component
-const AttendanceOverview: React.FC<{ 
-  attendance: any; 
-  academicYear: string; 
-  term: string 
-}> = ({ 
-  attendance, 
-  academicYear, 
-  term 
+const AttendanceOverview: React.FC<{
+  attendance: any;
+  term: string
+}> = ({
+  attendance,
+  term
 }) => {
-  const attendanceData = attendance.daily || [];
+    const attendanceData = attendance.daily || [];
 
-  // Calculate average attendance rate
-  const averageRate = attendanceData.length > 0 
-    ? attendanceData.reduce((acc: number, day: any) => acc + day.rate, 0) / attendanceData.length
-    : 0;
+    // Calculate average attendance rate
+    const averageRate = attendanceData.length > 0
+      ? attendanceData.reduce((acc: number, day: any) => acc + day.rate, 0) / attendanceData.length
+      : 0;
 
-  const totalPresent = attendanceData.reduce((acc: number, day: any) => acc + day.present, 0);
-  const totalAbsent = attendanceData.reduce((acc: number, day: any) => acc + day.absent, 0);
+    const totalPresent = attendanceData.reduce((acc: number, day: any) => acc + day.present, 0);
+    const totalAbsent = attendanceData.reduce((acc: number, day: any) => acc + day.absent, 0);
 
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-2xl font-bold">Attendance Records</CardTitle>
-        <CardDescription>
-          Viewing attendance for {academicYear} {term} Term
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-6">
-          {/* Attendance Summary */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="p-4 rounded-lg border border-green-200 bg-green-50">
-              <div className="text-2xl font-bold text-green-600">{averageRate.toFixed(1)}%</div>
-              <div className="text-sm text-green-700">Average Attendance Rate</div>
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-2xl font-bold">Attendance Records</CardTitle>
+          <CardDescription>
+            Viewing attendance for  {term} Term
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-6">
+            {/* Attendance Summary */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="p-4 rounded-lg border border-green-200 bg-green-50">
+                <div className="text-2xl font-bold text-green-600">{averageRate.toFixed(1)}%</div>
+                <div className="text-sm text-green-700">Average Attendance Rate</div>
+              </div>
+              <div className="p-4 rounded-lg border border-blue-200 bg-blue-50">
+                <div className="text-2xl font-bold text-blue-600">{totalPresent}</div>
+                <div className="text-sm text-blue-700">Total Present Days</div>
+              </div>
+              <div className="p-4 rounded-lg border border-orange-200 bg-orange-50">
+                <div className="text-2xl font-bold text-orange-600">{totalAbsent}</div>
+                <div className="text-sm text-orange-700">Absent Days</div>
+              </div>
             </div>
-            <div className="p-4 rounded-lg border border-blue-200 bg-blue-50">
-              <div className="text-2xl font-bold text-blue-600">{totalPresent}</div>
-              <div className="text-sm text-blue-700">Total Present Days</div>
-            </div>
-            <div className="p-4 rounded-lg border border-orange-200 bg-orange-50">
-              <div className="text-2xl font-bold text-orange-600">{totalAbsent}</div>
-              <div className="text-sm text-orange-700">Absent Days</div>
-            </div>
-          </div>
 
-          {/* Attendance Table */}
-          <ScrollArea className="h-[400px]">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Present</TableHead>
-                  <TableHead>Absent</TableHead>
-                  <TableHead>Late</TableHead>
-                  <TableHead>Attendance Rate</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {attendanceData.map((day: any) => (
-                  <TableRow key={day.date}>
-                    <TableCell className="font-medium">
-                      {new Date(day.date).toLocaleDateString('en-US', { 
-                        weekday: 'short', 
-                        month: 'short', 
-                        day: 'numeric' 
-                      })}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="default" className="bg-green-100 text-green-700">
-                        {day.present}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className="text-red-600 border-red-200">
-                        {day.absent}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className="text-orange-600 border-orange-200">
-                        {day.late}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center space-x-2">
-                        <Progress value={day.rate} className="w-20 h-2" />
-                        <span className="text-sm font-medium">{day.rate}%</span>
-                      </div>
-                    </TableCell>
+            {/* Attendance Table */}
+            <ScrollArea className="h-[400px]">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Present</TableHead>
+                    <TableHead>Absent</TableHead>
+                    <TableHead>Late</TableHead>
+                    <TableHead>Attendance Rate</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </ScrollArea>
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
+                </TableHeader>
+                <TableBody>
+                  {attendanceData.map((day: any) => (
+                    <TableRow key={day.date}>
+                      <TableCell className="font-medium">
+                        {new Date(day.date).toLocaleDateString('en-US', {
+                          weekday: 'short',
+                          month: 'short',
+                          day: 'numeric'
+                        })}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="default" className="bg-green-100 text-green-700">
+                          {day.present}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="text-red-600 border-red-200">
+                          {day.absent}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="text-orange-600 border-orange-200">
+                          {day.late}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center space-x-2">
+                          <Progress value={day.rate} className="w-20 h-2" />
+                          <span className="text-sm font-medium">{day.rate}%</span>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </ScrollArea>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  };
 
 // Group Management Component
 const GroupManagement: React.FC<{
@@ -1357,7 +1333,7 @@ const MessageDialog: React.FC<{
                 required
               />
             </div>
-            
+
             <div className="flex justify-between items-center pt-4">
               <span className="text-sm text-muted-foreground">
                 {selectedStudents.length} student(s) selected

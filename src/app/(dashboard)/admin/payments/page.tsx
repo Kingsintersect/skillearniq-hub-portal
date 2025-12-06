@@ -11,13 +11,13 @@ import { Search, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from '
 import { useAdminQueries } from '@/hooks/useAdminQueries';
 
 // Pagination Component
-const Pagination = ({ 
-  currentPage, 
-  totalPages, 
+const Pagination = ({
+  currentPage,
+  totalPages,
   onPageChange,
   totalItems,
-  itemsPerPage 
-}: { 
+  itemsPerPage
+}: {
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
@@ -27,7 +27,7 @@ const Pagination = ({
   const getPageNumbers = () => {
     const pages = [];
     const maxVisiblePages = 5;
-    
+
     if (totalPages <= maxVisiblePages) {
       for (let i = 1; i <= totalPages; i++) {
         pages.push(i);
@@ -35,22 +35,22 @@ const Pagination = ({
     } else {
       const startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
       const endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-      
+
       if (startPage > 1) {
         pages.push(1);
         if (startPage > 2) pages.push('...');
       }
-      
+
       for (let i = startPage; i <= endPage; i++) {
         pages.push(i);
       }
-      
+
       if (endPage < totalPages) {
         if (endPage < totalPages - 1) pages.push('...');
         pages.push(totalPages);
       }
     }
-    
+
     return pages;
   };
 
@@ -68,7 +68,7 @@ const Pagination = ({
           size="sm"
           onClick={() => onPageChange(1)}
           disabled={currentPage === 1}
-          className="hidden sm:flex"
+          className="hidden sm:flex border-border"
         >
           <ChevronsLeft className="h-4 w-4" />
         </Button>
@@ -77,21 +77,22 @@ const Pagination = ({
           size="sm"
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1}
+          className="border-border"
         >
           <ChevronLeft className="h-4 w-4" />
         </Button>
-        
+
         <div className="flex items-center space-x-1">
           {getPageNumbers().map((page, index) => (
             page === '...' ? (
-              <span key={index} className="px-2 py-1 text-sm">...</span>
+              <span key={index} className="px-2 py-1 text-sm text-muted-foreground">...</span>
             ) : (
               <Button
                 key={index}
                 variant={currentPage === page ? "default" : "outline"}
                 size="sm"
                 onClick={() => onPageChange(page as number)}
-                className="h-8 w-8 p-0"
+                className="h-8 w-8 p-0 border-border"
               >
                 {page}
               </Button>
@@ -104,6 +105,7 @@ const Pagination = ({
           size="sm"
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
+          className="border-border"
         >
           <ChevronRight className="h-4 w-4" />
         </Button>
@@ -112,7 +114,7 @@ const Pagination = ({
           size="sm"
           onClick={() => onPageChange(totalPages)}
           disabled={currentPage === totalPages}
-          className="hidden sm:flex"
+          className="hidden sm:flex border-border"
         >
           <ChevronsRight className="h-4 w-4" />
         </Button>
@@ -182,131 +184,136 @@ export default function PaymentsPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen p-6 flex items-center justify-center">
-        <div className="text-center">Loading payments...</div>
+      <div className="min-h-screen p-6 flex items-center justify-center bg-background">
+        <div className="text-center text-foreground">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          Loading payments...
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen p-6 bg-gray-50">
+    <div className="min-h-screen p-6 bg-background">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Payment History</h1>
-          <p className="text-gray-600">View and manage all student payments</p>
+          <h1 className="text-3xl font-bold text-foreground">Payment History</h1>
+          <p className="text-muted-foreground">View and manage all student payments</p>
         </div>
 
         {/* Filters and Search */}
-        <Card className="mb-6 bg-white border border-gray-200">
+        <Card className="mb-6 bg-card border-border">
           <CardContent className="p-6">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
               <div>
-                <label className="text-sm font-medium text-gray-700">Status</label>
-                <Select value={filters.status} onValueChange={(value) => setFilters({...filters, status: value})}>
-                  <SelectTrigger>
+                <label className="text-sm font-medium text-foreground">Status</label>
+                <Select value={filters.status} onValueChange={(value) => setFilters({ ...filters, status: value })}>
+                  <SelectTrigger className="bg-background border-border">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Status</SelectItem>
-                    <SelectItem value="PAID">Paid</SelectItem>
-                    <SelectItem value="PENDING">Pending</SelectItem>
+                  <SelectContent className="bg-background border-border">
+                    <SelectItem value="all" className="text-foreground">All Status</SelectItem>
+                    <SelectItem value="PAID" className="text-foreground">Paid</SelectItem>
+                    <SelectItem value="PENDING" className="text-foreground">Pending</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-              
+
               <div>
-                <label className="text-sm font-medium text-gray-700">Student ID</label>
+                <label className="text-sm font-medium text-foreground">Student ID</label>
                 <Input
                   placeholder="Student ID"
                   value={filters.student_id}
-                  onChange={(e) => setFilters({...filters, student_id: e.target.value})}
+                  onChange={(e) => setFilters({ ...filters, student_id: e.target.value })}
+                  className="bg-background border-border"
                 />
               </div>
 
               <div>
-                <label className="text-sm font-medium text-gray-700">Search</label>
+                <label className="text-sm font-medium text-foreground">Search</label>
                 <Input
                   placeholder="Search references..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
+                  className="bg-background border-border"
                 />
               </div>
 
               <div>
-                <label className="text-sm font-medium text-gray-700">Show per page</label>
-                <Select 
-                  value={pagination.itemsPerPage.toString()} 
+                <label className="text-sm font-medium text-foreground">Show per page</label>
+                <Select
+                  value={pagination.itemsPerPage.toString()}
                   onValueChange={handleItemsPerPageChange}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="bg-background border-border">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="5">5 per page</SelectItem>
-                    <SelectItem value="10">10 per page</SelectItem>
-                    <SelectItem value="20">20 per page</SelectItem>
-                    <SelectItem value="50">50 per page</SelectItem>
+                  <SelectContent className="bg-background border-border">
+                    <SelectItem value="5" className="text-foreground">5 per page</SelectItem>
+                    <SelectItem value="10" className="text-foreground">10 per page</SelectItem>
+                    <SelectItem value="20" className="text-foreground">20 per page</SelectItem>
+                    <SelectItem value="50" className="text-foreground">50 per page</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
 
-            <div className="text-sm text-gray-600">
+            <div className="text-sm text-muted-foreground">
               {totalPayments} payments found
             </div>
           </CardContent>
         </Card>
 
         {/* Payments Table */}
-        <Card className="bg-white border border-gray-200">
+        <Card className="bg-card border-border">
           <CardHeader>
-            <CardTitle>Payment Records</CardTitle>
+            <CardTitle className="text-foreground">Payment Records</CardTitle>
             <CardDescription>All payment transactions and records</CardDescription>
           </CardHeader>
           <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Reference</TableHead>
-                  <TableHead>Student ID</TableHead>
-                  <TableHead>Amount</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Course Group</TableHead>
+                  <TableHead className="text-foreground">Reference</TableHead>
+                  <TableHead className="text-foreground">Student ID</TableHead>
+                  <TableHead className="text-foreground">Amount</TableHead>
+                  <TableHead className="text-foreground">Status</TableHead>
+                  <TableHead className="text-foreground">Date</TableHead>
+                  <TableHead className="text-foreground">Course Group</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {payments.map((payment: any) => (
-                  <TableRow key={payment.id}>
-                    <TableCell className="font-mono text-sm">
+                  <TableRow key={payment.id} className="hover:bg-muted/50">
+                    <TableCell className="font-mono text-sm text-foreground">
                       {payment.reference}
                     </TableCell>
-                    <TableCell>{payment.student_id}</TableCell>
-                    <TableCell>
+                    <TableCell className="text-foreground">{payment.student_id}</TableCell>
+                    <TableCell className="text-foreground">
                       {formatAmount(payment.amount)} {payment.currency}
                     </TableCell>
                     <TableCell>
                       <Badge variant={
                         payment.status === 'PAID' ? 'default' :
-                        payment.status === 'PENDING' ? 'secondary' : 'destructive'
+                          payment.status === 'PENDING' ? 'secondary' : 'destructive'
                       }>
                         {payment.status}
                       </Badge>
                     </TableCell>
-                    <TableCell>{formatDate(payment.created_at)}</TableCell>
-                    <TableCell>{payment.course_group_id}</TableCell>
+                    <TableCell className="text-foreground">{formatDate(payment.created_at)}</TableCell>
+                    <TableCell className="text-foreground">{payment.course_group_id}</TableCell>
                   </TableRow>
                 ))}
                 {payments.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8 text-gray-500">
+                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                       No payments found
                     </TableCell>
                   </TableRow>
                 )}
               </TableBody>
             </Table>
-            
+
             {/* Pagination */}
             {Math.ceil(totalPayments / pagination.itemsPerPage) > 1 && (
               <Pagination

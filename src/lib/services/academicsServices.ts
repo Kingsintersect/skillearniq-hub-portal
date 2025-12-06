@@ -36,13 +36,6 @@ export const academicsServices = {
         }
     },
 
-    // getNextSession: async () => {
-    //     await new Promise(resolve => setTimeout(resolve, 300));
-    //     return {
-    //         academicYear: '2024/2025',
-    //         semester: 'First Semester'
-    //     };
-    // },
     getCurrentSession: async (): Promise<AccademicSessions> => {
         const allAcademicSessions = await academicsServices.getAcademicSessions();
         if (!allAcademicSessions || allAcademicSessions.length === 0) {

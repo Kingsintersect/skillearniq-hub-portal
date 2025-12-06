@@ -1,4 +1,3 @@
-// app/admin/parents/page.tsx
 'use client'
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,21 +8,20 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Plus, Search, Download, Trash2, Sheet, FileDown, FileText, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import { Plus, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Trash2 } from 'lucide-react';
 import { useAdminQueries } from '@/hooks/useAdminQueries';
 import { toast } from 'sonner';
 import { CreateParentPayload } from '@/lib/services/admin/parentService';
 
-// Pagination Component (same as teachers)
-const Pagination = ({ 
-  currentPage, 
-  totalPages, 
+// Pagination Component
+const Pagination = ({
+  currentPage,
+  totalPages,
   onPageChange,
   totalItems,
-  itemsPerPage 
-}: { 
+  itemsPerPage
+}: {
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
@@ -33,7 +31,7 @@ const Pagination = ({
   const getPageNumbers = () => {
     const pages = [];
     const maxVisiblePages = 5;
-    
+
     if (totalPages <= maxVisiblePages) {
       for (let i = 1; i <= totalPages; i++) {
         pages.push(i);
@@ -41,22 +39,22 @@ const Pagination = ({
     } else {
       const startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
       const endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-      
+
       if (startPage > 1) {
         pages.push(1);
         if (startPage > 2) pages.push('...');
       }
-      
+
       for (let i = startPage; i <= endPage; i++) {
         pages.push(i);
       }
-      
+
       if (endPage < totalPages) {
         if (endPage < totalPages - 1) pages.push('...');
         pages.push(totalPages);
       }
     }
-    
+
     return pages;
   };
 
@@ -74,7 +72,7 @@ const Pagination = ({
           size="sm"
           onClick={() => onPageChange(1)}
           disabled={currentPage === 1}
-          className="hidden sm:flex"
+          className="hidden sm:flex border-border"
         >
           <ChevronsLeft className="h-4 w-4" />
         </Button>
@@ -83,21 +81,22 @@ const Pagination = ({
           size="sm"
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1}
+          className="border-border"
         >
           <ChevronLeft className="h-4 w-4" />
         </Button>
-        
+
         <div className="flex items-center space-x-1">
           {getPageNumbers().map((page, index) => (
             page === '...' ? (
-              <span key={index} className="px-2 py-1 text-sm">...</span>
+              <span key={index} className="px-2 py-1 text-sm text-muted-foreground">...</span>
             ) : (
               <Button
                 key={index}
                 variant={currentPage === page ? "default" : "outline"}
                 size="sm"
                 onClick={() => onPageChange(page as number)}
-                className="h-8 w-8 p-0"
+                className="h-8 w-8 p-0 border-border"
               >
                 {page}
               </Button>
@@ -110,6 +109,7 @@ const Pagination = ({
           size="sm"
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
+          className="border-border"
         >
           <ChevronRight className="h-4 w-4" />
         </Button>
@@ -118,7 +118,7 @@ const Pagination = ({
           size="sm"
           onClick={() => onPageChange(totalPages)}
           disabled={currentPage === totalPages}
-          className="hidden sm:flex"
+          className="hidden sm:flex border-border"
         >
           <ChevronsRight className="h-4 w-4" />
         </Button>
@@ -144,7 +144,7 @@ export default function ParentsPage() {
     currentPage: 1,
     itemsPerPage: 10
   });
-  
+
   const { useAllParents, useAllStudents, useCreateParent, useDeleteParent } = useAdminQueries();
 
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
@@ -169,16 +169,16 @@ export default function ParentsPage() {
   const allStudents = allStudentsResponse || [];
 
   const filteredParents = parents.filter(parent => {
-    const matchesSearch = debouncedSearchTerm === '' || 
+    const matchesSearch = debouncedSearchTerm === '' ||
       parent.first_name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
       parent.last_name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
       parent.email.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
       parent.phone.includes(debouncedSearchTerm);
-    
-    const matchesStatus = filters.status === 'all' || 
+
+    const matchesStatus = filters.status === 'all' ||
       (filters.status === 'active' && parent.is_active === 1) ||
       (filters.status === 'inactive' && parent.is_active === 0);
-    
+
     return matchesSearch && matchesStatus;
   });
 
@@ -266,19 +266,22 @@ export default function ParentsPage() {
 
   if (parentsLoading || studentsLoading) {
     return (
-      <div className="min-h-screen p-6 flex items-center justify-center">
-        <div className="text-center">Loading parents...</div>
+      <div className="min-h-screen p-6 flex items-center justify-center bg-background">
+        <div className="text-center text-foreground">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          Loading parents...
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen p-6 bg-gray-50">
+    <div className="min-h-screen p-6 bg-background">
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Parents Management</h1>
-            <p className="text-gray-600">Manage all parents and their associations</p>
+            <h1 className="text-3xl font-bold text-foreground">Parents Management</h1>
+            <p className="text-muted-foreground">Manage all parents and their associations</p>
           </div>
           <Button onClick={() => setIsCreateDialogOpen(true)}>
             <Plus className="h-4 w-4 mr-2" />
@@ -287,7 +290,7 @@ export default function ParentsPage() {
         </div>
 
         {/* Search and Filters */}
-        <Card className="mb-6 bg-white border border-gray-200">
+        <Card className="mb-6 bg-card border-border">
           <CardContent className="p-6">
             <div className="flex flex-col md:flex-row gap-4">
               <div className="flex-1">
@@ -295,37 +298,38 @@ export default function ParentsPage() {
                   placeholder="Search parents by name, email, or phone..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
+                  className="bg-background border-border"
                 />
               </div>
-              <Select 
-                value={filters.status} 
+              <Select
+                value={filters.status}
                 onValueChange={(value) => setFilters({ status: value })}
               >
-                <SelectTrigger className="w-full md:w-[200px]">
+                <SelectTrigger className="w-full md:w-[200px] bg-background border-border">
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="inactive">Inactive</SelectItem>
+                <SelectContent className="bg-background border-border">
+                  <SelectItem value="all" className="text-foreground">All Status</SelectItem>
+                  <SelectItem value="active" className="text-foreground">Active</SelectItem>
+                  <SelectItem value="inactive" className="text-foreground">Inactive</SelectItem>
                 </SelectContent>
               </Select>
-              <Select 
-                value={pagination.itemsPerPage.toString()} 
+              <Select
+                value={pagination.itemsPerPage.toString()}
                 onValueChange={handleItemsPerPageChange}
               >
-                <SelectTrigger className="w-full md:w-[200px]">
+                <SelectTrigger className="w-full md:w-[200px] bg-background border-border">
                   <SelectValue placeholder="Show per page" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="5">5 per page</SelectItem>
-                  <SelectItem value="10">10 per page</SelectItem>
-                  <SelectItem value="20">20 per page</SelectItem>
-                  <SelectItem value="50">50 per page</SelectItem>
+                <SelectContent className="bg-background border-border">
+                  <SelectItem value="5" className="text-foreground">5 per page</SelectItem>
+                  <SelectItem value="10" className="text-foreground">10 per page</SelectItem>
+                  <SelectItem value="20" className="text-foreground">20 per page</SelectItem>
+                  <SelectItem value="50" className="text-foreground">50 per page</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-            <div className="mt-4 text-sm text-gray-600">
+            <div className="mt-4 text-sm text-muted-foreground">
               {totalItems} parents found
               {debouncedSearchTerm && ` for "${debouncedSearchTerm}"`}
             </div>
@@ -333,36 +337,38 @@ export default function ParentsPage() {
         </Card>
 
         {/* Parents Table */}
-        <Card className="bg-white border border-gray-200">
+        <Card className="bg-card border-border">
           <CardHeader>
-            <CardTitle>All Parents</CardTitle>
+            <CardTitle className="text-foreground">All Parents</CardTitle>
             <CardDescription>{totalItems} parents in the system</CardDescription>
           </CardHeader>
           <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Contact</TableHead>
-                  <TableHead>Children Count</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Actions</TableHead>
+                  <TableHead className="text-foreground">Name</TableHead>
+                  <TableHead className="text-foreground">Contact</TableHead>
+                  <TableHead className="text-foreground">Children Count</TableHead>
+                  <TableHead className="text-foreground">Status</TableHead>
+                  <TableHead className="text-foreground">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {paginatedParents.map((parent) => (
-                  <TableRow key={parent.id}>
+                  <TableRow key={parent.id} className="hover:bg-muted/50">
                     <TableCell>
-                      <div className="font-medium">{parent.first_name} {parent.last_name}</div>
+                      <div className="font-medium text-foreground">{parent.first_name} {parent.last_name}</div>
                     </TableCell>
                     <TableCell>
                       <div>
-                        <div className="text-sm">{parent.email}</div>
-                        <div className="text-sm text-gray-500">{parent.phone}</div>
+                        <div className="text-sm text-foreground">{parent.email}</div>
+                        <div className="text-sm text-muted-foreground">{parent.phone}</div>
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline">{parent.children?.length || 0}</Badge>
+                      <Badge variant="outline" className="bg-secondary text-secondary-foreground">
+                        {parent.children?.length || 0}
+                      </Badge>
                     </TableCell>
                     <TableCell>
                       <Badge variant={parent.is_active ? 'default' : 'secondary'}>
@@ -370,10 +376,11 @@ export default function ParentsPage() {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <Button 
-                        variant="outline" 
+                      <Button
+                        variant="outline"
                         size="sm"
                         onClick={() => handleDeleteParent(parent.id)}
+                        className="border-border hover:bg-destructive hover:text-destructive-foreground"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -382,7 +389,7 @@ export default function ParentsPage() {
                 ))}
               </TableBody>
             </Table>
-            
+
             {/* Pagination */}
             {totalPages > 1 && (
               <Pagination
@@ -398,81 +405,89 @@ export default function ParentsPage() {
 
         {/* Create Parent Dialog */}
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-          <DialogContent className="max-w-4xl">
+          <DialogContent className="max-w-4xl bg-background border-border">
             <DialogHeader>
-              <DialogTitle>Add New Parent</DialogTitle>
+              <DialogTitle className="text-foreground">Add New Parent</DialogTitle>
               <DialogDescription>
                 Create a new parent account and assign children
               </DialogDescription>
             </DialogHeader>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-4">
-                <h3 className="font-medium">Parent Information</h3>
+                <h3 className="font-medium text-foreground">Parent Information</h3>
                 <div className="space-y-2">
-                  <Label>First Name *</Label>
+                  <Label className="text-foreground">First Name *</Label>
                   <Input
                     value={newParent.first_name}
-                    onChange={(e) => setNewParent({...newParent, first_name: e.target.value})}
+                    onChange={(e) => setNewParent({ ...newParent, first_name: e.target.value })}
+                    className="bg-background border-border"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Last Name *</Label>
+                  <Label className="text-foreground">Last Name *</Label>
                   <Input
                     value={newParent.last_name}
-                    onChange={(e) => setNewParent({...newParent, last_name: e.target.value})}
+                    onChange={(e) => setNewParent({ ...newParent, last_name: e.target.value })}
+                    className="bg-background border-border"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Email *</Label>
+                  <Label className="text-foreground">Email *</Label>
                   <Input
                     type="email"
                     value={newParent.email}
-                    onChange={(e) => setNewParent({...newParent, email: e.target.value})}
+                    onChange={(e) => setNewParent({ ...newParent, email: e.target.value })}
+                    className="bg-background border-border"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Phone *</Label>
+                  <Label className="text-foreground">Phone *</Label>
                   <Input
                     value={newParent.phone}
-                    onChange={(e) => setNewParent({...newParent, phone: e.target.value})}
+                    onChange={(e) => setNewParent({ ...newParent, phone: e.target.value })}
+                    className="bg-background border-border"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Password *</Label>
+                  <Label className="text-foreground">Password *</Label>
                   <Input
                     type="password"
                     value={newParent.password}
-                    onChange={(e) => setNewParent({...newParent, password: e.target.value})}
+                    onChange={(e) => setNewParent({ ...newParent, password: e.target.value })}
+                    className="bg-background border-border"
                   />
                 </div>
               </div>
 
               <div className="space-y-4">
-                <h3 className="font-medium">Assign Children</h3>
+                <h3 className="font-medium text-foreground">Assign Children</h3>
                 <div className="space-y-2">
-                  <Label>Search Students</Label>
+                  <Label className="text-foreground">Search Students</Label>
                   <Input
                     placeholder="Search students by name or email..."
                     value={studentSearch}
                     onChange={(e) => setStudentSearch(e.target.value)}
+                    className="bg-background border-border"
                   />
                 </div>
-                
-                <div className="border rounded-lg p-4 max-h-60 overflow-y-auto">
+
+                <div className="border border-border rounded-lg p-4 max-h-60 overflow-y-auto bg-background">
                   <div className="space-y-2">
                     {filteredStudents.map((student) => (
-                      <div key={student.id} className="flex items-center space-x-2">
+                      <div key={student.id} className="flex items-center space-x-2 p-2 hover:bg-muted rounded-lg transition-colors">
                         <Checkbox
                           checked={newParent.children.includes(student.id)}
                           onCheckedChange={() => toggleStudentSelection(student.id)}
+                          className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                         />
-                        <Label className="flex-1">
-                          {student.first_name} {student.last_name} ({student.email})
+                        <Label className="flex-1 text-foreground cursor-pointer">
+                          {student.first_name} {student.last_name}
+                          <span className="text-muted-foreground text-sm ml-2">({student.email})</span>
                         </Label>
                       </div>
                     ))}
                     {filteredStudents.length === 0 && (
-                      <div className="text-sm text-gray-500 text-center py-4">
+                      <div className="text-sm text-muted-foreground text-center py-4">
                         No students found
                       </div>
                     )}
@@ -481,10 +496,10 @@ export default function ParentsPage() {
 
                 {newParent.children.length > 0 && (
                   <div className="space-y-2">
-                    <Label>Selected Children ({newParent.children.length})</Label>
+                    <Label className="text-foreground">Selected Children ({newParent.children.length})</Label>
                     <div className="flex flex-wrap gap-1">
                       {getSelectedStudentNames().map((name, index) => (
-                        <Badge key={index} variant="secondary" className="text-xs">
+                        <Badge key={index} variant="secondary" className="text-xs bg-secondary text-secondary-foreground">
                           {name}
                         </Badge>
                       ))}
@@ -494,7 +509,13 @@ export default function ParentsPage() {
               </div>
             </div>
             <div className="flex justify-end space-x-4 mt-6">
-              <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>Cancel</Button>
+              <Button
+                variant="outline"
+                onClick={() => setIsCreateDialogOpen(false)}
+                className="border-border"
+              >
+                Cancel
+              </Button>
               <Button onClick={handleCreateParent}>Create Parent</Button>
             </div>
           </DialogContent>

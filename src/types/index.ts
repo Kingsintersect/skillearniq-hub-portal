@@ -135,7 +135,6 @@ export interface Class {
   shortName: string;
   level: string;
   arm: string;
-  academicYear: string;
   term: '1st' | '2nd' | '3rd';
   teacherId: number;
   studentCount: number;
@@ -150,7 +149,6 @@ export interface Class {
   shortName: string;
   level: string;
   arm: string;
-  academicYear: string;
   term: '1st' | '2nd' | '3rd';
   teacherId: number;
   studentCount: number;
@@ -214,7 +212,6 @@ export interface Enrollment {
   classId: number;
   className: string;
   subjects: string[];
-  academicYear: string; // e.g., "2024-2025"
   term: '1st' | '2nd' | '3rd';
   enrollmentDate: string;
 }

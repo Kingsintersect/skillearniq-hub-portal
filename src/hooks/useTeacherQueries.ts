@@ -16,7 +16,6 @@ export const useTeacherQueries = () => {
 
   // Classes
   const useClasses = (teacherId: number, filters?: {
-    academicYear?: string;
     term?: string;
   }) => {
     return useQuery({
@@ -28,7 +27,6 @@ export const useTeacherQueries = () => {
 
   // Assessments
   const useAssessments = (teacherId: number, filters?: {
-    academicYear?: string;
     term?: string;
     classId?: number;
     type?: string;
@@ -42,7 +40,6 @@ export const useTeacherQueries = () => {
 
   // Attendance
   const useAttendance = (teacherId: number, filters?: {
-    academicYear?: string;
     term?: string;
     classId?: number;
   }) => {
@@ -55,7 +52,6 @@ export const useTeacherQueries = () => {
 
   // Students
   const useStudents = (teacherId: number, filters?: {
-    academicYear?: string;
     term?: string;
     classId?: number;
   }) => {
@@ -75,14 +71,6 @@ export const useTeacherQueries = () => {
     });
   };
 
-  // Academic Years
-  const useAcademicYears = (teacherId: number) => {
-    return useQuery({
-      queryKey: ['teacher', 'academic-years', teacherId],
-      queryFn: () => teacherService.getAcademicYears(teacherId),
-      staleTime: 60 * 60 * 1000, // 1 hour
-    });
-  };
 
   // Mutations
   const useCreateAssessment = () => {
@@ -101,7 +89,7 @@ export const useTeacherQueries = () => {
 
   const useUpdateAssessment = () => {
     return useMutation({
-      mutationFn: ({ id, data }: { id: number; data: any }) => 
+      mutationFn: ({ id, data }: { id: number; data: any }) =>
         teacherService.updateAssessment(id, data),
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ['teacher', 'assessments'] });
@@ -128,172 +116,172 @@ export const useTeacherQueries = () => {
   };
 
   // Groups
-const useGroups = (teacherId: number, classId?: number) => {
-  return useQuery({
-    queryKey: ['teacher', 'groups', teacherId, classId],
-    queryFn: () => teacherService.getGroups(teacherId, classId),
-    staleTime: 10 * 60 * 1000,
-  });
-};
+  const useGroups = (teacherId: number, classId?: number) => {
+    return useQuery({
+      queryKey: ['teacher', 'groups', teacherId, classId],
+      queryFn: () => teacherService.getGroups(teacherId, classId),
+      staleTime: 10 * 60 * 1000,
+    });
+  };
 
-// Group Mutations
-const useCreateGroup = () => {
-  return useMutation({
-    mutationFn: teacherService.createGroup,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['teacher', 'groups'] });
-      toast.success('Group created successfully');
-    },
-    onError: (error: any) => {
-      toast.error(error.message || 'Failed to create group');
-    }
-  });
-};
+  // Group Mutations
+  const useCreateGroup = () => {
+    return useMutation({
+      mutationFn: teacherService.createGroup,
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['teacher', 'groups'] });
+        toast.success('Group created successfully');
+      },
+      onError: (error: any) => {
+        toast.error(error.message || 'Failed to create group');
+      }
+    });
+  };
 
-const useUpdateGroup = () => {
-  return useMutation({
-    mutationFn: ({ id, data }: { id: number; data: Partial<StudentGroup> }) => 
-      teacherService.updateGroup(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['teacher', 'groups'] });
-      toast.success('Group updated successfully');
-    },
-    onError: (error: any) => {
-      toast.error(error.message || 'Failed to update group');
-    }
-  });
-};
+  const useUpdateGroup = () => {
+    return useMutation({
+      mutationFn: ({ id, data }: { id: number; data: Partial<StudentGroup> }) =>
+        teacherService.updateGroup(id, data),
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['teacher', 'groups'] });
+        toast.success('Group updated successfully');
+      },
+      onError: (error: any) => {
+        toast.error(error.message || 'Failed to update group');
+      }
+    });
+  };
 
-const useDeleteGroup = () => {
-  return useMutation({
-    mutationFn: teacherService.deleteGroup,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['teacher', 'groups'] });
-      toast.success('Group deleted successfully');
-    },
-    onError: (error: any) => {
-      toast.error(error.message || 'Failed to delete group');
-    }
-  });
-};
+  const useDeleteGroup = () => {
+    return useMutation({
+      mutationFn: teacherService.deleteGroup,
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['teacher', 'groups'] });
+        toast.success('Group deleted successfully');
+      },
+      onError: (error: any) => {
+        toast.error(error.message || 'Failed to delete group');
+      }
+    });
+  };
 
-const useAddStudentToGroup = () => {
-  return useMutation({
-    mutationFn: teacherService.addStudentToGroup,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['teacher', 'groups'] });
-      toast.success('Student added to group');
-    },
-    onError: (error: any) => {
-      toast.error(error.message || 'Failed to add student to group');
-    }
-  });
-};
+  const useAddStudentToGroup = () => {
+    return useMutation({
+      mutationFn: teacherService.addStudentToGroup,
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['teacher', 'groups'] });
+        toast.success('Student added to group');
+      },
+      onError: (error: any) => {
+        toast.error(error.message || 'Failed to add student to group');
+      }
+    });
+  };
 
-const useRemoveStudentFromGroup = () => {
-  return useMutation({
-    mutationFn: teacherService.removeStudentFromGroup,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['teacher', 'groups'] });
-      toast.success('Student removed from group');
-    },
-    onError: (error: any) => {
-      toast.error(error.message || 'Failed to remove student from group');
-    }
-  });
-};
+  const useRemoveStudentFromGroup = () => {
+    return useMutation({
+      mutationFn: teacherService.removeStudentFromGroup,
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['teacher', 'groups'] });
+        toast.success('Student removed from group');
+      },
+      onError: (error: any) => {
+        toast.error(error.message || 'Failed to remove student from group');
+      }
+    });
+  };
 
-// Profile
-const useProfile = (teacherId: number) => {
-  return useQuery({
-    queryKey: ['teacher', 'profile', teacherId],
-    queryFn: () => teacherService.getProfile(teacherId),
-    staleTime: 30 * 60 * 1000, // 30 minutes
-  });
-};
+  // Profile
+  const useProfile = (teacherId: number) => {
+    return useQuery({
+      queryKey: ['teacher', 'profile', teacherId],
+      queryFn: () => teacherService.getProfile(teacherId),
+      staleTime: 30 * 60 * 1000, // 30 minutes
+    });
+  };
 
-const useUpdateProfile = () => {
-  return useMutation({
-    mutationFn: ({ teacherId, data }: { teacherId: number; data: Partial<TeacherProfile> }) =>
-      teacherService.updateProfile(teacherId, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['teacher', 'profile'] });
-      toast.success('Profile updated successfully');
-    },
-    onError: (error: any) => {
-      toast.error(error.message || 'Failed to update profile');
-    }
-  });
-};
+  const useUpdateProfile = () => {
+    return useMutation({
+      mutationFn: ({ teacherId, data }: { teacherId: number; data: Partial<TeacherProfile> }) =>
+        teacherService.updateProfile(teacherId, data),
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['teacher', 'profile'] });
+        toast.success('Profile updated successfully');
+      },
+      onError: (error: any) => {
+        toast.error(error.message || 'Failed to update profile');
+      }
+    });
+  };
 
-// Notification Settings
-const useNotificationSettings = (teacherId: number) => {
-  return useQuery({
-    queryKey: ['teacher', 'notifications', teacherId],
-    queryFn: () => teacherService.getNotificationSettings(teacherId),
-    staleTime: 30 * 60 * 1000,
-  });
-};
+  // Notification Settings
+  const useNotificationSettings = (teacherId: number) => {
+    return useQuery({
+      queryKey: ['teacher', 'notifications', teacherId],
+      queryFn: () => teacherService.getNotificationSettings(teacherId),
+      staleTime: 30 * 60 * 1000,
+    });
+  };
 
-const useUpdateNotificationSettings = () => {
-  return useMutation({
-    mutationFn: ({ teacherId, data }: { teacherId: number; data: NotificationSettings }) =>
-      teacherService.updateNotificationSettings(teacherId, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['teacher', 'notifications'] });
-      toast.success('Notification settings updated');
-    },
-    onError: (error: any) => {
-      toast.error(error.message || 'Failed to update notification settings');
-    }
-  });
-};
+  const useUpdateNotificationSettings = () => {
+    return useMutation({
+      mutationFn: ({ teacherId, data }: { teacherId: number; data: NotificationSettings }) =>
+        teacherService.updateNotificationSettings(teacherId, data),
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['teacher', 'notifications'] });
+        toast.success('Notification settings updated');
+      },
+      onError: (error: any) => {
+        toast.error(error.message || 'Failed to update notification settings');
+      }
+    });
+  };
 
-// Security Settings
-const useSecuritySettings = (teacherId: number) => {
-  return useQuery({
-    queryKey: ['teacher', 'security', teacherId],
-    queryFn: () => teacherService.getSecuritySettings(teacherId),
-    staleTime: 30 * 60 * 1000,
-  });
-};
+  // Security Settings
+  const useSecuritySettings = (teacherId: number) => {
+    return useQuery({
+      queryKey: ['teacher', 'security', teacherId],
+      queryFn: () => teacherService.getSecuritySettings(teacherId),
+      staleTime: 30 * 60 * 1000,
+    });
+  };
 
-// Preferences
-const usePreferences = (teacherId: number) => {
-  return useQuery({
-    queryKey: ['teacher', 'preferences', teacherId],
-    queryFn: () => teacherService.getPreferences(teacherId),
-    staleTime: 30 * 60 * 1000,
-  });
-};
+  // Preferences
+  const usePreferences = (teacherId: number) => {
+    return useQuery({
+      queryKey: ['teacher', 'preferences', teacherId],
+      queryFn: () => teacherService.getPreferences(teacherId),
+      staleTime: 30 * 60 * 1000,
+    });
+  };
 
-const useUpdatePreferences = () => {
-  return useMutation({
-    mutationFn: ({ teacherId, data }: { teacherId: number; data: Preferences }) =>
-      teacherService.updatePreferences(teacherId, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['teacher', 'preferences'] });
-      toast.success('Preferences updated');
-    },
-    onError: (error: any) => {
-      toast.error(error.message || 'Failed to update preferences');
-    }
-  });
-};
+  const useUpdatePreferences = () => {
+    return useMutation({
+      mutationFn: ({ teacherId, data }: { teacherId: number; data: Preferences }) =>
+        teacherService.updatePreferences(teacherId, data),
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['teacher', 'preferences'] });
+        toast.success('Preferences updated');
+      },
+      onError: (error: any) => {
+        toast.error(error.message || 'Failed to update preferences');
+      }
+    });
+  };
 
-// Change Password
-const useChangePassword = () => {
-  return useMutation({
-    mutationFn: ({ teacherId, data }: { teacherId: number; data: any }) =>
-      teacherService.changePassword(teacherId, data),
-    onSuccess: () => {
-      toast.success('Password changed successfully');
-    },
-    onError: (error: any) => {
-      toast.error(error.message || 'Failed to change password');
-    }
-  });
-};
+  // Change Password
+  const useChangePassword = () => {
+    return useMutation({
+      mutationFn: ({ teacherId, data }: { teacherId: number; data: any }) =>
+        teacherService.changePassword(teacherId, data),
+      onSuccess: () => {
+        toast.success('Password changed successfully');
+      },
+      onError: (error: any) => {
+        toast.error(error.message || 'Failed to change password');
+      }
+    });
+  };
 
   return {
     // Queries
@@ -303,28 +291,27 @@ const useChangePassword = () => {
     useAttendance,
     useStudents,
     useMessages,
-    useAcademicYears,
-     useGroups,
-  
-  
- 
-    
+    useGroups,
+
+
+
+
     // Mutations
     useCreateAssessment,
     useUpdateAssessment,
     useDeleteAssessment,
-     useCreateGroup,
-  useUpdateGroup,
-  useDeleteGroup,
-  useAddStudentToGroup,
-  useRemoveStudentFromGroup,
-  useUpdateProfile,
-  useUpdateNotificationSettings,
-  useUpdatePreferences,
-  useChangePassword,
-  usePreferences, 
-  useProfile,
-  useNotificationSettings,
-  useSecuritySettings,
+    useCreateGroup,
+    useUpdateGroup,
+    useDeleteGroup,
+    useAddStudentToGroup,
+    useRemoveStudentFromGroup,
+    useUpdateProfile,
+    useUpdateNotificationSettings,
+    useUpdatePreferences,
+    useChangePassword,
+    usePreferences,
+    useProfile,
+    useNotificationSettings,
+    useSecuritySettings,
   };
 };

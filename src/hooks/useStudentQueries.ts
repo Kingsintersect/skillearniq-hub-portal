@@ -16,7 +16,6 @@ export const useStudentQueries = () => {
 
   // Classes
   const useClasses = (filters?: {
-    academicYear?: string;
     term?: string;
     teacher?: string;
     subject?: string;
@@ -30,7 +29,6 @@ export const useStudentQueries = () => {
 
   // Results
   const useResults = (filters?: {
-    academicYear?: string;
     term?: string;
   }) => {
     return useQuery({
@@ -134,7 +132,7 @@ export const useStudentQueries = () => {
     useResults,
     useGamificationData,
     useSettings,
-    
+
     // Mutations
     useUpdateSettings,
     useUpdateProfile,

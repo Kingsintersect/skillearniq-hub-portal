@@ -1,5 +1,5 @@
 /** @type {import('eslint').Linter.Config} */
-module.exports = {
+const config = {
     root: true,
     parser: '@typescript-eslint/parser',
     parserOptions: {
@@ -38,14 +38,14 @@ module.exports = {
         'import/order': [
             'warn',
             {
-                groups: [['builtin', 'external'], 'internal', ['parent', 'sibling', 'index']],
-                pathGroups: [
-                    {
-                        pattern: 'react',
-                        group: 'external',
-                        position: 'before',
-                    },
+                groups: [
+                    ['builtin', 'external'], 'internal', ['parent', 'sibling', 'index']
                 ],
+                pathGroups: [{
+                    pattern: 'react',
+                    group: 'external',
+                    position: 'before',
+                }, ],
                 alphabetize: {
                     order: 'asc',
                     caseInsensitive: true,
@@ -55,3 +55,5 @@ module.exports = {
         ],
     },
 };
+
+export default config;

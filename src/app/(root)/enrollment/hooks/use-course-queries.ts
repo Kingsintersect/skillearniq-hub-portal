@@ -11,7 +11,6 @@ export const useCourseQueries = (userId: string) => {
     const [unenrollModalOpen, setUnenrollModalOpen] = useState(false);
     const [courseToUnenroll, setCourseToUnenroll] = useState<{ courseId: string, courseGroupId: number, courseName: string } | null>(null);
 
-
     const { setCategories, setEnrolledCourses, setPaidCategories, setLoading, unenrollFromCourse } = useCourseStore();
     const { user } = useAuthContext();
     const queryClient = useQueryClient();
