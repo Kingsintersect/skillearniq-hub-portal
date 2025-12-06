@@ -11,7 +11,6 @@ export interface TeacherClass {
   subject: string;
   level: string;
   arm: string;
-  academicYear: string;
   term: string;
   studentCount: number;
   schedule: string;
@@ -185,7 +184,7 @@ export const teacherService = {
   // Dashboard
   getDashboardData: async (teacherId: number): Promise<ApiResponse<DashboardStats>> => {
     await new Promise(resolve => setTimeout(resolve, 600));
-    
+
     return {
       status: 200,
       data: {
@@ -256,11 +255,10 @@ export const teacherService = {
 
   // Classes
   getClasses: async (teacherId: number, filters?: {
-    academicYear?: string;
     term?: string;
   }): Promise<ApiResponse<TeacherClass[]>> => {
     await new Promise(resolve => setTimeout(resolve, 500));
-    
+
     const classes: TeacherClass[] = [
       {
         id: 1,
@@ -270,7 +268,6 @@ export const teacherService = {
         subject: 'Mathematics',
         level: 'JSS 1',
         arm: 'A',
-        academicYear: '2024-2025',
         term: '1st',
         studentCount: 30,
         schedule: 'Mon, Wed, Fri - 9:00 AM',
@@ -286,7 +283,6 @@ export const teacherService = {
         subject: 'Science',
         level: 'JSS 1',
         arm: 'A',
-        academicYear: '2024-2025',
         term: '1st',
         studentCount: 30,
         schedule: 'Tue, Thu - 10:30 AM',
@@ -302,7 +298,6 @@ export const teacherService = {
         subject: 'Mathematics',
         level: 'JSS 2',
         arm: 'B',
-        academicYear: '2024-2025',
         term: '1st',
         studentCount: 28,
         schedule: 'Mon, Wed, Fri - 11:00 AM',
@@ -318,7 +313,6 @@ export const teacherService = {
         subject: 'Science',
         level: 'JSS 2',
         arm: 'B',
-        academicYear: '2024-2025',
         term: '1st',
         studentCount: 28,
         schedule: 'Tue, Thu - 1:00 PM',
@@ -334,7 +328,6 @@ export const teacherService = {
         subject: 'Mathematics',
         level: 'JSS 3',
         arm: 'A',
-        academicYear: '2024-2025',
         term: '1st',
         studentCount: 32,
         schedule: 'Mon, Wed, Fri - 2:00 PM',
@@ -350,7 +343,6 @@ export const teacherService = {
         subject: 'Science',
         level: 'JSS 3',
         arm: 'A',
-        academicYear: '2024-2025',
         term: '1st',
         studentCount: 32,
         schedule: 'Tue, Thu - 3:30 PM',
@@ -361,10 +353,6 @@ export const teacherService = {
     ];
 
     let filteredClasses = classes;
-
-    if (filters?.academicYear) {
-      filteredClasses = filteredClasses.filter(cls => cls.academicYear === filters.academicYear);
-    }
 
     if (filters?.term) {
       filteredClasses = filteredClasses.filter(cls => cls.term === filters.term);
@@ -379,7 +367,6 @@ export const teacherService = {
 
   // Assessments
   getAssessments: async (teacherId: number, filters?: {
-    academicYear?: string;
     term?: string;
     classId?: number;
     type?: string;
@@ -389,7 +376,7 @@ export const teacherService = {
     drafts: Assessment[];
   }>> => {
     await new Promise(resolve => setTimeout(resolve, 500));
-    
+
     const assessments = {
       upcoming: [
         {
@@ -470,7 +457,6 @@ export const teacherService = {
 
   // Attendance
   getAttendance: async (teacherId: number, filters?: {
-    academicYear?: string;
     term?: string;
     classId?: number;
   }): Promise<ApiResponse<{
@@ -478,14 +464,14 @@ export const teacherService = {
     monthly: AttendanceRecord[];
   }>> => {
     await new Promise(resolve => setTimeout(resolve, 500));
-    
+
     const attendance = {
       daily: [
-        { 
-          date: '2024-01-15', 
-          present: 28, 
-          absent: 2, 
-          late: 1, 
+        {
+          date: '2024-01-15',
+          present: 28,
+          absent: 2,
+          late: 1,
           rate: 93.3,
           students: [
             { id: 1, name: 'John Doe', status: 'present', time: '08:00 AM' },
@@ -493,11 +479,11 @@ export const teacherService = {
             { id: 3, name: 'Mike Johnson', status: 'late', time: '08:15 AM' },
           ]
         },
-        { 
-          date: '2024-01-16', 
-          present: 29, 
-          absent: 1, 
-          late: 1, 
+        {
+          date: '2024-01-16',
+          present: 29,
+          absent: 1,
+          late: 1,
           rate: 96.7,
           students: [
             { id: 1, name: 'John Doe', status: 'present', time: '07:55 AM' },
@@ -505,11 +491,11 @@ export const teacherService = {
             { id: 3, name: 'Mike Johnson', status: 'late', time: '08:20 AM' },
           ]
         },
-        { 
-          date: '2024-01-17', 
-          present: 27, 
-          absent: 3, 
-          late: 1, 
+        {
+          date: '2024-01-17',
+          present: 27,
+          absent: 3,
+          late: 1,
           rate: 90.0,
           students: [
             { id: 1, name: 'John Doe', status: 'present', time: '08:00 AM' },
@@ -536,12 +522,11 @@ export const teacherService = {
 
   // Students
   getStudents: async (teacherId: number, filters?: {
-    academicYear?: string;
     term?: string;
     classId?: number;
   }): Promise<ApiResponse<Student[]>> => {
     await new Promise(resolve => setTimeout(resolve, 600));
-    
+
     const students: Student[] = [
       {
         id: 1,
@@ -623,7 +608,7 @@ export const teacherService = {
     sentMessages: any[];
   }>> => {
     await new Promise(resolve => setTimeout(resolve, 400));
-    
+
     const data = {
       notifications: [
         {
@@ -677,21 +662,10 @@ export const teacherService = {
     };
   },
 
-  // Academic Years
-  getAcademicYears: async (teacherId: number): Promise<ApiResponse<string[]>> => {
-    await new Promise(resolve => setTimeout(resolve, 300));
-    
-    return {
-      status: 200,
-      data: ['2023-2024', '2024-2025', '2025-2026'],
-      message: 'Academic years fetched successfully'
-    };
-  },
-
   // Create Assessment
   createAssessment: async (assessmentData: Partial<Assessment>): Promise<ApiResponse<Assessment>> => {
     await new Promise(resolve => setTimeout(resolve, 800));
-    
+
     const newAssessment: Assessment = {
       id: Date.now(),
       title: assessmentData.title || 'New Assessment',
@@ -704,7 +678,7 @@ export const teacherService = {
       totalStudents: 30,
       createdAt: new Date().toISOString()
     };
-    
+
     return {
       status: 200,
       data: newAssessment,
@@ -715,7 +689,7 @@ export const teacherService = {
   // Update Assessment
   updateAssessment: async (assessmentId: number, assessmentData: Partial<Assessment>): Promise<ApiResponse<Assessment>> => {
     await new Promise(resolve => setTimeout(resolve, 600));
-    
+
     const updatedAssessment: Assessment = {
       id: assessmentId,
       title: assessmentData.title || 'Updated Assessment',
@@ -728,7 +702,7 @@ export const teacherService = {
       totalStudents: 30,
       createdAt: new Date().toISOString()
     };
-    
+
     return {
       status: 200,
       data: updatedAssessment,
@@ -739,7 +713,7 @@ export const teacherService = {
   // Delete Assessment
   deleteAssessment: async (assessmentId: number): Promise<ApiResponse<void>> => {
     await new Promise(resolve => setTimeout(resolve, 500));
-    
+
     return {
       status: 200,
       data: undefined,
@@ -747,314 +721,314 @@ export const teacherService = {
     };
   },
 
- 
-getGroups: async (teacherId: number, classId?: number): Promise<ApiResponse<StudentGroup[]>> => {
-  await new Promise(resolve => setTimeout(resolve, 400));
-  
-  const groups: StudentGroup[] = [
-    {
-      id: 1,
-      name: 'Science Club',
-      description: 'Students interested in science projects',
-      studentIds: [1, 3, 5],
-      className: 'JSS 1A',
-      classId: 1,
-      createdBy: teacherId,
-      createdAt: '2024-01-20'
-    },
-    {
-      id: 2,
-      name: 'Math Olympiad',
-      description: 'Advanced mathematics competition team',
-      studentIds: [1, 2],
-      className: 'JSS 1A',
-      classId: 1,
-      createdBy: teacherId,
-      createdAt: '2024-01-22'
-    }
-  ];
 
-  let filteredGroups = groups;
+  getGroups: async (teacherId: number, classId?: number): Promise<ApiResponse<StudentGroup[]>> => {
+    await new Promise(resolve => setTimeout(resolve, 400));
 
-  if (classId) {
-    filteredGroups = filteredGroups.filter(group => group.classId === classId);
-  }
-
-  return {
-    status: 200,
-    data: filteredGroups,
-    message: 'Groups fetched successfully'
-  };
-},
-
-createGroup: async (groupData: Partial<StudentGroup>): Promise<ApiResponse<StudentGroup>> => {
-  await new Promise(resolve => setTimeout(resolve, 600));
-  
-  const newGroup: StudentGroup = {
-    id: Date.now(),
-    name: groupData.name || 'New Group',
-    description: groupData.description || '',
-    studentIds: groupData.studentIds || [],
-    className: groupData.className || '',
-    classId: groupData.classId || 0,
-    createdBy: groupData.createdBy || 0,
-    createdAt: new Date().toISOString()
-  };
-  
-  return {
-    status: 200,
-    data: newGroup,
-    message: 'Group created successfully'
-  };
-},
-
-updateGroup: async (groupId: number, groupData: Partial<StudentGroup>): Promise<ApiResponse<StudentGroup>> => {
-  await new Promise(resolve => setTimeout(resolve, 500));
-  
-  const updatedGroup: StudentGroup = {
-    id: groupId,
-    name: groupData.name || 'Updated Group',
-    description: groupData.description || '',
-    studentIds: groupData.studentIds || [],
-    className: groupData.className || '',
-    classId: groupData.classId || 0,
-    createdBy: groupData.createdBy || 0,
-    createdAt: groupData.createdAt || new Date().toISOString()
-  };
-  
-  return {
-    status: 200,
-    data: updatedGroup,
-    message: 'Group updated successfully'
-  };
-},
-
-deleteGroup: async (groupId: number): Promise<ApiResponse<void>> => {
-  await new Promise(resolve => setTimeout(resolve, 400));
-  
-  return {
-    status: 200,
-    data: undefined,
-    message: 'Group deleted successfully'
-  };
-},
-
-addStudentToGroup: async (operation: GroupStudentOperation): Promise<ApiResponse<StudentGroup>> => {
-  await new Promise(resolve => setTimeout(resolve, 300));
-  
-  // In a real implementation, this would update the group
-  const mockGroup: StudentGroup = {
-    id: operation.groupId,
-    name: 'Updated Group',
-    description: 'Group with added student',
-    studentIds: [1, 2, 3, operation.studentId],
-    className: 'JSS 1A',
-    classId: 1,
-    createdBy: 1,
-    createdAt: new Date().toISOString()
-  };
-  
-  return {
-    status: 200,
-    data: mockGroup,
-    message: 'Student added to group successfully'
-  };
-},
-
-removeStudentFromGroup: async (operation: GroupStudentOperation): Promise<ApiResponse<StudentGroup>> => {
-  await new Promise(resolve => setTimeout(resolve, 300));
-  
-  // In a real implementation, this would update the group
-  const mockGroup: StudentGroup = {
-    id: operation.groupId,
-    name: 'Updated Group',
-    description: 'Group with removed student',
-    studentIds: [1, 2, 3].filter(id => id !== operation.studentId),
-    className: 'JSS 1A',
-    classId: 1,
-    createdBy: 1,
-    createdAt: new Date().toISOString()
-  };
-  
-  return {
-    status: 200,
-    data: mockGroup,
-    message: 'Student removed from group successfully'
-  };
-},
-
-
-// Profile
-getProfile: async (teacherId: number): Promise<ApiResponse<TeacherProfile>> => {
-  await new Promise(resolve => setTimeout(resolve, 500));
-  
-  const profile: TeacherProfile = {
-    id: teacherId.toString(),
-    name: 'Dr. Sarah Johnson',
-    email: 'sarah.johnson@school.edu',
-    phone: '+1234567890',
-    department: 'Science & Mathematics',
-    teacherId: 'TCH-2024-001',
-    bio: 'Passionate educator with 8 years of experience in teaching Science and Mathematics. Committed to student success and innovative teaching methods.',
-    avatar: '',
-    subjects: ['Mathematics', 'Science', 'Physics'],
-    classes: 6,
-    totalStudents: 180,
-    joinDate: '2020-08-15'
-  };
-
-  return {
-    status: 200,
-    data: profile,
-    message: 'Profile fetched successfully'
-  };
-},
-
-updateProfile: async (teacherId: number, profileData: Partial<TeacherProfile>): Promise<ApiResponse<TeacherProfile>> => {
-  await new Promise(resolve => setTimeout(resolve, 600));
-  
-  const updatedProfile: TeacherProfile = {
-    id: teacherId.toString(),
-    name: profileData.name || 'Dr. Sarah Johnson',
-    email: profileData.email || 'sarah.johnson@school.edu',
-    phone: profileData.phone || '+1234567890',
-    department: profileData.department || 'Science & Mathematics',
-    teacherId: 'TCH-2024-001',
-    bio: profileData.bio || 'Passionate educator with 8 years of experience...',
-    avatar: profileData.avatar || '',
-    subjects: profileData.subjects || ['Mathematics', 'Science', 'Physics'],
-    classes: 6,
-    totalStudents: 180,
-    joinDate: '2020-08-15'
-  };
-
-  return {
-    status: 200,
-    data: updatedProfile,
-    message: 'Profile updated successfully'
-  };
-},
-
-// Notification Settings
-getNotificationSettings: async (teacherId: number): Promise<ApiResponse<NotificationSettings>> => {
-  await new Promise(resolve => setTimeout(resolve, 400));
-  
-  const settings: NotificationSettings = {
-    emailNotifications: true,
-    pushNotifications: true,
-    smsNotifications: false,
-    assessmentReminders: true,
-    attendanceAlerts: true,
-    parentMessages: true,
-    systemUpdates: false,
-    deadlineReminders: true
-  };
-
-  return {
-    status: 200,
-    data: settings,
-    message: 'Notification settings fetched successfully'
-  };
-},
-
-updateNotificationSettings: async (teacherId: number, settings: NotificationSettings): Promise<ApiResponse<NotificationSettings>> => {
-  await new Promise(resolve => setTimeout(resolve, 500));
-  
-  return {
-    status: 200,
-    data: settings,
-    message: 'Notification settings updated successfully'
-  };
-},
-
-// Security Settings
-getSecuritySettings: async (teacherId: number): Promise<ApiResponse<SecuritySettings>> => {
-  await new Promise(resolve => setTimeout(resolve, 400));
-  
-  const security: SecuritySettings = {
-    twoFactorEnabled: true,
-    loginAlerts: true,
-    passwordLastChanged: '2024-01-15',
-    activeSessions: [
+    const groups: StudentGroup[] = [
       {
-        id: '1',
-        device: 'Windows PC',
-        browser: 'Chrome 120.0',
-        location: 'Lagos, Nigeria',
-        lastActive: '2024-01-25T10:30:00Z',
-        ipAddress: '192.168.1.100'
+        id: 1,
+        name: 'Science Club',
+        description: 'Students interested in science projects',
+        studentIds: [1, 3, 5],
+        className: 'JSS 1A',
+        classId: 1,
+        createdBy: teacherId,
+        createdAt: '2024-01-20'
       },
       {
-        id: '2',
-        device: 'iPhone 14',
-        browser: 'Safari 17.0',
-        location: 'Lagos, Nigeria',
-        lastActive: '2024-01-25T09:15:00Z',
-        ipAddress: '192.168.1.101'
+        id: 2,
+        name: 'Math Olympiad',
+        description: 'Advanced mathematics competition team',
+        studentIds: [1, 2],
+        className: 'JSS 1A',
+        classId: 1,
+        createdBy: teacherId,
+        createdAt: '2024-01-22'
       }
-    ]
-  };
+    ];
 
-  return {
-    status: 200,
-    data: security,
-    message: 'Security settings fetched successfully'
-  };
-},
+    let filteredGroups = groups;
 
-// Preferences
-getPreferences: async (teacherId: number): Promise<ApiResponse<Preferences>> => {
-  await new Promise(resolve => setTimeout(resolve, 400));
-  
-  const preferences: Preferences = {
-    theme: 'system',
-    language: 'en',
-    timezone: 'Africa/Lagos',
-    dateFormat: 'DD/MM/YYYY',
-    defaultView: 'dashboard',
-    autoSave: true,
-    exportFormat: 'pdf'
-  };
+    if (classId) {
+      filteredGroups = filteredGroups.filter(group => group.classId === classId);
+    }
 
-  return {
-    status: 200,
-    data: preferences,
-    message: 'Preferences fetched successfully'
-  };
-},
+    return {
+      status: 200,
+      data: filteredGroups,
+      message: 'Groups fetched successfully'
+    };
+  },
 
-updatePreferences: async (teacherId: number, preferences: Preferences): Promise<ApiResponse<Preferences>> => {
-  await new Promise(resolve => setTimeout(resolve, 500));
-  
-  return {
-    status: 200,
-    data: preferences,
-    message: 'Preferences updated successfully'
-  };
-},
+  createGroup: async (groupData: Partial<StudentGroup>): Promise<ApiResponse<StudentGroup>> => {
+    await new Promise(resolve => setTimeout(resolve, 600));
 
-// Change Password
-changePassword: async (teacherId: number, passwordData: {
-  currentPassword: string;
-  newPassword: string;
-  confirmPassword: string;
-}): Promise<ApiResponse<void>> => {
-  await new Promise(resolve => setTimeout(resolve, 800));
-  
-  if (passwordData.newPassword !== passwordData.confirmPassword) {
-    throw new Error('New passwords do not match');
-  }
+    const newGroup: StudentGroup = {
+      id: Date.now(),
+      name: groupData.name || 'New Group',
+      description: groupData.description || '',
+      studentIds: groupData.studentIds || [],
+      className: groupData.className || '',
+      classId: groupData.classId || 0,
+      createdBy: groupData.createdBy || 0,
+      createdAt: new Date().toISOString()
+    };
 
-  if (passwordData.newPassword.length < 8) {
-    throw new Error('Password must be at least 8 characters long');
-  }
+    return {
+      status: 200,
+      data: newGroup,
+      message: 'Group created successfully'
+    };
+  },
 
-  return {
-    status: 200,
-    data: undefined,
-    message: 'Password changed successfully'
-  };
-},
+  updateGroup: async (groupId: number, groupData: Partial<StudentGroup>): Promise<ApiResponse<StudentGroup>> => {
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    const updatedGroup: StudentGroup = {
+      id: groupId,
+      name: groupData.name || 'Updated Group',
+      description: groupData.description || '',
+      studentIds: groupData.studentIds || [],
+      className: groupData.className || '',
+      classId: groupData.classId || 0,
+      createdBy: groupData.createdBy || 0,
+      createdAt: groupData.createdAt || new Date().toISOString()
+    };
+
+    return {
+      status: 200,
+      data: updatedGroup,
+      message: 'Group updated successfully'
+    };
+  },
+
+  deleteGroup: async (groupId: number): Promise<ApiResponse<void>> => {
+    await new Promise(resolve => setTimeout(resolve, 400));
+
+    return {
+      status: 200,
+      data: undefined,
+      message: 'Group deleted successfully'
+    };
+  },
+
+  addStudentToGroup: async (operation: GroupStudentOperation): Promise<ApiResponse<StudentGroup>> => {
+    await new Promise(resolve => setTimeout(resolve, 300));
+
+    // In a real implementation, this would update the group
+    const mockGroup: StudentGroup = {
+      id: operation.groupId,
+      name: 'Updated Group',
+      description: 'Group with added student',
+      studentIds: [1, 2, 3, operation.studentId],
+      className: 'JSS 1A',
+      classId: 1,
+      createdBy: 1,
+      createdAt: new Date().toISOString()
+    };
+
+    return {
+      status: 200,
+      data: mockGroup,
+      message: 'Student added to group successfully'
+    };
+  },
+
+  removeStudentFromGroup: async (operation: GroupStudentOperation): Promise<ApiResponse<StudentGroup>> => {
+    await new Promise(resolve => setTimeout(resolve, 300));
+
+    // In a real implementation, this would update the group
+    const mockGroup: StudentGroup = {
+      id: operation.groupId,
+      name: 'Updated Group',
+      description: 'Group with removed student',
+      studentIds: [1, 2, 3].filter(id => id !== operation.studentId),
+      className: 'JSS 1A',
+      classId: 1,
+      createdBy: 1,
+      createdAt: new Date().toISOString()
+    };
+
+    return {
+      status: 200,
+      data: mockGroup,
+      message: 'Student removed from group successfully'
+    };
+  },
+
+
+  // Profile
+  getProfile: async (teacherId: number): Promise<ApiResponse<TeacherProfile>> => {
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    const profile: TeacherProfile = {
+      id: teacherId.toString(),
+      name: 'Dr. Sarah Johnson',
+      email: 'sarah.johnson@school.edu',
+      phone: '+1234567890',
+      department: 'Science & Mathematics',
+      teacherId: 'TCH-2024-001',
+      bio: 'Passionate educator with 8 years of experience in teaching Science and Mathematics. Committed to student success and innovative teaching methods.',
+      avatar: '',
+      subjects: ['Mathematics', 'Science', 'Physics'],
+      classes: 6,
+      totalStudents: 180,
+      joinDate: '2020-08-15'
+    };
+
+    return {
+      status: 200,
+      data: profile,
+      message: 'Profile fetched successfully'
+    };
+  },
+
+  updateProfile: async (teacherId: number, profileData: Partial<TeacherProfile>): Promise<ApiResponse<TeacherProfile>> => {
+    await new Promise(resolve => setTimeout(resolve, 600));
+
+    const updatedProfile: TeacherProfile = {
+      id: teacherId.toString(),
+      name: profileData.name || 'Dr. Sarah Johnson',
+      email: profileData.email || 'sarah.johnson@school.edu',
+      phone: profileData.phone || '+1234567890',
+      department: profileData.department || 'Science & Mathematics',
+      teacherId: 'TCH-2024-001',
+      bio: profileData.bio || 'Passionate educator with 8 years of experience...',
+      avatar: profileData.avatar || '',
+      subjects: profileData.subjects || ['Mathematics', 'Science', 'Physics'],
+      classes: 6,
+      totalStudents: 180,
+      joinDate: '2020-08-15'
+    };
+
+    return {
+      status: 200,
+      data: updatedProfile,
+      message: 'Profile updated successfully'
+    };
+  },
+
+  // Notification Settings
+  getNotificationSettings: async (teacherId: number): Promise<ApiResponse<NotificationSettings>> => {
+    await new Promise(resolve => setTimeout(resolve, 400));
+
+    const settings: NotificationSettings = {
+      emailNotifications: true,
+      pushNotifications: true,
+      smsNotifications: false,
+      assessmentReminders: true,
+      attendanceAlerts: true,
+      parentMessages: true,
+      systemUpdates: false,
+      deadlineReminders: true
+    };
+
+    return {
+      status: 200,
+      data: settings,
+      message: 'Notification settings fetched successfully'
+    };
+  },
+
+  updateNotificationSettings: async (teacherId: number, settings: NotificationSettings): Promise<ApiResponse<NotificationSettings>> => {
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    return {
+      status: 200,
+      data: settings,
+      message: 'Notification settings updated successfully'
+    };
+  },
+
+  // Security Settings
+  getSecuritySettings: async (teacherId: number): Promise<ApiResponse<SecuritySettings>> => {
+    await new Promise(resolve => setTimeout(resolve, 400));
+
+    const security: SecuritySettings = {
+      twoFactorEnabled: true,
+      loginAlerts: true,
+      passwordLastChanged: '2024-01-15',
+      activeSessions: [
+        {
+          id: '1',
+          device: 'Windows PC',
+          browser: 'Chrome 120.0',
+          location: 'Lagos, Nigeria',
+          lastActive: '2024-01-25T10:30:00Z',
+          ipAddress: '192.168.1.100'
+        },
+        {
+          id: '2',
+          device: 'iPhone 14',
+          browser: 'Safari 17.0',
+          location: 'Lagos, Nigeria',
+          lastActive: '2024-01-25T09:15:00Z',
+          ipAddress: '192.168.1.101'
+        }
+      ]
+    };
+
+    return {
+      status: 200,
+      data: security,
+      message: 'Security settings fetched successfully'
+    };
+  },
+
+  // Preferences
+  getPreferences: async (teacherId: number): Promise<ApiResponse<Preferences>> => {
+    await new Promise(resolve => setTimeout(resolve, 400));
+
+    const preferences: Preferences = {
+      theme: 'system',
+      language: 'en',
+      timezone: 'Africa/Lagos',
+      dateFormat: 'DD/MM/YYYY',
+      defaultView: 'dashboard',
+      autoSave: true,
+      exportFormat: 'pdf'
+    };
+
+    return {
+      status: 200,
+      data: preferences,
+      message: 'Preferences fetched successfully'
+    };
+  },
+
+  updatePreferences: async (teacherId: number, preferences: Preferences): Promise<ApiResponse<Preferences>> => {
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    return {
+      status: 200,
+      data: preferences,
+      message: 'Preferences updated successfully'
+    };
+  },
+
+  // Change Password
+  changePassword: async (teacherId: number, passwordData: {
+    currentPassword: string;
+    newPassword: string;
+    confirmPassword: string;
+  }): Promise<ApiResponse<void>> => {
+    await new Promise(resolve => setTimeout(resolve, 800));
+
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      throw new Error('New passwords do not match');
+    }
+
+    if (passwordData.newPassword.length < 8) {
+      throw new Error('Password must be at least 8 characters long');
+    }
+
+    return {
+      status: 200,
+      data: undefined,
+      message: 'Password changed successfully'
+    };
+  },
 };
 
 // API READY VERSION - COMMENTED OUT FOR NOW
@@ -1089,11 +1063,6 @@ export const teacherService = {
 
   getMessages: async (teacherId: number): Promise<ApiResponse<any>> => {
     const response = await apiClient.get(`/teacher/${teacherId}/messages`);
-    return response.data;
-  },
-
-  getAcademicYears: async (teacherId: number): Promise<ApiResponse<string[]>> => {
-    const response = await apiClient.get(`/teacher/${teacherId}/academic-years`);
     return response.data;
   },
 

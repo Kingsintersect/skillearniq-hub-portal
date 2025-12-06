@@ -35,7 +35,6 @@ export interface StudentClass {
   };
   schedule: string;
   room: string;
-  academicYear: string;
   term: string;
   progress: number;
   currentGrade: string;
@@ -65,7 +64,6 @@ export interface StudyGroup {
 }
 
 export interface StudentResult {
-  academicYear: string;
   term: string;
   subjects: SubjectResult[];
 }
@@ -153,7 +151,7 @@ export const studentService = {
     leaderboard: LeaderboardEntry[];
   }>> => {
     await new Promise(resolve => setTimeout(resolve, 500));
-    
+
     return {
       status: 200,
       data: {
@@ -201,13 +199,12 @@ export const studentService = {
 
   // Classes
   getClasses: async (filters?: {
-    academicYear?: string;
     term?: string;
     teacher?: string;
     subject?: string;
   }): Promise<ApiResponse<StudentClass[]>> => {
     await new Promise(resolve => setTimeout(resolve, 600));
-    
+
     const classes: StudentClass[] = [
       {
         id: 1,
@@ -224,7 +221,6 @@ export const studentService = {
         },
         schedule: 'Mon, Wed, Fri - 9:00 AM',
         room: 'Room 201',
-        academicYear: '2025-2026',
         term: '1st',
         progress: 75,
         currentGrade: 'A',
@@ -258,7 +254,6 @@ export const studentService = {
         },
         schedule: 'Tue, Thu - 10:30 AM',
         room: 'Room 105',
-        academicYear: '2025-2026',
         term: '1st',
         progress: 60,
         currentGrade: 'B+',
@@ -291,7 +286,6 @@ export const studentService = {
         },
         schedule: 'Mon, Wed - 2:00 PM',
         room: 'Lab 301',
-        academicYear: '2025-2026',
         term: '1st',
         progress: 80,
         currentGrade: 'A-',
@@ -324,7 +318,6 @@ export const studentService = {
         },
         schedule: 'Tue, Thu - 1:00 PM',
         room: 'Room 115',
-        academicYear: '2025-2026',
         term: '1st',
         progress: 70,
         currentGrade: 'B',
@@ -343,10 +336,6 @@ export const studentService = {
     ];
 
     let filteredClasses = classes;
-
-    if (filters?.academicYear) {
-      filteredClasses = filteredClasses.filter(cls => cls.academicYear === filters.academicYear);
-    }
 
     if (filters?.term) {
       filteredClasses = filteredClasses.filter(cls => cls.term === filters.term);
@@ -369,14 +358,12 @@ export const studentService = {
 
   // Results
   getResults: async (filters?: {
-    academicYear?: string;
     term?: string;
   }): Promise<ApiResponse<StudentResult[]>> => {
     await new Promise(resolve => setTimeout(resolve, 500));
-    
+
     const results: StudentResult[] = [
       {
-        academicYear: '2024-2025',
         term: '1st',
         subjects: [
           {
@@ -426,7 +413,6 @@ export const studentService = {
         ]
       },
       {
-        academicYear: '2023-2024',
         term: '3rd',
         subjects: [
           {
@@ -445,10 +431,6 @@ export const studentService = {
     ];
 
     let filteredResults = results;
-
-    if (filters?.academicYear) {
-      filteredResults = filteredResults.filter(r => r.academicYear === filters.academicYear);
-    }
 
     if (filters?.term) {
       filteredResults = filteredResults.filter(r => r.term === filters.term);
@@ -470,7 +452,7 @@ export const studentService = {
     recentActivities: RecentActivity[];
   }>> => {
     await new Promise(resolve => setTimeout(resolve, 500));
-    
+
     return {
       status: 200,
       data: {
@@ -540,7 +522,7 @@ export const studentService = {
     appearance: AppearanceSettings;
   }>> => {
     await new Promise(resolve => setTimeout(resolve, 400));
-    
+
     return {
       status: 200,
       data: {
@@ -596,9 +578,9 @@ export const studentService = {
     appearance?: AppearanceSettings;
   }): Promise<ApiResponse<void>> => {
     await new Promise(resolve => setTimeout(resolve, 800));
-    
+
     console.log('Settings updated:', settings);
-    
+
     return {
       status: 200,
       data: undefined,
@@ -609,9 +591,9 @@ export const studentService = {
   // Additional methods for other functionality
   updateProfile: async (profileData: Partial<StudentProfile>): Promise<ApiResponse<StudentProfile>> => {
     await new Promise(resolve => setTimeout(resolve, 600));
-    
+
     console.log('Profile updated:', profileData);
-    
+
     return {
       status: 200,
       data: {
@@ -638,9 +620,9 @@ export const studentService = {
 
   redeemReward: async (rewardId: number): Promise<ApiResponse<void>> => {
     await new Promise(resolve => setTimeout(resolve, 500));
-    
+
     console.log('Reward redeemed:', rewardId);
-    
+
     return {
       status: 200,
       data: undefined,
@@ -650,9 +632,9 @@ export const studentService = {
 
   changePassword: async (currentPassword: string, newPassword: string): Promise<ApiResponse<void>> => {
     await new Promise(resolve => setTimeout(resolve, 700));
-    
+
     console.log('Password changed');
-    
+
     return {
       status: 200,
       data: undefined,
@@ -662,7 +644,7 @@ export const studentService = {
 
   exportData: async (): Promise<ApiResponse<{ downloadUrl: string }>> => {
     await new Promise(resolve => setTimeout(resolve, 1000));
-    
+
     return {
       status: 200,
       data: { downloadUrl: '/api/export/student-data.csv' },

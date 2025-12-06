@@ -49,13 +49,11 @@ export function useAuth() {
         },
         enabled: !!accessToken,
         staleTime: 5 * 60 * 1000, // 5 minutes
-        retry: (failureCount, error: ApiError) => {
-            // Don't retry if unauthorized
-            if (error.statusCode === 401) return false;
-            return failureCount < 2;
-        },
+        retry: 0, // SET TO 0 - NO RETRY
         refetchOnWindowFocus: false,
-        // refetchOnMount: false,
+        refetchOnMount: false,
+        refetchOnReconnect: false,
+        gcTime: 10 * 60 * 1000, // 10 minutes garbage collection
     });
 
     // Login mutation
