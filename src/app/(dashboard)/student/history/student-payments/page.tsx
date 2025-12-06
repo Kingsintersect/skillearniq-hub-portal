@@ -10,9 +10,9 @@ import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
-import { 
-  CreditCard, 
-  Download, 
+import {
+  CreditCard,
+  Download,
   Filter,
   Search,
   FileText,
@@ -34,21 +34,20 @@ type PaymentType = 'all' | 'tuition' | 'exam' | 'library' | 'sports' | 'transpor
 const useExportPayments = () => {
   const exportToCSV = (payments: any[], filters: any, filename: string = 'payment-history') => {
     if (!payments.length) return;
-    
+
     const headers = [
       'Payment ID',
-      'Description', 
-      'Type', 
-      'Amount', 
-      'Due Date', 
-      'Payment Date', 
-      'Status', 
+      'Description',
+      'Type',
+      'Amount',
+      'Due Date',
+      'Payment Date',
+      'Status',
       'Reference Number',
       'Payment Method',
-      'Academic Year',
       'Term'
     ];
-    
+
     const csvContent = [
       headers.join(','),
       ...payments.map(payment => [
@@ -61,7 +60,6 @@ const useExportPayments = () => {
         payment.status,
         payment.referenceNumber || 'N/A',
         payment.paymentMethod || 'N/A',
-        payment.academicYear,
         payment.term
       ].join(','))
     ].join('\n');
@@ -76,21 +74,20 @@ const useExportPayments = () => {
 
   const exportToExcel = (payments: any[], filters: any, filename: string = 'payment-history') => {
     if (!payments.length) return;
-    
+
     const headers = [
       'Payment ID',
-      'Description', 
-      'Type', 
-      'Amount', 
-      'Due Date', 
-      'Payment Date', 
-      'Status', 
+      'Description',
+      'Type',
+      'Amount',
+      'Due Date',
+      'Payment Date',
+      'Status',
       'Reference Number',
       'Payment Method',
-      'Academic Year',
       'Term'
     ];
-    
+
     const csvContent = [
       headers.join(','),
       ...payments.map(payment => [
@@ -103,7 +100,6 @@ const useExportPayments = () => {
         payment.status,
         payment.referenceNumber || 'N/A',
         payment.paymentMethod || 'N/A',
-        payment.academicYear,
         payment.term
       ].join(','))
     ].join('\n');
@@ -143,7 +139,7 @@ const useExportPayments = () => {
       printWindow.document.write(`
         <html>
           <head>
-            <title>Payment History - ${filters.academicYear} ${filters.term} Term</title>
+            <title>Payment History - ${filters.term} Term</title>
             <style>
               body { 
                 font-family: Arial, sans-serif; 
@@ -236,7 +232,7 @@ const useExportPayments = () => {
           <body>
             <div class="header">
               <h1>Student Payment History</h1>
-              <p>${filters.academicYear} - ${filters.term} Term</p>
+              <p>${filters.term} Term</p>
               <p>Generated on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}</p>
             </div>
 
@@ -311,7 +307,6 @@ const useExportPayments = () => {
 
 export const PaymentHistoryPage: React.FC = () => {
   const [filters, setFilters] = useState({
-    academicYear: '2024-2025',
     term: 'all',
     status: 'all' as PaymentStatus,
     type: 'all' as PaymentType,
@@ -332,7 +327,6 @@ export const PaymentHistoryPage: React.FC = () => {
       status: 'paid',
       referenceNumber: 'REF-001234',
       paymentMethod: 'Bank Transfer',
-      academicYear: '2024-2025',
       term: '1st'
     },
     {
@@ -345,7 +339,6 @@ export const PaymentHistoryPage: React.FC = () => {
       status: 'pending',
       referenceNumber: null,
       paymentMethod: null,
-      academicYear: '2024-2025',
       term: '1st'
     },
     {
@@ -358,7 +351,6 @@ export const PaymentHistoryPage: React.FC = () => {
       status: 'overdue',
       referenceNumber: null,
       paymentMethod: null,
-      academicYear: '2024-2025',
       term: '1st'
     },
     {
@@ -371,7 +363,6 @@ export const PaymentHistoryPage: React.FC = () => {
       status: 'paid',
       referenceNumber: 'REF-001235',
       paymentMethod: 'Credit Card',
-      academicYear: '2024-2025',
       term: '1st'
     },
     {
@@ -384,7 +375,6 @@ export const PaymentHistoryPage: React.FC = () => {
       status: 'pending',
       referenceNumber: null,
       paymentMethod: null,
-      academicYear: '2024-2025',
       term: '1st'
     },
     {
@@ -397,7 +387,6 @@ export const PaymentHistoryPage: React.FC = () => {
       status: 'pending',
       referenceNumber: null,
       paymentMethod: null,
-      academicYear: '2024-2025',
       term: '2nd'
     },
     {
@@ -410,7 +399,6 @@ export const PaymentHistoryPage: React.FC = () => {
       status: 'paid',
       referenceNumber: 'REF-001100',
       paymentMethod: 'Bank Transfer',
-      academicYear: '2023-2024',
       term: '1st'
     },
     {
@@ -423,12 +411,10 @@ export const PaymentHistoryPage: React.FC = () => {
       status: 'paid',
       referenceNumber: 'REF-001101',
       paymentMethod: 'Cash',
-      academicYear: '2023-2024',
       term: '1st'
     }
   ];
 
-  const academicYears = ['2024-2025', '2023-2024', '2022-2023'];
   const terms = ['all', '1st', '2nd', '3rd'];
   const statusOptions: { value: PaymentStatus; label: string }[] = [
     { value: 'all', label: 'All Status' },
@@ -450,14 +436,13 @@ export const PaymentHistoryPage: React.FC = () => {
   // Filter payments based on current filters
   const filteredPayments = useMemo(() => {
     return paymentData.filter(payment => {
-      const matchesAcademicYear = payment.academicYear === filters.academicYear;
       const matchesTerm = filters.term === 'all' || payment.term === filters.term;
       const matchesStatus = filters.status === 'all' || payment.status === filters.status;
       const matchesType = filters.type === 'all' || payment.type === filters.type;
       const matchesSearch = payment.description.toLowerCase().includes(filters.searchQuery.toLowerCase()) ||
-                          payment.id.toLowerCase().includes(filters.searchQuery.toLowerCase());
+        payment.id.toLowerCase().includes(filters.searchQuery.toLowerCase());
 
-      return matchesAcademicYear && matchesTerm && matchesStatus && matchesType && matchesSearch;
+      return matchesTerm && matchesStatus && matchesType && matchesSearch;
     });
   }, [paymentData, filters]);
 
@@ -490,7 +475,7 @@ export const PaymentHistoryPage: React.FC = () => {
     }
 
     try {
-      const filename = `payment-history-${filters.academicYear}-${filters.term}`;
+      const filename = `payment-history-${filters.term}`;
       switch (format) {
         case 'csv':
           exportToCSV(filteredPayments, filters, filename);
@@ -641,23 +626,6 @@ export const PaymentHistoryPage: React.FC = () => {
             <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
               <div className="flex flex-col sm:flex-row gap-4 flex-1">
                 <div className="space-y-2">
-                  <Label htmlFor="academicYear">Academic Year</Label>
-                  <Select
-                    value={filters.academicYear}
-                    onValueChange={(value) => setFilters(prev => ({ ...prev, academicYear: value }))}
-                  >
-                    <SelectTrigger className="w-40">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {academicYears.map(year => (
-                        <SelectItem key={year} value={year}>{year}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
                   <Label htmlFor="term">Term</Label>
                   <Select
                     value={filters.term}
@@ -724,21 +692,21 @@ export const PaymentHistoryPage: React.FC = () => {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem 
+                    <DropdownMenuItem
                       onClick={() => handleExport('csv')}
                       className="flex items-center space-x-2"
                     >
                       <Sheet className="h-4 w-4" />
                       <span>Export as CSV</span>
                     </DropdownMenuItem>
-                    <DropdownMenuItem 
+                    <DropdownMenuItem
                       onClick={() => handleExport('excel')}
                       className="flex items-center space-x-2"
                     >
                       <FileDown className="h-4 w-4" />
                       <span>Export as Excel</span>
                     </DropdownMenuItem>
-                    <DropdownMenuItem 
+                    <DropdownMenuItem
                       onClick={() => handleExport('pdf')}
                       className="flex items-center space-x-2"
                     >
@@ -768,7 +736,7 @@ export const PaymentHistoryPage: React.FC = () => {
           <CardHeader>
             <CardTitle>Payment Records</CardTitle>
             <CardDescription>
-              Showing {filteredPayments.length} payment(s) for {filters.academicYear} 
+              Showing {filteredPayments.length} payment(s)
               {filters.term !== 'all' && ` - ${filters.term} Term`}
             </CardDescription>
           </CardHeader>
@@ -804,9 +772,6 @@ export const PaymentHistoryPage: React.FC = () => {
                         <TableCell>
                           <div>
                             <div className="font-medium">{payment.description}</div>
-                            <div className="text-sm text-muted-foreground">
-                              {payment.academicYear} • {payment.term} Term
-                            </div>
                           </div>
                         </TableCell>
                         <TableCell>

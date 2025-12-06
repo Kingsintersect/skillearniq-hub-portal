@@ -195,7 +195,6 @@ export default function PaymentsPage() {
                 <div className="flex justify-between items-center">
                   <div>
                     <h4 className="font-semibold">Summary</h4>
-                    <p className="text-sm text-muted-foreground">2025-2026 Academic Year - 1st Term</p>
                   </div>
                   <div className="text-right">
                     <div className="text-sm">

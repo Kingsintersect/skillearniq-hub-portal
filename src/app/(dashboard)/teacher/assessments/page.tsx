@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { useTeacherClasses, useClassAssessments } from '@/hooks/use-classes';
 
 import { Button } from '@/components/ui/button';
-import { Card, CardContent} from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -16,9 +16,9 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 import { toast } from 'sonner';
-import { 
-  FileText, 
-  Download, 
+import {
+  FileText,
+  Download,
   Plus,
   Filter,
   Clock,
@@ -36,9 +36,9 @@ type ExportFormat = 'csv' | 'excel' | 'pdf';
 const useExportAssessments = () => {
   const exportToCSV = (assessments: any[], filename: string = 'assessments') => {
     if (!assessments.length) return;
-    
+
     const headers = ['ID', 'Title', 'Class', 'Type', 'Due Date', 'Max Score', 'Submissions', 'Total Students', 'Average Score', 'Status'];
-    
+
     const csvContent = [
       headers.join(','),
       ...assessments.map(assessment => [
@@ -65,9 +65,9 @@ const useExportAssessments = () => {
 
   const exportToExcel = (assessments: any[], filename: string = 'assessments') => {
     if (!assessments.length) return;
-    
+
     const headers = ['ID', 'Title', 'Class', 'Type', 'Due Date', 'Max Score', 'Submissions', 'Total Students', 'Average Score', 'Status'];
-    
+
     const csvContent = [
       headers.join(','),
       ...assessments.map(assessment => [
@@ -236,7 +236,6 @@ const useExportAssessments = () => {
 
 export const AssessmentsPage: React.FC = () => {
   const [filters, setFilters] = useState({
-    academicYear: '2024-2025',
     term: '1st',
     classId: 1,
     type: 'all'
@@ -246,7 +245,7 @@ export const AssessmentsPage: React.FC = () => {
 
   const currentTeacherId = 1;
   const { data: classes, isLoading } = useTeacherClasses(currentTeacherId);
-  
+
   const { exportToCSV, exportToExcel, exportToPDF } = useExportAssessments();
 
   // Mock assessments data with results
@@ -317,7 +316,6 @@ export const AssessmentsPage: React.FC = () => {
     ]
   };
 
-  const academicYears = ['2023-2024', '2024-2025', '2025-2026'];
   const terms = ['1st', '2nd', '3rd'];
   const assessmentTypes = ['all', 'quiz', 'assignment', 'exam', 'project'];
 
@@ -332,7 +330,7 @@ export const AssessmentsPage: React.FC = () => {
     }
 
     const className = classes?.find(c => c.id === filters.classId)?.shortName || 'assessments';
-    const filename = `${className}_${filters.academicYear}_${filters.term}_assessments`;
+    const filename = `${className}_${filters.term}_assessments`;
 
     try {
       switch (format) {
@@ -472,22 +470,6 @@ export const AssessmentsPage: React.FC = () => {
           <CardContent className="p-6">
             <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
               <div className="flex flex-col sm:flex-row gap-4 flex-1">
-                <div className="flex-1">
-                  <Label htmlFor="academicYear">Academic Year</Label>
-                  <Select
-                    value={filters.academicYear}
-                    onValueChange={(value) => setFilters(prev => ({ ...prev, academicYear: value }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {academicYears.map(year => (
-                        <SelectItem key={year} value={year}>{year}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
 
                 <div className="flex-1">
                   <Label htmlFor="term">Term</Label>
@@ -561,21 +543,21 @@ export const AssessmentsPage: React.FC = () => {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem 
+                    <DropdownMenuItem
                       onClick={() => handleExportAssessments('csv', assessmentsData[view])}
                       className="flex items-center space-x-2"
                     >
                       <Sheet className="h-4 w-4" />
                       <span>Export as CSV</span>
                     </DropdownMenuItem>
-                    <DropdownMenuItem 
+                    <DropdownMenuItem
                       onClick={() => handleExportAssessments('excel', assessmentsData[view])}
                       className="flex items-center space-x-2"
                     >
                       <FileDown className="h-4 w-4" />
                       <span>Export as Excel</span>
                     </DropdownMenuItem>
-                    <DropdownMenuItem 
+                    <DropdownMenuItem
                       onClick={() => handleExportAssessments('pdf', assessmentsData[view])}
                       className="flex items-center space-x-2"
                     >
@@ -616,25 +598,25 @@ export const AssessmentsPage: React.FC = () => {
           </TabsList>
 
           <TabsContent value="upcoming">
-            <AssessmentsListView 
-              data={assessmentsData.upcoming} 
-              type="upcoming" 
+            <AssessmentsListView
+              data={assessmentsData.upcoming}
+              type="upcoming"
               onExportResults={handleExportResults}
             />
           </TabsContent>
 
           <TabsContent value="completed">
-            <AssessmentsListView 
-              data={assessmentsData.completed} 
-              type="completed" 
+            <AssessmentsListView
+              data={assessmentsData.completed}
+              type="completed"
               onExportResults={handleExportResults}
             />
           </TabsContent>
 
           <TabsContent value="drafts">
-            <AssessmentsListView 
-              data={assessmentsData.drafts} 
-              type="drafts" 
+            <AssessmentsListView
+              data={assessmentsData.drafts}
+              type="drafts"
               onExportResults={handleExportResults}
             />
           </TabsContent>
@@ -645,8 +627,8 @@ export const AssessmentsPage: React.FC = () => {
 };
 
 // Assessments List View Component
-const AssessmentsListView: React.FC<{ 
-  data: any[]; 
+const AssessmentsListView: React.FC<{
+  data: any[];
   type: string;
   onExportResults: (assessment: any) => void;
 }> = ({ data, type, onExportResults }) => {
@@ -660,7 +642,7 @@ const AssessmentsListView: React.FC<{
           <h3 className="text-lg font-semibold text-foreground mb-2">No assessments found</h3>
           <p className="text-muted-foreground">
             {type === 'upcoming' ? 'No upcoming assessments' :
-             type === 'completed' ? 'No completed assessments' : 'No draft assessments'}
+              type === 'completed' ? 'No completed assessments' : 'No draft assessments'}
           </p>
         </CardContent>
       </Card>
@@ -692,8 +674,8 @@ const AssessmentsListView: React.FC<{
               <TableCell>
                 <Badge variant={
                   assessment.type === 'quiz' ? 'secondary' :
-                  assessment.type === 'assignment' ? 'default' :
-                  assessment.type === 'exam' ? 'destructive' : 'outline'
+                    assessment.type === 'assignment' ? 'default' :
+                      assessment.type === 'exam' ? 'destructive' : 'outline'
                 }>
                   {assessment.type}
                 </Badge>
@@ -704,9 +686,9 @@ const AssessmentsListView: React.FC<{
               <TableCell>{assessment.maxScore}</TableCell>
               <TableCell>
                 <div className="flex items-center space-x-2">
-                  <Progress 
-                    value={(assessment.submissions / assessment.totalStudents) * 100} 
-                    className="h-2 w-16" 
+                  <Progress
+                    value={(assessment.submissions / assessment.totalStudents) * 100}
+                    className="h-2 w-16"
                   />
                   <span className="text-sm">{assessment.submissions}/{assessment.totalStudents}</span>
                 </div>
@@ -721,8 +703,8 @@ const AssessmentsListView: React.FC<{
               <TableCell>
                 <div className="flex space-x-2">
                   {type === 'completed' && assessment.results && assessment.results.length > 0 && (
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       size="sm"
                       onClick={() => onExportResults(assessment)}
                     >
@@ -769,7 +751,7 @@ const CreateAssessmentDialog: React.FC<{ onCreate: () => void; classes: any[] }>
           Fill in the details to create a new assessment for your students.
         </DialogDescription>
       </DialogHeader>
-      
+
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">

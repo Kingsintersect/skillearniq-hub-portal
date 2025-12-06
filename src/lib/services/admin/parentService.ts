@@ -1,6 +1,6 @@
-// lib/services/admin/parentService.ts
 import { ApiError, PaginationParams, ApiResponse } from "@/types/auth";
 import { apiClient } from "@/core/client";
+import { dummyParentsData } from "@/lib/dummy-data";
 
 export interface Parent {
   id: number;
@@ -19,7 +19,7 @@ export interface Parent {
   created_at: string;
   updated_at: string;
   last_login_at: string | null;
-  meta: any;
+  meta?: any;
   children?: number[];
 }
 
@@ -41,8 +41,10 @@ export const parentService = {
   // Get all parents
   getAllParents: async (): Promise<Parent[]> => {
     try {
-      const response = await apiClient.get<any>('/account/allparents');
-      return response.data || [];
+      // const response = await apiClient.get<any>('/account/allparents'); ///parents/get-all-parents
+      // console.log('response', response)
+      // return response.data || [];
+      return dummyParentsData
     } catch (error) {
       console.error('Failed to fetch all parents:', error);
       return [];
@@ -53,7 +55,7 @@ export const parentService = {
   getParents: async (params?: ParentFilterParams): Promise<ApiResponse<Parent[]>> => {
     try {
       const queryParams = new URLSearchParams();
-      
+
       if (params?.search) queryParams.set('search', params.search);
       if (params?.status) queryParams.set('status', params.status);
       if (params?.page) queryParams.set('page', params.page.toString());

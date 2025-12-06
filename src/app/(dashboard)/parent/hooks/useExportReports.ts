@@ -139,7 +139,7 @@ export const useExportReports = () => {
           <body>
             <div class="header">
               <h1>STUDENT ACADEMIC REPORT</h1>
-              <p>${currentTerm.academicYear} - ${currentTerm.term} TERM</p>
+              <p>${currentTerm.term} TERM</p>
               <p>Generated on ${new Date().toLocaleDateString()}</p>
             </div>
 
@@ -236,7 +236,6 @@ export const useExportReports = () => {
       'Student ID',
       'Class',
       'Class Arm',
-      'Academic Year',
       'Term',
       'Overall Average',
       'Class Position',
@@ -261,7 +260,6 @@ export const useExportReports = () => {
       gradeReport.studentId,
       gradeReport.class,
       gradeReport.classArm,
-      currentTerm.academicYear,
       currentTerm.term,
       currentTerm.summary.average.toFixed(1),
       currentTerm.summary.position,
@@ -300,7 +298,6 @@ export const useExportReports = () => {
       'Student ID',
       'Class',
       'Class Arm',
-      'Academic Year',
       'Term',
       'Overall Average',
       'Class Position',
@@ -325,7 +322,6 @@ export const useExportReports = () => {
       gradeReport.studentId,
       gradeReport.class,
       gradeReport.classArm,
-      currentTerm.academicYear,
       currentTerm.term,
       currentTerm.summary.average.toFixed(1),
       currentTerm.summary.position,

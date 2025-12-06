@@ -1,5 +1,3 @@
-// lib/services/admin/dashboardService.ts
-import { ApiError, ApiResponse } from "@/types/auth";
 import { apiClient } from "@/core/client";
 
 export interface DashboardStats {
@@ -9,7 +7,6 @@ export interface DashboardStats {
   activeClasses: number;
   attendanceRate: number;
   feeCollection: number;
-  academicYear: string;
 }
 
 export const dashboardService = {
@@ -35,7 +32,6 @@ export const dashboardService = {
         activeClasses: 12, // This would come from your classes API
         attendanceRate: 87, // This would come from your attendance API
         feeCollection: 75, // This would come from your payments API
-        academicYear: '2025-2026'
       };
     } catch (error) {
       console.error('Failed to fetch dashboard stats:', error);
@@ -46,7 +42,6 @@ export const dashboardService = {
         activeClasses: 0,
         attendanceRate: 0,
         feeCollection: 0,
-        academicYear: '2025-2026'
       };
     }
   }
