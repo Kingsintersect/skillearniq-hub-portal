@@ -47,6 +47,8 @@ export const ClassesPage: React.FC = () => {
   const currentTeacherId = 1;
   const { data: classes, isLoading: classesLoading } = useTeacherClasses(currentTeacherId, filters);
   const { data: academicYears } = useAcademicYears(currentTeacherId);
+
+  console.log('Classes Data:', classes);
   
   const { 
     data: studentsData, 
@@ -58,6 +60,10 @@ export const ClassesPage: React.FC = () => {
   
   const { data: assessments } = useClassAssessments(selectedClass || 0);
   const { data: performanceData } = useStudentPerformance(selectedClass || 0);
+
+  // console.log('Students Data:', studentsData);
+  // console.log('Assessments Data:', assessments);
+  // console.log('Performance Data:', performanceData);
 
   const allStudents = useMemo(() => {
     return studentsData?.pages.flatMap(page => page.students) || [];

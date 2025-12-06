@@ -264,6 +264,11 @@ const useStudentManagement = (teacherId: number, filters: any) => {
   const attendanceQuery = useAttendance(teacherId, filters);
   const academicYearsQuery = useAcademicYears(teacherId);
   const groupsQuery = useGroups(teacherId, filters.classId);
+  // console.log('Students Query Data:', studentsQuery.data);
+  // console.log('Classes Query Data:', classesQuery.data);
+  // console.log('Groups Query Data:', groupsQuery.data);
+  // console.log('Attendance Query Data:', attendanceQuery.data);
+  
 
   return {
     students: studentsQuery.data?.data || [],

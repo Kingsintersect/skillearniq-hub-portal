@@ -32,6 +32,8 @@ export const Dashboard: React.FC = () => {
   const { useDashboardData } = useStudentQueries();
   const { data: dashboardResponse, isLoading, error } = useDashboardData();
 
+  //console.log('Dashboard Response:', dashboardResponse);
+
   if (isLoading) {
     return (
       <div className="min-h-screen p-6 flex items-center justify-center">

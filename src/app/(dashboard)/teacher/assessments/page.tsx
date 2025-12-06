@@ -317,6 +317,8 @@ export const AssessmentsPage: React.FC = () => {
     ]
   };
 
+  //console.log('Assessments Data:', assessmentsData);
+
   const academicYears = ['2023-2024', '2024-2025', '2025-2026'];
   const terms = ['1st', '2nd', '3rd'];
   const assessmentTypes = ['all', 'quiz', 'assignment', 'exam', 'project'];

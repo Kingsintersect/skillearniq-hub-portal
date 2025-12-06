@@ -420,6 +420,9 @@ export const StudentResultsPage: React.FC = () => {
   const { useResults } = useStudentQueries();
   const { data: resultsResponse, isLoading, error } = useResults(filters);
 
+
+  //console.log('Results Response:', resultsResponse);
+
   const { exportToCSV, exportToExcel, exportToPDF } = useExportResults();
 
   const academicYears = ['2024-2025', '2023-2024'];
