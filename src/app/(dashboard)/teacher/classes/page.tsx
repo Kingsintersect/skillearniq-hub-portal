@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import { SubcategorySelect } from './components/categories/SubcategorySelect';
 import { CoursesGridView } from './components/courses/CoursesGridView';
 import { CoursesTableView } from './components/courses/CoursesTableView';
