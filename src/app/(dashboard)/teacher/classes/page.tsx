@@ -11,8 +11,58 @@ import { Grid3x3, List } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { ParentCategorySelect } from './components/categories/ParentCategorySelect';
 
+<<<<<<< HEAD
+export const ClassesPage: React.FC = () => {
+  const [selectedClass, setSelectedClass] = useState<number | null>(null);
+  const [studentSearch, setStudentSearch] = useState('');
+  const [filters, setFilters] = useState({
+    academicYear: '2024-2025',
+    term: '1st',
+  });
+  const [view, setView] = useState<'grid' | 'list'>('grid');
+
+  const currentTeacherId = 1;
+  const { data: classes, isLoading: classesLoading } = useTeacherClasses(currentTeacherId, filters);
+  const { data: academicYears } = useAcademicYears(currentTeacherId);
+
+  console.log('Classes Data:', classes);
+  
+  const { 
+    data: studentsData, 
+    fetchNextPage, 
+    hasNextPage, 
+    isFetchingNextPage,
+    isLoading: studentsLoading 
+  } = useClassStudentsInfinite(selectedClass || 0, studentSearch);
+  
+  const { data: assessments } = useClassAssessments(selectedClass || 0);
+  const { data: performanceData } = useStudentPerformance(selectedClass || 0);
+
+  // console.log('Students Data:', studentsData);
+  // console.log('Assessments Data:', assessments);
+  // console.log('Performance Data:', performanceData);
+
+  const allStudents = useMemo(() => {
+    return studentsData?.pages.flatMap(page => page.students) || [];
+  }, [studentsData]);
+
+  const selectedClassData = classes?.find(cls => cls.id === selectedClass);
+  const terms = ['1st', '2nd', '3rd'];
+
+  if (classesLoading) {
+    return (
+      <div className="min-h-screen p-6 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading your classes...</p>
+        </div>
+      </div>
+    );
+  }
+=======
 export default function CoursesPage() {
   const { view, setView, courses, selectedParentId, selectedSubcategoryId } = useCategories();
+>>>>>>> c57ebc83b4ae705cd5678e89359d478cc859fb0c
 
   return (
     <div className="container mx-auto p-6 space-y-6">

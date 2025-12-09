@@ -316,6 +316,8 @@ export const AssessmentsPage: React.FC = () => {
     ]
   };
 
+  //console.log('Assessments Data:', assessmentsData);
+
   const terms = ['1st', '2nd', '3rd'];
   const assessmentTypes = ['all', 'quiz', 'assignment', 'exam', 'project'];
 
