@@ -34,6 +34,7 @@ export const GamificationPage: React.FC = () => {
 
   const { useGamificationData, useRedeemReward } = useStudentQueries();
   const { data: gamificationResponse, isLoading, error } = useGamificationData();
+  console.log('Gamification Response:', gamificationResponse);
   const redeemRewardMutation = useRedeemReward();
 
   const gamificationData = gamificationResponse?.data;

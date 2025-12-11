@@ -32,6 +32,7 @@ export const StudentSettingsPage: React.FC = () => {
 
 	const { useSettings, useUpdateSettings, useUpdateProfile, useChangePassword, useExportData } = useStudentQueries();
 	const { data: settingsResponse, isLoading, error } = useSettings();
+	//console.log('Settings Response:', settingsResponse);
 	const updateSettingsMutation = useUpdateSettings();
 	const updateProfileMutation = useUpdateProfile();
 	const changePasswordMutation = useChangePassword();

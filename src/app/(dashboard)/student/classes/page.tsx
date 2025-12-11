@@ -45,6 +45,8 @@ export const StudentClassesPage: React.FC = () => {
   const { useClasses } = useStudentQueries();
   const { data: classesResponse, isLoading, error } = useClasses(filters);
 
+  //console.log('Classes Response:', classesResponse);
+
   const classes = classesResponse?.data || [];
 
   // Get unique values for filters

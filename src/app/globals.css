@@ -143,7 +143,6 @@
 	--secondary-800: oklch(0.435 0.058 72.0);
 	--secondary-900: oklch(0.365 0.048 70.0);
 	--secondary-950: oklch(0.245 0.035 68.0);
-	/* --secondary: oklch(0.918 0.012 90.0); */
 	--secondary: var(--secondary-200);
 	--secondary-foreground: var(--primary-600);
 
@@ -200,7 +199,6 @@
 	--bg: oklch(0.148 0.045 258.5);
 	--fg: oklch(0.984 0.003 247.858);
 
-
 	/* Base Colors */
 	--background: var(--bg);
 	--foreground: var(--fg);
@@ -220,7 +218,6 @@
 	--primary: var(--primary-700);
 	--primary-foreground: var(--bg);
 
-
 	/* Card */
 	--card: var(--primary-300);
 	--card-foreground: var(--fg);
@@ -228,7 +225,6 @@
 	/* Popover */
 	--popover: var(--primary-300);
 	--popover-foreground: var(--fg);
-
 
 	/* Secondary - Gold maintains warmth in dark mode */
 	--secondary-50: oklch(0.245 0.035 68.0);
@@ -270,8 +266,8 @@
 
 	/* Border & Input */
 	--bd: oklch(0.745 0.048 258.5);
-	--border: var(--white) / 10%;
-	--input: var(--white) / 15%;
+	--border: color-mix(in oklch, var(--white) 10%, transparent);
+	--input: color-mix(in oklch, var(--white) 15%, transparent);
 	--ring: var(--bd);
 
 	/* Charts */
@@ -288,7 +284,7 @@
 	--sidebar-primary-foreground: var(--fg);
 	--sidebar-accent: oklch(0.279 0.041 260.031);
 	--sidebar-accent-foreground: var(--fg);
-	--sidebar-border: var(--white) / 10%;
+	--sidebar-border: color-mix(in oklch, var(--white) 10%, transparent);
 	--sidebar-ring: var(--bd);
 }
 
