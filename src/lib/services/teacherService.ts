@@ -1,3 +1,4 @@
+import { apiClient } from '@/core/client';
 import { ApiResponse, PaginationParams } from '@/types/auth';
 
 // Types for teacher data
@@ -93,6 +94,18 @@ export interface AttendanceRecord {
   rate: number;
   students?: any[];
 }
+interface CourseSAttendanceResponse {
+  course_details: {
+    category: number;
+    categoryName: string;
+    fullname: string;
+    id: number;
+    idnumber: string;
+    shortname: string;
+  };
+  daily: AttendanceRecord[];
+  monthly: AttendanceRecord[];
+}
 
 export interface Student {
   id: number;
@@ -106,6 +119,12 @@ export interface Student {
   subjects: string[];
   attendance: number;
   averageScore: number;
+}
+interface CourseStudentsResponse {
+  course_id: number;
+  fullname: string;
+  shortname: string;
+  students: Student[];
 }
 
 export interface Message {
@@ -463,59 +482,10 @@ export const teacherService = {
     daily: AttendanceRecord[];
     monthly: AttendanceRecord[];
   }>> => {
-    await new Promise(resolve => setTimeout(resolve, 500));
-
-    const attendance = {
-      daily: [
-        {
-          date: '2024-01-15',
-          present: 28,
-          absent: 2,
-          late: 1,
-          rate: 93.3,
-          students: [
-            { id: 1, name: 'John Doe', status: 'present', time: '08:00 AM' },
-            { id: 2, name: 'Jane Smith', status: 'absent', time: '-' },
-            { id: 3, name: 'Mike Johnson', status: 'late', time: '08:15 AM' },
-          ]
-        },
-        {
-          date: '2024-01-16',
-          present: 29,
-          absent: 1,
-          late: 1,
-          rate: 96.7,
-          students: [
-            { id: 1, name: 'John Doe', status: 'present', time: '07:55 AM' },
-            { id: 2, name: 'Jane Smith', status: 'present', time: '08:00 AM' },
-            { id: 3, name: 'Mike Johnson', status: 'late', time: '08:20 AM' },
-          ]
-        },
-        {
-          date: '2024-01-17',
-          present: 27,
-          absent: 3,
-          late: 1,
-          rate: 90.0,
-          students: [
-            { id: 1, name: 'John Doe', status: 'present', time: '08:00 AM' },
-            { id: 2, name: 'Jane Smith', status: 'absent', time: '-' },
-            { id: 3, name: 'Mike Johnson', status: 'present', time: '08:00 AM' },
-          ]
-        }
-      ],
-      monthly: [
-        { date: '2024-01-31', present: 580, absent: 20, late: 0, rate: 96.7, students: [], month: 'January 2024' },
-        { date: '2024-02-29', present: 560, absent: 40, late: 0, rate: 93.3, students: [], month: 'February 2024' },
-        { date: '2024-03-31', present: 590, absent: 10, late: 0, rate: 98.3, students: [], month: 'March 2024' },
-        { date: '2024-04-30', present: 575, absent: 25, late: 0, rate: 95.8, students: [], month: 'April 2024' },
-        { date: '2024-05-31', present: 585, absent: 15, late: 0, rate: 97.5, students: [], month: 'May 2024' }
-      ]
-    };
-
+    const attendance = await apiClient.get<CourseSAttendanceResponse>(`/teacher/dashboard/attendance-by-course-id?course_id=${teacherId}`);
     return {
       status: 200,
-      data: attendance,
+      data: attendance.data,
       message: 'Attendance data fetched successfully'
     };
   },
@@ -525,79 +495,10 @@ export const teacherService = {
     term?: string;
     classId?: number;
   }): Promise<ApiResponse<Student[]>> => {
-    await new Promise(resolve => setTimeout(resolve, 600));
-
-    const students: Student[] = [
-      {
-        id: 1,
-        name: 'John Doe',
-        email: 'john.doe@school.edu',
-        phone: '+1234567890',
-        avatar: '',
-        status: 'active',
-        class: 'JSS 1A',
-        enrollmentDate: '2024-01-15',
-        subjects: ['Mathematics', 'English', 'Science', 'Social Studies'],
-        attendance: 95,
-        averageScore: 88.5
-      },
-      {
-        id: 2,
-        name: 'Jane Smith',
-        email: 'jane.smith@school.edu',
-        phone: '+1234567891',
-        avatar: '',
-        status: 'active',
-        class: 'JSS 1A',
-        enrollmentDate: '2024-01-15',
-        subjects: ['Mathematics', 'English', 'Arts', 'Physical Education'],
-        attendance: 92,
-        averageScore: 85.2
-      },
-      {
-        id: 3,
-        name: 'Mike Johnson',
-        email: 'mike.johnson@school.edu',
-        phone: '+1234567892',
-        avatar: '',
-        status: 'active',
-        class: 'JSS 1A',
-        enrollmentDate: '2024-01-16',
-        subjects: ['Science', 'Mathematics', 'Technology', 'English'],
-        attendance: 98,
-        averageScore: 91.3
-      },
-      {
-        id: 4,
-        name: 'Sarah Wilson',
-        email: 'sarah.wilson@school.edu',
-        phone: '+1234567893',
-        avatar: '',
-        status: 'active',
-        class: 'JSS 1A',
-        enrollmentDate: '2024-01-14',
-        subjects: ['English', 'Arts', 'Social Studies', 'Mathematics'],
-        attendance: 90,
-        averageScore: 82.7
-      },
-      {
-        id: 5,
-        name: 'David Brown',
-        email: 'david.brown@school.edu',
-        phone: '+1234567894',
-        avatar: '',
-        status: 'active',
-        class: 'JSS 1A',
-        enrollmentDate: '2024-01-17',
-        subjects: ['Science', 'Technology', 'Mathematics', 'Physical Education'],
-        attendance: 96,
-        averageScore: 89.1
-      }
-    ];
-
+    const students = await apiClient.get<CourseStudentsResponse>(`/teacher/teacher-courses-and-students-by-course-id?course_id=${teacherId}`);
     return {
       status: 200,
-      data: students,
+      data: students.data.students,
       message: 'Students fetched successfully'
     };
   },

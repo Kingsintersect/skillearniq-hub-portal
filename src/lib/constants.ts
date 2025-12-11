@@ -374,12 +374,12 @@ export const TeacherNavMain: SidebarNavConfig = {
     ],
     flat: [
 
-        {
-            title: "STUDENTS",
-            url: "/teacher/students",
-            icon: GraduationCap,
-            display: true,
-        },
+        // {
+        //     title: "STUDENTS",
+        //     url: "/teacher/students",
+        //     icon: GraduationCap,
+        //     display: true,
+        // },
         {
             title: "COURSES",
             url: "/teacher/classes",
