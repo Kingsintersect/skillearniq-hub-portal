@@ -288,12 +288,12 @@ export const StudentNavMain: SidebarNavConfig = {
             display: false,
         },
         {
-            title: "MY CLASSES",
+            title: "MY COURSES",
             url: "#",
             icon: School,
             items: [
                 {
-                    title: "My Classes",
+                    title: "My Courses",
                     url: "/student/classes",
                 },
 
@@ -374,20 +374,20 @@ export const TeacherNavMain: SidebarNavConfig = {
     ],
     flat: [
 
+        // {
+        //     title: "STUDENTS",
+        //     url: "/teacher/students",
+        //     icon: GraduationCap,
+        //     display: true,
+        // },
         {
-            title: "STUDENTS",
-            url: "/teacher/students",
-            icon: GraduationCap,
-            display: true,
-        },
-        {
-            title: "CLASSES",
+            title: "COURSES",
             url: "/teacher/classes",
             icon: School,
             display: true,
         },
         {
-            title: "ASSIGNMENTS",
+            title: "ASSESSMENTS",
             url: "/teacher/assessments",
             icon: BookOpenCheck,
             display: true,
@@ -444,7 +444,7 @@ export const ParentNavMain: SidebarNavConfig = {
             display: true,
         },
         {
-            title: "CLASSES",
+            title: "COURSES",
             url: "/parent/classes",
             icon: BookOpen,
             display: true,
