@@ -381,11 +381,7 @@ export const TeacherNavMain: SidebarNavConfig = {
         //     display: true,
         // },
         {
-<<<<<<< HEAD
-            title: "CLASSES",
-=======
             title: "COURSES",
->>>>>>> 4ed5a48b64c36dee535778b1995abace6464259f
             url: "/teacher/classes",
             icon: School,
             display: true,
@@ -447,16 +443,10 @@ export const ParentNavMain: SidebarNavConfig = {
         //     icon: SendHorizonal,
         //     display: true,
         // },
+        
+
         {
-<<<<<<< HEAD
-=======
-            title: "MESSAGES",
-            url: "/parent/messages",
-            icon: SendHorizonal,
-            display: true,
-        },
-        {
->>>>>>> 4ed5a48b64c36dee535778b1995abace6464259f
+
             title: "COURSES",
             url: "/parent/classes",
             icon: BookOpen,
