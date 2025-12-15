@@ -651,3 +651,12 @@
 .animate-float {
 	animation: float 20s infinite linear;
 }
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}

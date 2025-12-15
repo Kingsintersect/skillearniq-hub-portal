@@ -374,12 +374,12 @@ export const TeacherNavMain: SidebarNavConfig = {
     ],
     flat: [
 
-        {
-            title: "STUDENTS",
-            url: "/teacher/students",
-            icon: GraduationCap,
-            display: true,
-        },
+        // {
+        //     title: "STUDENTS",
+        //     url: "/teacher/students",
+        //     icon: GraduationCap,
+        //     display: true,
+        // },
         {
             title: "CLASSES",
             url: "/teacher/classes",
@@ -437,14 +437,14 @@ export const ParentNavMain: SidebarNavConfig = {
     ],
     flat: [
 
+        // {
+        //     title: "MESSAGES",
+        //     url: "/parent/messages",
+        //     icon: SendHorizonal,
+        //     display: true,
+        // },
         {
-            title: "MESSAGES",
-            url: "/parent/messages",
-            icon: SendHorizonal,
-            display: true,
-        },
-        {
-            title: "CLASSES",
+            title: "COURSES",
             url: "/parent/classes",
             icon: BookOpen,
             display: true,

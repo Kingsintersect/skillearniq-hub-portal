@@ -1,74 +1,64 @@
-import { ApiResponse, PaginationParams } from '@/types/auth';
 
-// Types for teacher data
+import { apiClient } from "@/core/client";
+import { ApiResponse } from '@/types/auth';
 
+export interface NotificationSettings {
+  emailNotifications: boolean;
+  pushNotifications: boolean;
+  assessmentReminders: boolean;
+  attendanceAlerts: boolean;
+  messageNotifications: boolean;
+}
 
-export interface TeacherClass {
+export interface Preferences {
+  language: string;
+  timezone: string;
+  dateFormat: string;
+  theme: 'light' | 'dark' | 'system';
+  notificationsEnabled: boolean;
+}
+
+export interface StudentGroup {
+  id: number;
+  name: string;
+  description: string;
+  studentCount: number;
+  classId: number;
+  createdBy: number;
+  createdAt: string;
+  updatedAt: string;
+  students?: any[];
+}
+
+export interface TeacherProfile {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  department: string;
+  title: string;
+  bio: string;
+  profileImage: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Course {
   id: number;
   name: string;
   shortName: string;
   code: string;
   subject: string;
-  level: string;
-  arm: string;
+  level: string | null;
+  arm: string | null;
+  room: string | null;
+  schedule: string | null;
+  academicYear: string;
   term: string;
   studentCount: number;
-  schedule: string;
-  room: string;
+  averageGrade: number | null;
   progress: number;
-  averageGrade: string;
-}
-
-export interface TeacherProfile {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  department: string;
-  teacherId: string;
-  bio: string;
-  avatar: string;
-  subjects: string[];
-  classes: number;
-  totalStudents: number;
-  joinDate: string;
-}
-
-export interface NotificationSettings {
-  emailNotifications: boolean;
-  pushNotifications: boolean;
-  smsNotifications: boolean;
-  assessmentReminders: boolean;
-  attendanceAlerts: boolean;
-  parentMessages: boolean;
-  systemUpdates: boolean;
-  deadlineReminders: boolean;
-}
-
-export interface SecuritySettings {
-  twoFactorEnabled: boolean;
-  loginAlerts: boolean;
-  passwordLastChanged: string;
-  activeSessions: ActiveSession[];
-}
-
-export interface ActiveSession {
-  id: string;
-  device: string;
-  browser: string;
-  location: string;
-  lastActive: string;
-  ipAddress: string;
-}
-
-export interface Preferences {
-  theme: 'light' | 'dark' | 'system';
-  language: string;
-  timezone: string;
-  dateFormat: string;
-  defaultView: 'dashboard' | 'classes' | 'assessments';
-  autoSave: boolean;
-  exportFormat: 'pdf' | 'excel' | 'csv';
 }
 
 export interface Assessment {
@@ -78,291 +68,50 @@ export interface Assessment {
   type: 'quiz' | 'assignment' | 'exam' | 'project';
   dueDate: string;
   maxScore: number;
-  status: 'scheduled' | 'in-progress' | 'completed' | 'graded' | 'draft';
   submissions: number;
   totalStudents: number;
   averageScore?: number;
-  createdAt: string;
+  status: 'scheduled' | 'in-progress' | 'completed' | 'graded';
+  results?: Array<{
+    studentId: number;
+    studentName: string;
+    score: number;
+    grade: string;
+  }>;
 }
 
-export interface AttendanceRecord {
-  date: string;
-  present: number;
-  absent: number;
-  late: number;
-  rate: number;
-  students?: any[];
+export interface AssessmentsData {
+  assessments: {
+    upcoming: Assessment[];
+    completed: Assessment[];
+    drafts: Assessment[];
+  };
 }
 
-export interface Student {
-  id: number;
-  name: string;
-  email: string;
-  phone: string;
-  avatar: string;
-  status: 'active' | 'inactive';
-  class: string;
-  enrollmentDate: string;
-  subjects: string[];
-  attendance: number;
-  averageScore: number;
-}
-
-export interface Message {
-  id: number;
-  title: string;
-  message: string;
-  type: string;
-  sender: string;
-  timestamp: string;
-  read: boolean;
-  archived: boolean;
-}
-
-export interface DashboardStats {
-  totalClasses: number;
-  totalStudents: number;
-  totalAssessments: number;
-  averageAttendance: number;
-  pendingGrading: number;
-  upcomingDeadlines: number;
-  recentActivities: RecentActivity[];
-  performanceTrend: PerformanceData[];
-  subjectPerformance: SubjectPerformance[];
-  attendanceTrend: AttendanceTrend[];
-}
-
-export interface RecentActivity {
-  id: number;
-  type: 'assessment' | 'attendance' | 'message' | 'grade';
-  title: string;
-  description: string;
-  timestamp: string;
-  class?: string;
-}
-
-export interface PerformanceData {
-  date: string;
-  averageScore: number;
-  totalAssessments: number;
-}
-
-export interface SubjectPerformance {
-  subject: string;
-  averageScore: number;
-  totalStudents: number;
-  improvement: number;
-}
-
-export interface AttendanceTrend {
-  month: string;
-  present: number;
-  absent: number;
-  rate: number;
-
-}
-
-
-export interface StudentGroup {
-  id: number;
-  name: string;
-  description: string;
-  studentIds: number[];
-  className: string;
-  classId: number;
-  createdBy: number;
-  createdAt: string;
-}
-
-export interface GroupStudentOperation {
-  groupId: number;
-  studentId: number;
-}
-
-// Service functions
 export const teacherService = {
   // Dashboard
-  getDashboardData: async (teacherId: number): Promise<ApiResponse<DashboardStats>> => {
-    await new Promise(resolve => setTimeout(resolve, 600));
-
-    return {
-      status: 200,
-      data: {
-        totalClasses: 6,
-        totalStudents: 180,
-        totalAssessments: 24,
-        averageAttendance: 94.2,
-        pendingGrading: 3,
-        upcomingDeadlines: 5,
-        recentActivities: [
-          {
-            id: 1,
-            type: 'assessment',
-            title: 'Mathematics Quiz Graded',
-            description: 'JSS 1A Algebra quiz completed grading',
-            timestamp: '2024-01-25T10:30:00Z',
-            class: 'JSS 1A'
-          },
-          {
-            id: 2,
-            type: 'attendance',
-            title: 'Attendance Submitted',
-            description: 'Daily attendance recorded for all classes',
-            timestamp: '2024-01-25T08:15:00Z'
-          },
-          {
-            id: 3,
-            type: 'message',
-            title: 'New Parent Message',
-            description: 'Message from John Doe\'s parent',
-            timestamp: '2024-01-24T16:45:00Z'
-          },
-          {
-            id: 4,
-            type: 'grade',
-            title: 'Science Project Scores Updated',
-            description: 'Final scores submitted for JSS 2B',
-            timestamp: '2024-01-24T14:20:00Z',
-            class: 'JSS 2B'
-          }
-        ],
-        performanceTrend: [
-          { date: '2024-01-15', averageScore: 82.5, totalAssessments: 3 },
-          { date: '2024-01-16', averageScore: 85.2, totalAssessments: 2 },
-          { date: '2024-01-17', averageScore: 78.9, totalAssessments: 4 },
-          { date: '2024-01-18', averageScore: 87.1, totalAssessments: 3 },
-          { date: '2024-01-19', averageScore: 90.3, totalAssessments: 2 },
-          { date: '2024-01-20', averageScore: 88.7, totalAssessments: 5 },
-          { date: '2024-01-21', averageScore: 91.2, totalAssessments: 3 }
-        ],
-        subjectPerformance: [
-          { subject: 'Mathematics', averageScore: 88.5, totalStudents: 90, improvement: 2.3 },
-          { subject: 'Science', averageScore: 85.2, totalStudents: 85, improvement: 1.8 },
-          { subject: 'English', averageScore: 82.7, totalStudents: 95, improvement: 3.1 },
-          { subject: 'Social Studies', averageScore: 79.8, totalStudents: 80, improvement: 0.9 }
-        ],
-        attendanceTrend: [
-          { month: 'Jan 2024', present: 580, absent: 20, rate: 96.7 },
-          { month: 'Feb 2024', present: 560, absent: 40, rate: 93.3 },
-          { month: 'Mar 2024', present: 590, absent: 10, rate: 98.3 },
-          { month: 'Apr 2024', present: 575, absent: 25, rate: 95.8 },
-          { month: 'May 2024', present: 585, absent: 15, rate: 97.5 }
-        ]
-      },
-      message: 'Dashboard data fetched successfully'
-    };
+  getDashboardData: async (teacherId: number): Promise<any> => {
+    try {
+      const response = await apiClient.get<any>(`/teacher/dashboard/overview?teacherId=${teacherId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+      throw error;
+    }
   },
 
   // Classes
-  getClasses: async (teacherId: number, filters?: {
-    term?: string;
-  }): Promise<ApiResponse<TeacherClass[]>> => {
-    await new Promise(resolve => setTimeout(resolve, 500));
-
-    const classes: TeacherClass[] = [
-      {
-        id: 1,
-        name: 'Mathematics - JSS 1A',
-        shortName: 'JSS 1A',
-        code: 'MATH101',
-        subject: 'Mathematics',
-        level: 'JSS 1',
-        arm: 'A',
-        term: '1st',
-        studentCount: 30,
-        schedule: 'Mon, Wed, Fri - 9:00 AM',
-        room: 'Room 201',
-        progress: 75,
-        averageGrade: 'A-'
-      },
-      {
-        id: 2,
-        name: 'Science - JSS 1A',
-        shortName: 'JSS 1A',
-        code: 'SCI101',
-        subject: 'Science',
-        level: 'JSS 1',
-        arm: 'A',
-        term: '1st',
-        studentCount: 30,
-        schedule: 'Tue, Thu - 10:30 AM',
-        room: 'Lab 301',
-        progress: 60,
-        averageGrade: 'B+'
-      },
-      {
-        id: 3,
-        name: 'Mathematics - JSS 2B',
-        shortName: 'JSS 2B',
-        code: 'MATH202',
-        subject: 'Mathematics',
-        level: 'JSS 2',
-        arm: 'B',
-        term: '1st',
-        studentCount: 28,
-        schedule: 'Mon, Wed, Fri - 11:00 AM',
-        room: 'Room 205',
-        progress: 80,
-        averageGrade: 'A'
-      },
-      {
-        id: 4,
-        name: 'Science - JSS 2B',
-        shortName: 'JSS 2B',
-        code: 'SCI202',
-        subject: 'Science',
-        level: 'JSS 2',
-        arm: 'B',
-        term: '1st',
-        studentCount: 28,
-        schedule: 'Tue, Thu - 1:00 PM',
-        room: 'Lab 302',
-        progress: 70,
-        averageGrade: 'B+'
-      },
-      {
-        id: 5,
-        name: 'Mathematics - JSS 3A',
-        shortName: 'JSS 3A',
-        code: 'MATH303',
-        subject: 'Mathematics',
-        level: 'JSS 3',
-        arm: 'A',
-        term: '1st',
-        studentCount: 32,
-        schedule: 'Mon, Wed, Fri - 2:00 PM',
-        room: 'Room 210',
-        progress: 85,
-        averageGrade: 'A'
-      },
-      {
-        id: 6,
-        name: 'Science - JSS 3A',
-        shortName: 'JSS 3A',
-        code: 'SCI303',
-        subject: 'Science',
-        level: 'JSS 3',
-        arm: 'A',
-        term: '1st',
-        studentCount: 32,
-        schedule: 'Tue, Thu - 3:30 PM',
-        room: 'Lab 305',
-        progress: 65,
-        averageGrade: 'B'
-      }
-    ];
-
-    let filteredClasses = classes;
-
-    if (filters?.term) {
-      filteredClasses = filteredClasses.filter(cls => cls.term === filters.term);
+  getClasses: async (teacherId: number, filters?: { term?: string }): Promise<Course[]> => {
+    try {
+      const params = new URLSearchParams();
+      if (filters?.term) params.append('term', filters.term);
+      
+      const response = await apiClient.get<Course[]>(`/teacher/dashboard/classes?${params.toString()}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching classes:', error);
+      throw error;
     }
-
-    return {
-      status: 200,
-      data: filteredClasses,
-      message: 'Classes fetched successfully'
-    };
   },
 
   // Assessments
@@ -370,715 +119,345 @@ export const teacherService = {
     term?: string;
     classId?: number;
     type?: string;
-  }): Promise<ApiResponse<{
-    upcoming: Assessment[];
-    completed: Assessment[];
-    drafts: Assessment[];
-  }>> => {
-    await new Promise(resolve => setTimeout(resolve, 500));
-
-    const assessments = {
-      upcoming: [
-        {
-          id: 1,
-          title: 'Mathematics Quiz - Algebra',
-          class: 'JSS 1A',
-          type: 'quiz' as 'quiz',
-          dueDate: '2024-02-01',
-          maxScore: 20,
-          status: 'scheduled' as 'scheduled',
-          submissions: 0,
-          totalStudents: 30,
-          createdAt: '2024-01-25'
-        },
-        {
-          id: 2,
-          title: 'Science Project - Solar System',
-          class: 'JSS 2B',
-          type: 'project' as 'project',
-          dueDate: '2024-02-05',
-          maxScore: 50,
-          status: 'scheduled' as 'scheduled',
-          submissions: 0,
-          totalStudents: 28,
-          createdAt: '2024-01-24'
-        }
-      ],
-      completed: [
-        {
-          id: 3,
-          title: 'English Literature Assignment',
-          class: 'JSS 1A',
-          type: 'assignment' as 'assignment',
-          dueDate: '2024-01-20',
-          maxScore: 100,
-          status: 'graded' as 'graded',
-          submissions: 28,
-          totalStudents: 30,
-          averageScore: 85.5,
-          createdAt: '2024-01-15'
-        },
-        {
-          id: 4,
-          title: 'Mathematics Mid-Term Exam',
-          class: 'JSS 3A',
-          type: 'exam' as 'exam',
-          dueDate: '2024-01-18',
-          maxScore: 60,
-          status: 'graded' as 'graded',
-          submissions: 32,
-          totalStudents: 32,
-          averageScore: 78.2,
-          createdAt: '2024-01-10'
-        }
-      ],
-      drafts: [
-        {
-          id: 5,
-          title: 'Science Project',
-          class: 'JSS 1A',
-          type: 'project' as 'project',
-          dueDate: '2024-02-15',
-          maxScore: 50,
-          status: 'draft' as 'draft',
-          submissions: 0,
-          totalStudents: 30,
-          createdAt: '2024-01-26'
-        }
-      ]
-    };
-
-    return {
-      status: 200,
-      data: assessments,
-      message: 'Assessments fetched successfully'
-    };
+  }): Promise<AssessmentsData> => {
+    try {
+      const params = new URLSearchParams();
+      if (filters?.term) params.append('term', filters.term);
+      if (filters?.classId) params.append('classId', filters.classId?.toString() || '');
+      if (filters?.type) params.append('type', filters.type || '');
+      
+      const response = await apiClient.get<AssessmentsData>(`/teacher/dashboard/assessments?${params.toString()}`);
+      return response.data;
+    } catch (error: any) {
+      // Handle "PRO FEATURE ONLY" response
+      if (error.message?.includes('PRO FEATURE ONLY') || error.response?.data?.message?.includes('PRO FEATURE')) {
+        console.log('Assessments feature not available in current plan');
+        // Return empty assessments structure
+        return {
+          assessments: {
+            upcoming: [],
+            completed: [],
+            drafts: []
+          }
+        };
+      }
+      console.error('Error fetching assessments:', error);
+      throw error;
+    }
   },
 
   // Attendance
   getAttendance: async (teacherId: number, filters?: {
     term?: string;
     classId?: number;
-  }): Promise<ApiResponse<{
-    daily: AttendanceRecord[];
-    monthly: AttendanceRecord[];
-  }>> => {
-    await new Promise(resolve => setTimeout(resolve, 500));
-
-    const attendance = {
-      daily: [
-        {
-          date: '2024-01-15',
-          present: 28,
-          absent: 2,
-          late: 1,
-          rate: 93.3,
-          students: [
-            { id: 1, name: 'John Doe', status: 'present', time: '08:00 AM' },
-            { id: 2, name: 'Jane Smith', status: 'absent', time: '-' },
-            { id: 3, name: 'Mike Johnson', status: 'late', time: '08:15 AM' },
-          ]
-        },
-        {
-          date: '2024-01-16',
-          present: 29,
-          absent: 1,
-          late: 1,
-          rate: 96.7,
-          students: [
-            { id: 1, name: 'John Doe', status: 'present', time: '07:55 AM' },
-            { id: 2, name: 'Jane Smith', status: 'present', time: '08:00 AM' },
-            { id: 3, name: 'Mike Johnson', status: 'late', time: '08:20 AM' },
-          ]
-        },
-        {
-          date: '2024-01-17',
-          present: 27,
-          absent: 3,
-          late: 1,
-          rate: 90.0,
-          students: [
-            { id: 1, name: 'John Doe', status: 'present', time: '08:00 AM' },
-            { id: 2, name: 'Jane Smith', status: 'absent', time: '-' },
-            { id: 3, name: 'Mike Johnson', status: 'present', time: '08:00 AM' },
-          ]
-        }
-      ],
-      monthly: [
-        { date: '2024-01-31', present: 580, absent: 20, late: 0, rate: 96.7, students: [], month: 'January 2024' },
-        { date: '2024-02-29', present: 560, absent: 40, late: 0, rate: 93.3, students: [], month: 'February 2024' },
-        { date: '2024-03-31', present: 590, absent: 10, late: 0, rate: 98.3, students: [], month: 'March 2024' },
-        { date: '2024-04-30', present: 575, absent: 25, late: 0, rate: 95.8, students: [], month: 'April 2024' },
-        { date: '2024-05-31', present: 585, absent: 15, late: 0, rate: 97.5, students: [], month: 'May 2024' }
-      ]
-    };
-
-    return {
-      status: 200,
-      data: attendance,
-      message: 'Attendance data fetched successfully'
-    };
+  }): Promise<any> => {
+    try {
+      const params = new URLSearchParams();
+      if (filters?.term) params.append('term', filters.term);
+      if (filters?.classId) params.append('classId', filters.classId?.toString() || '');
+      
+      const response = await apiClient.get<any>(`/teacher/dashboard/attendance?${params.toString()}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching attendance:', error);
+      throw error;
+    }
   },
 
   // Students
   getStudents: async (teacherId: number, filters?: {
     term?: string;
     classId?: number;
-  }): Promise<ApiResponse<Student[]>> => {
-    await new Promise(resolve => setTimeout(resolve, 600));
-
-    const students: Student[] = [
-      {
-        id: 1,
-        name: 'John Doe',
-        email: 'john.doe@school.edu',
-        phone: '+1234567890',
-        avatar: '',
-        status: 'active',
-        class: 'JSS 1A',
-        enrollmentDate: '2024-01-15',
-        subjects: ['Mathematics', 'English', 'Science', 'Social Studies'],
-        attendance: 95,
-        averageScore: 88.5
-      },
-      {
-        id: 2,
-        name: 'Jane Smith',
-        email: 'jane.smith@school.edu',
-        phone: '+1234567891',
-        avatar: '',
-        status: 'active',
-        class: 'JSS 1A',
-        enrollmentDate: '2024-01-15',
-        subjects: ['Mathematics', 'English', 'Arts', 'Physical Education'],
-        attendance: 92,
-        averageScore: 85.2
-      },
-      {
-        id: 3,
-        name: 'Mike Johnson',
-        email: 'mike.johnson@school.edu',
-        phone: '+1234567892',
-        avatar: '',
-        status: 'active',
-        class: 'JSS 1A',
-        enrollmentDate: '2024-01-16',
-        subjects: ['Science', 'Mathematics', 'Technology', 'English'],
-        attendance: 98,
-        averageScore: 91.3
-      },
-      {
-        id: 4,
-        name: 'Sarah Wilson',
-        email: 'sarah.wilson@school.edu',
-        phone: '+1234567893',
-        avatar: '',
-        status: 'active',
-        class: 'JSS 1A',
-        enrollmentDate: '2024-01-14',
-        subjects: ['English', 'Arts', 'Social Studies', 'Mathematics'],
-        attendance: 90,
-        averageScore: 82.7
-      },
-      {
-        id: 5,
-        name: 'David Brown',
-        email: 'david.brown@school.edu',
-        phone: '+1234567894',
-        avatar: '',
-        status: 'active',
-        class: 'JSS 1A',
-        enrollmentDate: '2024-01-17',
-        subjects: ['Science', 'Technology', 'Mathematics', 'Physical Education'],
-        attendance: 96,
-        averageScore: 89.1
-      }
-    ];
-
-    return {
-      status: 200,
-      data: students,
-      message: 'Students fetched successfully'
-    };
+  }): Promise<any> => {
+    try {
+      const params = new URLSearchParams();
+      if (filters?.term) params.append('term', filters.term);
+      if (filters?.classId) params.append('classId', filters.classId?.toString() || '');
+      
+      const response = await apiClient.get<any>(`/teacher/dashboard/students?${params.toString()}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching students:', error);
+      throw error;
+    }
   },
 
   // Messages
-  getMessages: async (teacherId: number): Promise<ApiResponse<{
-    notifications: Message[];
-    sentMessages: any[];
-  }>> => {
-    await new Promise(resolve => setTimeout(resolve, 400));
-
-    const data = {
-      notifications: [
-        {
-          id: 1,
-          title: 'New Assignment Posted',
-          message: 'Mathematics assignment for JSS 1A has been posted. Due date: 2024-02-01',
-          type: 'assignment',
-          sender: 'system',
-          timestamp: '2024-01-25T10:30:00Z',
-          read: false,
-          archived: false
-        },
-        {
-          id: 2,
-          title: 'Parent Message - John Doe',
-          message: 'Hello, I would like to discuss my son\'s progress in mathematics',
-          type: 'parent-message',
-          sender: 'parent',
-          timestamp: '2024-01-24T14:20:00Z',
-          read: true,
-          archived: false
-        },
-        {
-          id: 3,
-          title: 'Attendance Alert',
-          message: 'Low attendance detected for student Jane Smith in JSS 1A',
-          type: 'attendance',
-          sender: 'system',
-          timestamp: '2024-01-23T09:15:00Z',
-          read: true,
-          archived: false
-        }
-      ],
-      sentMessages: [
-        {
-          id: 101,
-          title: 'To Parents - JSS 1A',
-          message: 'Reminder: Parent-teacher meeting scheduled for next week',
-          recipients: 'All JSS 1A Parents',
-          method: 'in-app',
-          timestamp: '2024-01-25T09:00:00Z',
-          status: 'delivered'
-        }
-      ]
-    };
-
-    return {
-      status: 200,
-      data: data,
-      message: 'Messages fetched successfully'
-    };
+  getMessages: async (teacherId: number): Promise<any> => {
+    try {
+      const response = await apiClient.get<any>(`/teacher/dashboard/messages?teacherId=${teacherId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching messages:', error);
+      throw error;
+    }
   },
 
   // Create Assessment
-  createAssessment: async (assessmentData: Partial<Assessment>): Promise<ApiResponse<Assessment>> => {
-    await new Promise(resolve => setTimeout(resolve, 800));
-
-    const newAssessment: Assessment = {
-      id: Date.now(),
-      title: assessmentData.title || 'New Assessment',
-      class: assessmentData.class || 'JSS 1A',
-      type: assessmentData.type || 'assignment',
-      dueDate: assessmentData.dueDate || new Date().toISOString(),
-      maxScore: assessmentData.maxScore || 100,
-      status: 'draft',
-      submissions: 0,
-      totalStudents: 30,
-      createdAt: new Date().toISOString()
-    };
-
-    return {
-      status: 200,
-      data: newAssessment,
-      message: 'Assessment created successfully'
-    };
+  createAssessment: async (data: any): Promise<any> => {
+    try {
+      const response = await apiClient.post<any>('/teacher/dashboard/assessments/create', data);
+      return response.data;
+    } catch (error) {
+      console.error('Error creating assessment:', error);
+      throw error;
+    }
   },
 
   // Update Assessment
-  updateAssessment: async (assessmentId: number, assessmentData: Partial<Assessment>): Promise<ApiResponse<Assessment>> => {
-    await new Promise(resolve => setTimeout(resolve, 600));
-
-    const updatedAssessment: Assessment = {
-      id: assessmentId,
-      title: assessmentData.title || 'Updated Assessment',
-      class: assessmentData.class || 'JSS 1A',
-      type: assessmentData.type || 'assignment',
-      dueDate: assessmentData.dueDate || new Date().toISOString(),
-      maxScore: assessmentData.maxScore || 100,
-      status: assessmentData.status || 'draft',
-      submissions: 0,
-      totalStudents: 30,
-      createdAt: new Date().toISOString()
-    };
-
-    return {
-      status: 200,
-      data: updatedAssessment,
-      message: 'Assessment updated successfully'
-    };
+  updateAssessment: async (id: number, data: any): Promise<any> => {
+    try {
+      const response = await apiClient.put<any>(`/teacher/dashboard/assessments/${id}`, data);
+      return response.data;
+    } catch (error) {
+      console.error('Error updating assessment:', error);
+      throw error;
+    }
   },
 
   // Delete Assessment
-  deleteAssessment: async (assessmentId: number): Promise<ApiResponse<void>> => {
-    await new Promise(resolve => setTimeout(resolve, 500));
-
-    return {
-      status: 200,
-      data: undefined,
-      message: 'Assessment deleted successfully'
-    };
-  },
-
-
-  getGroups: async (teacherId: number, classId?: number): Promise<ApiResponse<StudentGroup[]>> => {
-    await new Promise(resolve => setTimeout(resolve, 400));
-
-    const groups: StudentGroup[] = [
-      {
-        id: 1,
-        name: 'Science Club',
-        description: 'Students interested in science projects',
-        studentIds: [1, 3, 5],
-        className: 'JSS 1A',
-        classId: 1,
-        createdBy: teacherId,
-        createdAt: '2024-01-20'
-      },
-      {
-        id: 2,
-        name: 'Math Olympiad',
-        description: 'Advanced mathematics competition team',
-        studentIds: [1, 2],
-        className: 'JSS 1A',
-        classId: 1,
-        createdBy: teacherId,
-        createdAt: '2024-01-22'
-      }
-    ];
-
-    let filteredGroups = groups;
-
-    if (classId) {
-      filteredGroups = filteredGroups.filter(group => group.classId === classId);
+  deleteAssessment: async (id: number): Promise<any> => {
+    try {
+      const response = await apiClient.delete<any>(`/teacher/dashboard/assessments/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error deleting assessment:', error);
+      throw error;
     }
-
-    return {
-      status: 200,
-      data: filteredGroups,
-      message: 'Groups fetched successfully'
-    };
   },
 
-  createGroup: async (groupData: Partial<StudentGroup>): Promise<ApiResponse<StudentGroup>> => {
-    await new Promise(resolve => setTimeout(resolve, 600));
-
-    const newGroup: StudentGroup = {
-      id: Date.now(),
-      name: groupData.name || 'New Group',
-      description: groupData.description || '',
-      studentIds: groupData.studentIds || [],
-      className: groupData.className || '',
-      classId: groupData.classId || 0,
-      createdBy: groupData.createdBy || 0,
-      createdAt: new Date().toISOString()
-    };
-
-    return {
-      status: 200,
-      data: newGroup,
-      message: 'Group created successfully'
-    };
+  // Groups
+  getGroups: async (teacherId: number, classId?: number): Promise<any> => {
+    try {
+      const params = new URLSearchParams();
+      params.append('teacherId', teacherId.toString());
+      if (classId) params.append('classId', classId.toString());
+      
+      const response = await apiClient.get<any>(`/teacher/dashboard/groups?${params.toString()}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching groups:', error);
+      throw error;
+    }
   },
 
-  updateGroup: async (groupId: number, groupData: Partial<StudentGroup>): Promise<ApiResponse<StudentGroup>> => {
-    await new Promise(resolve => setTimeout(resolve, 500));
-
-    const updatedGroup: StudentGroup = {
-      id: groupId,
-      name: groupData.name || 'Updated Group',
-      description: groupData.description || '',
-      studentIds: groupData.studentIds || [],
-      className: groupData.className || '',
-      classId: groupData.classId || 0,
-      createdBy: groupData.createdBy || 0,
-      createdAt: groupData.createdAt || new Date().toISOString()
-    };
-
-    return {
-      status: 200,
-      data: updatedGroup,
-      message: 'Group updated successfully'
-    };
+  // Create Group
+  createGroup: async (data: any): Promise<any> => {
+    try {
+      const response = await apiClient.post<any>('/teacher/dashboard/groups', data);
+      return response.data;
+    } catch (error) {
+      console.error('Error creating group:', error);
+      throw error;
+    }
   },
 
-  deleteGroup: async (groupId: number): Promise<ApiResponse<void>> => {
-    await new Promise(resolve => setTimeout(resolve, 400));
-
-    return {
-      status: 200,
-      data: undefined,
-      message: 'Group deleted successfully'
-    };
+  // Update Group
+  updateGroup: async (id: number, data: Partial<StudentGroup>): Promise<any> => {
+    try {
+      const response = await apiClient.put<any>(`/teacher/dashboard/groups/${id}`, data);
+      return response.data;
+    } catch (error) {
+      console.error('Error updating group:', error);
+      throw error;
+    }
   },
 
-  addStudentToGroup: async (operation: GroupStudentOperation): Promise<ApiResponse<StudentGroup>> => {
-    await new Promise(resolve => setTimeout(resolve, 300));
-
-    // In a real implementation, this would update the group
-    const mockGroup: StudentGroup = {
-      id: operation.groupId,
-      name: 'Updated Group',
-      description: 'Group with added student',
-      studentIds: [1, 2, 3, operation.studentId],
-      className: 'JSS 1A',
-      classId: 1,
-      createdBy: 1,
-      createdAt: new Date().toISOString()
-    };
-
-    return {
-      status: 200,
-      data: mockGroup,
-      message: 'Student added to group successfully'
-    };
+  // Delete Group
+  deleteGroup: async (id: number): Promise<any> => {
+    try {
+      const response = await apiClient.delete<any>(`/teacher/dashboard/groups/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error deleting group:', error);
+      throw error;
+    }
   },
 
-  removeStudentFromGroup: async (operation: GroupStudentOperation): Promise<ApiResponse<StudentGroup>> => {
-    await new Promise(resolve => setTimeout(resolve, 300));
-
-    // In a real implementation, this would update the group
-    const mockGroup: StudentGroup = {
-      id: operation.groupId,
-      name: 'Updated Group',
-      description: 'Group with removed student',
-      studentIds: [1, 2, 3].filter(id => id !== operation.studentId),
-      className: 'JSS 1A',
-      classId: 1,
-      createdBy: 1,
-      createdAt: new Date().toISOString()
-    };
-
-    return {
-      status: 200,
-      data: mockGroup,
-      message: 'Student removed from group successfully'
-    };
+  // Add Student to Group
+  addStudentToGroup: async (groupId: number, studentId: number): Promise<any> => {
+    try {
+      const response = await apiClient.post<any>(`/teacher/dashboard/groups/${groupId}/students`, { studentId });
+      return response.data;
+    } catch (error) {
+      console.error('Error adding student to group:', error);
+      throw error;
+    }
   },
 
+  // Remove Student from Group
+  removeStudentFromGroup: async (groupId: number, studentId: number): Promise<any> => {
+    try {
+      const response = await apiClient.delete<any>(`/teacher/dashboard/groups/${groupId}/students/${studentId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error removing student from group:', error);
+      throw error;
+    }
+  },
 
   // Profile
-  getProfile: async (teacherId: number): Promise<ApiResponse<TeacherProfile>> => {
-    await new Promise(resolve => setTimeout(resolve, 500));
-
-    const profile: TeacherProfile = {
-      id: teacherId.toString(),
-      name: 'Dr. Sarah Johnson',
-      email: 'sarah.johnson@school.edu',
-      phone: '+1234567890',
-      department: 'Science & Mathematics',
-      teacherId: 'TCH-2024-001',
-      bio: 'Passionate educator with 8 years of experience in teaching Science and Mathematics. Committed to student success and innovative teaching methods.',
-      avatar: '',
-      subjects: ['Mathematics', 'Science', 'Physics'],
-      classes: 6,
-      totalStudents: 180,
-      joinDate: '2020-08-15'
-    };
-
-    return {
-      status: 200,
-      data: profile,
-      message: 'Profile fetched successfully'
-    };
+  getProfile: async (teacherId: number): Promise<TeacherProfile> => {
+    try {
+      const response = await apiClient.get<TeacherProfile>(`/teacher/dashboard/profile?teacherId=${teacherId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+      throw error;
+    }
   },
 
-  updateProfile: async (teacherId: number, profileData: Partial<TeacherProfile>): Promise<ApiResponse<TeacherProfile>> => {
-    await new Promise(resolve => setTimeout(resolve, 600));
-
-    const updatedProfile: TeacherProfile = {
-      id: teacherId.toString(),
-      name: profileData.name || 'Dr. Sarah Johnson',
-      email: profileData.email || 'sarah.johnson@school.edu',
-      phone: profileData.phone || '+1234567890',
-      department: profileData.department || 'Science & Mathematics',
-      teacherId: 'TCH-2024-001',
-      bio: profileData.bio || 'Passionate educator with 8 years of experience...',
-      avatar: profileData.avatar || '',
-      subjects: profileData.subjects || ['Mathematics', 'Science', 'Physics'],
-      classes: 6,
-      totalStudents: 180,
-      joinDate: '2020-08-15'
-    };
-
-    return {
-      status: 200,
-      data: updatedProfile,
-      message: 'Profile updated successfully'
-    };
+  // Update Profile
+  updateProfile: async (teacherId: number, data: Partial<TeacherProfile>): Promise<TeacherProfile> => {
+    try {
+      const response = await apiClient.put<TeacherProfile>(`/teacher/dashboard/profile/${teacherId}`, data);
+      return response.data;
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      throw error;
+    }
   },
 
   // Notification Settings
-  getNotificationSettings: async (teacherId: number): Promise<ApiResponse<NotificationSettings>> => {
-    await new Promise(resolve => setTimeout(resolve, 400));
-
-    const settings: NotificationSettings = {
-      emailNotifications: true,
-      pushNotifications: true,
-      smsNotifications: false,
-      assessmentReminders: true,
-      attendanceAlerts: true,
-      parentMessages: true,
-      systemUpdates: false,
-      deadlineReminders: true
-    };
-
-    return {
-      status: 200,
-      data: settings,
-      message: 'Notification settings fetched successfully'
-    };
+  getNotificationSettings: async (teacherId: number): Promise<NotificationSettings> => {
+    try {
+      const response = await apiClient.get<NotificationSettings>(`/teacher/dashboard/settings/notifications?teacherId=${teacherId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching notification settings:', error);
+      throw error;
+    }
   },
 
-  updateNotificationSettings: async (teacherId: number, settings: NotificationSettings): Promise<ApiResponse<NotificationSettings>> => {
-    await new Promise(resolve => setTimeout(resolve, 500));
-
-    return {
-      status: 200,
-      data: settings,
-      message: 'Notification settings updated successfully'
-    };
+  // Update Notification Settings
+  updateNotificationSettings: async (teacherId: number, data: NotificationSettings): Promise<NotificationSettings> => {
+    try {
+      const response = await apiClient.put<NotificationSettings>(`/teacher/dashboard/settings/notifications/${teacherId}`, data);
+      return response.data;
+    } catch (error) {
+      console.error('Error updating notification settings:', error);
+      throw error;
+    }
   },
 
   // Security Settings
-  getSecuritySettings: async (teacherId: number): Promise<ApiResponse<SecuritySettings>> => {
-    await new Promise(resolve => setTimeout(resolve, 400));
-
-    const security: SecuritySettings = {
-      twoFactorEnabled: true,
-      loginAlerts: true,
-      passwordLastChanged: '2024-01-15',
-      activeSessions: [
-        {
-          id: '1',
-          device: 'Windows PC',
-          browser: 'Chrome 120.0',
-          location: 'Lagos, Nigeria',
-          lastActive: '2024-01-25T10:30:00Z',
-          ipAddress: '192.168.1.100'
-        },
-        {
-          id: '2',
-          device: 'iPhone 14',
-          browser: 'Safari 17.0',
-          location: 'Lagos, Nigeria',
-          lastActive: '2024-01-25T09:15:00Z',
-          ipAddress: '192.168.1.101'
-        }
-      ]
-    };
-
-    return {
-      status: 200,
-      data: security,
-      message: 'Security settings fetched successfully'
-    };
+  getSecuritySettings: async (teacherId: number): Promise<any> => {
+    try {
+      const response = await apiClient.get<any>(`/teacher/dashboard/settings/security?teacherId=${teacherId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching security settings:', error);
+      throw error;
+    }
   },
 
   // Preferences
-  getPreferences: async (teacherId: number): Promise<ApiResponse<Preferences>> => {
-    await new Promise(resolve => setTimeout(resolve, 400));
-
-    const preferences: Preferences = {
-      theme: 'system',
-      language: 'en',
-      timezone: 'Africa/Lagos',
-      dateFormat: 'DD/MM/YYYY',
-      defaultView: 'dashboard',
-      autoSave: true,
-      exportFormat: 'pdf'
-    };
-
-    return {
-      status: 200,
-      data: preferences,
-      message: 'Preferences fetched successfully'
-    };
+  getPreferences: async (teacherId: number): Promise<Preferences> => {
+    try {
+      const response = await apiClient.get<Preferences>(`/teacher/dashboard/settings/preferences?teacherId=${teacherId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching preferences:', error);
+      throw error;
+    }
   },
 
-  updatePreferences: async (teacherId: number, preferences: Preferences): Promise<ApiResponse<Preferences>> => {
-    await new Promise(resolve => setTimeout(resolve, 500));
-
-    return {
-      status: 200,
-      data: preferences,
-      message: 'Preferences updated successfully'
-    };
+  // Update Preferences
+  updatePreferences: async (teacherId: number, data: Preferences): Promise<Preferences> => {
+    try {
+      const response = await apiClient.put<Preferences>(`/teacher/dashboard/settings/preferences/${teacherId}`, data);
+      return response.data;
+    } catch (error) {
+      console.error('Error updating preferences:', error);
+      throw error;
+    }
   },
 
   // Change Password
-  changePassword: async (teacherId: number, passwordData: {
+  changePassword: async (teacherId: number, data: {
     currentPassword: string;
     newPassword: string;
     confirmPassword: string;
-  }): Promise<ApiResponse<void>> => {
-    await new Promise(resolve => setTimeout(resolve, 800));
-
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
-      throw new Error('New passwords do not match');
+  }): Promise<any> => {
+    try {
+      const response = await apiClient.post<any>(`/teacher/dashboard/settings/change-password/${teacherId}`, data);
+      return response.data;
+    } catch (error) {
+      console.error('Error changing password:', error);
+      throw error;
     }
+  },
 
-    if (passwordData.newPassword.length < 8) {
-      throw new Error('Password must be at least 8 characters long');
+  // Export Assessments
+  exportAssessments: async (teacherId: number, filters?: {
+    classId?: number;
+    format: 'csv' | 'excel' | 'pdf';
+  }): Promise<any> => {
+    try {
+      const params = new URLSearchParams();
+      if (filters?.classId) params.append('classId', filters.classId.toString());
+      if (filters?.format) params.append('format', filters.format);
+      
+      const response = await apiClient.get<any>(`/teacher/dashboard/assessments/export?${params.toString()}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error exporting assessments:', error);
+      throw error;
     }
-
-    return {
-      status: 200,
-      data: undefined,
-      message: 'Password changed successfully'
-    };
-  },
-};
-
-// API READY VERSION - COMMENTED OUT FOR NOW
-/*
-import { apiClient } from './client';
-
-export const teacherService = {
-  getDashboardData: async (teacherId: number): Promise<ApiResponse<DashboardStats>> => {
-    const response = await apiClient.get(`/teacher/${teacherId}/dashboard`);
-    return response.data;
   },
 
-  getClasses: async (teacherId: number, filters?: any): Promise<ApiResponse<TeacherClass[]>> => {
-    const response = await apiClient.get(`/teacher/${teacherId}/classes`, { params: filters });
-    return response.data;
+  // Export Results
+  exportResults: async (assessmentId: number, format: 'csv' | 'excel' | 'pdf' = 'csv'): Promise<any> => {
+    try {
+      const response = await apiClient.get<any>(`/teacher/dashboard/assessments/${assessmentId}/results/export?format=${format}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error exporting results:', error);
+      throw error;
+    }
   },
 
-  getAssessments: async (teacherId: number, filters?: any): Promise<ApiResponse<any>> => {
-    const response = await apiClient.get(`/teacher/${teacherId}/assessments`, { params: filters });
-    return response.data;
+  // Get Assessment Details
+  getAssessmentDetails: async (assessmentId: number): Promise<any> => {
+    try {
+      const response = await apiClient.get<any>(`/teacher/dashboard/assessments/${assessmentId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching assessment details:', error);
+      throw error;
+    }
   },
 
-  getAttendance: async (teacherId: number, filters?: any): Promise<ApiResponse<any>> => {
-    const response = await apiClient.get(`/teacher/${teacherId}/attendance`, { params: filters });
-    return response.data;
+  // Grade Assessment
+  gradeAssessment: async (assessmentId: number, data: any): Promise<any> => {
+    try {
+      const response = await apiClient.post<any>(`/teacher/dashboard/assessments/${assessmentId}/grade`, data);
+      return response.data;
+    } catch (error) {
+      console.error('Error grading assessment:', error);
+      throw error;
+    }
   },
 
-  getStudents: async (teacherId: number, filters?: any): Promise<ApiResponse<Student[]>> => {
-    const response = await apiClient.get(`/teacher/${teacherId}/students`, { params: filters });
-    return response.data;
+  // Get Assessment Submissions
+  getAssessmentSubmissions: async (assessmentId: number): Promise<any> => {
+    try {
+      const response = await apiClient.get<any>(`/teacher/dashboard/assessments/${assessmentId}/submissions`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching assessment submissions:', error);
+      throw error;
+    }
   },
 
-  getMessages: async (teacherId: number): Promise<ApiResponse<any>> => {
-    const response = await apiClient.get(`/teacher/${teacherId}/messages`);
-    return response.data;
-  },
-
-  createAssessment: async (assessmentData: any): Promise<ApiResponse<Assessment>> => {
-    const response = await apiClient.post('/teacher/assessments', assessmentData);
-    return response.data;
-  },
-
-  updateAssessment: async (assessmentId: number, assessmentData: any): Promise<ApiResponse<Assessment>> => {
-    const response = await apiClient.put(`/teacher/assessments/${assessmentId}`, assessmentData);
-    return response.data;
-  },
-
-  deleteAssessment: async (assessmentId: number): Promise<ApiResponse<void>> => {
-    const response = await apiClient.delete(`/teacher/assessments/${assessmentId}`);
-    return response.data;
+  // Publish Assessment Results
+  publishAssessmentResults: async (assessmentId: number): Promise<any> => {
+    try {
+      const response = await apiClient.post<any>(`/teacher/dashboard/assessments/${assessmentId}/publish-results`);
+      return response.data;
+    } catch (error) {
+      console.error('Error publishing assessment results:', error);
+      throw error;
+    }
   }
 };
-*/
