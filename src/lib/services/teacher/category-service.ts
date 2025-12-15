@@ -9,7 +9,7 @@ export interface Category {
 export interface Course {
     id: number;
     name: string;
-    code: string;
+    shortName: string;
     description?: string;
     credits: number;
     subcategoryId?: number;
@@ -22,18 +22,9 @@ class CategoryService {
         return result as unknown as Category[];
     }
 
-    async getCoursesBySubcategory(subcategoryId: number): Promise<Course[]> {
-        const response = await apiClient.get<Course[]>('/teacher/my-tutor-assigned-courses', {
-            params: { subcategoryId }
-        });
-        return response as unknown as Course[];
-    }
-
-    async getCoursesByParentCategory(parentId: number): Promise<Course[]> {
-        const response = await apiClient.get<Course[]>('/teacher/my-tutor-assigned-courses', {
-            params: { parentCategoryId: parentId }
-        });
-        return response as unknown as Course[];
+    async getCoursesBySubcategory(): Promise<Course[]> {
+        const response = await apiClient.get<any[]>('/teacher/dashboard/classes');
+        return response.data as unknown as Course[];
     }
 }
 

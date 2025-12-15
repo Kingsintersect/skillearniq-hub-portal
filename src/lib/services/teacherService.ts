@@ -1,3 +1,8 @@
+<<<<<<< HEAD
+=======
+import { apiClient } from '@/core/client';
+import { ApiResponse, PaginationParams } from '@/types/auth';
+>>>>>>> 4ed5a48b64c36dee535778b1995abace6464259f
 
 import { apiClient } from "@/core/client";
 import { ApiResponse } from '@/types/auth';
@@ -87,7 +92,114 @@ export interface AssessmentsData {
     drafts: Assessment[];
   };
 }
+interface CourseSAttendanceResponse {
+  course_details: {
+    category: number;
+    categoryName: string;
+    fullname: string;
+    id: number;
+    idnumber: string;
+    shortname: string;
+  };
+  daily: AttendanceRecord[];
+  monthly: AttendanceRecord[];
+}
 
+<<<<<<< HEAD
+=======
+export interface Student {
+  id: number;
+  name: string;
+  email: string;
+  phone: string;
+  avatar: string;
+  status: 'active' | 'inactive';
+  class: string;
+  enrollmentDate: string;
+  subjects: string[];
+  attendance: number;
+  averageScore: number;
+}
+interface CourseStudentsResponse {
+  course_id: number;
+  fullname: string;
+  shortname: string;
+  students: Student[];
+}
+
+export interface Message {
+  id: number;
+  title: string;
+  message: string;
+  type: string;
+  sender: string;
+  timestamp: string;
+  read: boolean;
+  archived: boolean;
+}
+
+export interface DashboardStats {
+  totalClasses: number;
+  totalStudents: number;
+  totalAssessments: number;
+  averageAttendance: number;
+  pendingGrading: number;
+  upcomingDeadlines: number;
+  recentActivities: RecentActivity[];
+  performanceTrend: PerformanceData[];
+  subjectPerformance: SubjectPerformance[];
+  attendanceTrend: AttendanceTrend[];
+}
+
+export interface RecentActivity {
+  id: number;
+  type: 'assessment' | 'attendance' | 'message' | 'grade';
+  title: string;
+  description: string;
+  timestamp: string;
+  class?: string;
+}
+
+export interface PerformanceData {
+  date: string;
+  averageScore: number;
+  totalAssessments: number;
+}
+
+export interface SubjectPerformance {
+  subject: string;
+  averageScore: number;
+  totalStudents: number;
+  improvement: number;
+}
+
+export interface AttendanceTrend {
+  month: string;
+  present: number;
+  absent: number;
+  rate: number;
+
+}
+
+
+export interface StudentGroup {
+  id: number;
+  name: string;
+  description: string;
+  studentIds: number[];
+  className: string;
+  classId: number;
+  createdBy: number;
+  createdAt: string;
+}
+
+export interface GroupStudentOperation {
+  groupId: number;
+  studentId: number;
+}
+
+// Service functions
+>>>>>>> 4ed5a48b64c36dee535778b1995abace6464259f
 export const teacherService = {
   // Dashboard
   getDashboardData: async (teacherId: number): Promise<any> => {
@@ -150,6 +262,7 @@ export const teacherService = {
   getAttendance: async (teacherId: number, filters?: {
     term?: string;
     classId?: number;
+<<<<<<< HEAD
   }): Promise<any> => {
     try {
       const params = new URLSearchParams();
@@ -162,12 +275,25 @@ export const teacherService = {
       console.error('Error fetching attendance:', error);
       throw error;
     }
+=======
+  }): Promise<ApiResponse<{
+    daily: AttendanceRecord[];
+    monthly: AttendanceRecord[];
+  }>> => {
+    const attendance = await apiClient.get<CourseSAttendanceResponse>(`/teacher/dashboard/attendance-by-course-id?course_id=${teacherId}`);
+    return {
+      status: 200,
+      data: attendance.data,
+      message: 'Attendance data fetched successfully'
+    };
+>>>>>>> 4ed5a48b64c36dee535778b1995abace6464259f
   },
 
   // Students
   getStudents: async (teacherId: number, filters?: {
     term?: string;
     classId?: number;
+<<<<<<< HEAD
   }): Promise<any> => {
     try {
       const params = new URLSearchParams();
@@ -180,6 +306,15 @@ export const teacherService = {
       console.error('Error fetching students:', error);
       throw error;
     }
+=======
+  }): Promise<ApiResponse<Student[]>> => {
+    const students = await apiClient.get<CourseStudentsResponse>(`/teacher/teacher-courses-and-students-by-course-id?course_id=${teacherId}`);
+    return {
+      status: 200,
+      data: students.data.students,
+      message: 'Students fetched successfully'
+    };
+>>>>>>> 4ed5a48b64c36dee535778b1995abace6464259f
   },
 
   // Messages

@@ -49,7 +49,7 @@ export const PersonalInformation: React.FC<PersonalInformationProps> = ({ regist
                         label="Other Name"
                         placeholder="Enter your other names"
                         error={errors.other_name?.message}
-                        required
+                    // required
                     />
                 </div>
             </div>

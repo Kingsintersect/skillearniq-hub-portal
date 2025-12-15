@@ -8,7 +8,7 @@ export const personalInfoSchema = z.object({
 
     last_name: nameSchema('Last name'),
 
-    other_name: nameSchema('Other name'),
+    other_name: nameSchema('Other name', true),
 
     gender: genderSchema,
 

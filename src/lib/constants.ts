@@ -288,12 +288,12 @@ export const StudentNavMain: SidebarNavConfig = {
             display: false,
         },
         {
-            title: "MY CLASSES",
+            title: "MY COURSES",
             url: "#",
             icon: School,
             items: [
                 {
-                    title: "My Classes",
+                    title: "My Courses",
                     url: "/student/classes",
                 },
 
@@ -381,13 +381,17 @@ export const TeacherNavMain: SidebarNavConfig = {
         //     display: true,
         // },
         {
+<<<<<<< HEAD
             title: "CLASSES",
+=======
+            title: "COURSES",
+>>>>>>> 4ed5a48b64c36dee535778b1995abace6464259f
             url: "/teacher/classes",
             icon: School,
             display: true,
         },
         {
-            title: "ASSIGNMENTS",
+            title: "ASSESSMENTS",
             url: "/teacher/assessments",
             icon: BookOpenCheck,
             display: true,
@@ -444,6 +448,15 @@ export const ParentNavMain: SidebarNavConfig = {
         //     display: true,
         // },
         {
+<<<<<<< HEAD
+=======
+            title: "MESSAGES",
+            url: "/parent/messages",
+            icon: SendHorizonal,
+            display: true,
+        },
+        {
+>>>>>>> 4ed5a48b64c36dee535778b1995abace6464259f
             title: "COURSES",
             url: "/parent/classes",
             icon: BookOpen,
