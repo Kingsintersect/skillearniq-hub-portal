@@ -13,14 +13,18 @@ export default function CoursesPage() {
   const { view, setView, courses } = useCategories();
 
   return (
-    <div className="min-h-screen container mx-auto p-6 space-y-6 bg-background text-foreground">
+    <div className="min-h-screen container space-y-6">
       {/* Header */}
-      <div className="space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight">Assigned Courses</h1>
-        <p className="text-muted-foreground">
-          Browse Your asigned courses
-        </p>
-      </div>
+      <Card className="bg-card text-card-foreground border-border">
+        <CardContent className="pt-6 bg-card">
+          <div className="space-y-2">
+            <h1 className="text-3xl font-bold tracking-tight">Assigned Courses</h1>
+            <p className="text-muted-foreground">
+              Browse Your asigned courses
+            </p>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Courses Section */}
       <Card className="bg-card text-card-foreground border-border">

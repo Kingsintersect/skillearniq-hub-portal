@@ -69,7 +69,6 @@ export const Dashboard: React.FC = () => {
   }
 
   const dashboardData = dashboardResponse?.data;
-  console.log('Dashboard Data:', dashboardData);
 
   if (!dashboardData) {
     return (
