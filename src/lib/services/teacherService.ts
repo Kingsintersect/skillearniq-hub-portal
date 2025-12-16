@@ -1,12 +1,142 @@
-<<<<<<< HEAD
-=======
-import { apiClient } from '@/core/client';
-import { ApiResponse, PaginationParams } from '@/types/auth';
->>>>>>> 4ed5a48b64c36dee535778b1995abace6464259f
-
 import { apiClient } from "@/core/client";
 import { ApiResponse } from '@/types/auth';
 
+// Dashboard Interfaces
+export interface DashboardStats {
+  totalClasses: number;
+  totalStudents: number;
+  totalAssessments: number;
+  averageAttendance: number;
+  pendingGrading: number;
+  upcomingDeadlines: number;
+  recentActivities: RecentActivity[];
+  performanceTrend: PerformanceData[];
+  subjectPerformance: SubjectPerformance[];
+  attendanceTrend: AttendanceTrend[];
+}
+
+
+export interface GeneralAttendanceApiResponse {
+  attendance: {
+    status: number;
+    message: string;
+    data: {
+      daily: AttendanceRecord[];
+      monthly: AttendanceRecord[];
+    };
+  };
+}
+
+export interface RecentActivity {
+  id: number;
+  type: 'assessment' | 'attendance' | 'message' | 'grade';
+  title: string;
+  description: string;
+  timestamp: string;
+  class?: string;
+}
+
+export interface PerformanceData {
+  date: string;
+  averageScore: number | null;
+  totalAssessments: number;
+}
+
+export interface SubjectPerformance {
+  subject: string;
+  averageScore: number;
+  totalStudents: number;
+  improvement: number;
+}
+
+export interface AttendanceTrend {
+  month: string;
+  present: number;
+  absent: number;
+  rate: number;
+}
+
+export interface AttendanceRecord {
+  id?: number;
+  date: string;
+  month: string;
+  present: number;
+  absent: number;
+  late?: number;
+  rate: number;
+  students?: Array<{
+    id: number;
+    name: string;
+    status: 'present' | 'absent' | 'late';
+    time: string;
+  }>;
+}
+
+// API Response Interfaces
+export interface DashboardApiResponse {
+  dashboard: {
+    overview: {
+      totalStudents: number;
+      totalClasses: number;
+      totalAssessments: number;
+      averageAttendance: number;
+      pendingGrading: number;
+      upcomingDeadlines: number;
+    };
+    attendanceTrend: AttendanceTrend[];
+    performanceTrend: PerformanceData[];
+    subjectPerformance: SubjectPerformance[];
+    recentActivities: RecentActivity[];
+  };
+}
+
+export interface GeneralAttendanceApiResponse {
+  attendance: {
+    status: number;
+    message: string;
+    data: {
+      daily: AttendanceRecord[];
+      monthly: AttendanceRecord[];
+    };
+  };
+}
+
+export interface CourseAttendanceApiResponse {
+  status: number;
+  message: string;
+  data: {
+    daily: AttendanceRecord[];
+    monthly: AttendanceRecord[];
+    course_details: {
+      id: number;
+      fullname: string;
+      shortname: string;
+      idnumber: string;
+      category: number;
+      categoryName: string;
+    };
+  };
+}
+
+export interface StudentsApiResponse {
+  status: number;
+  message: string;
+  data: Array<{
+    id: number;
+    name: string;
+    email: string;
+    phone: string;
+    avatar: string;
+    class: string;
+    status: string;
+    attendance: number;
+    averageScore: number | null;
+    enrollmentDate: string;
+    subjects: string[];
+  }>;
+}
+
+// Other existing interfaces
 export interface NotificationSettings {
   emailNotifications: boolean;
   pushNotifications: boolean;
@@ -92,133 +222,418 @@ export interface AssessmentsData {
     drafts: Assessment[];
   };
 }
-interface CourseSAttendanceResponse {
-  course_details: {
-    category: number;
-    categoryName: string;
-    fullname: string;
-    id: number;
-    idnumber: string;
-    shortname: string;
-  };
+
+export const teacherService = {
+  // ==================== DASHBOARD ====================
+  // In teacherService.ts - update the getDashboardData method:
+
+getDashboardData: async (teacherId: number): Promise<ApiResponse<DashboardStats>> => {
+  try {
+    const response = await apiClient.get<DashboardApiResponse>('/teacher/dashboard/stats');
+    
+    console.log('Dashboard API Response:', response);
+    
+    // If response is empty or doesn't have the expected structure
+    if (!response.data || !response.data.dashboard || Object.keys(response.data).length === 0) {
+      console.warn('Dashboard API returned empty or invalid response, using fallback data');
+      
+      // Try to fetch students separately to get accurate count
+      try {
+        const studentsResponse = await apiClient.get<StudentsApiResponse>('/teacher/dashboard/students');
+        const studentCount = studentsResponse.data?.data?.length || 0;
+        
+        // Try to fetch classes to get accurate count
+        const classesResponse = await apiClient.get<any[]>('/teacher/dashboard/classes');
+        const classCount = classesResponse.data?.length || 0;
+        
+        const fallbackStats: DashboardStats = {
+          totalClasses: classCount,
+          totalStudents: studentCount,
+          totalAssessments: 0,
+          averageAttendance: 0,
+          pendingGrading: 0,
+          upcomingDeadlines: 0,
+          recentActivities: [],
+          performanceTrend: [],
+          subjectPerformance: [],
+          attendanceTrend: []
+        };
+        
+        return {
+          status: 200,
+          data: fallbackStats,
+          message: 'Using fallback dashboard data'
+        };
+      } catch (fallbackError) {
+        console.error('Failed to fetch fallback data:', fallbackError);
+        
+        // Return basic fallback
+        const fallbackStats: DashboardStats = {
+          totalClasses: 0,
+          totalStudents: 0,
+          totalAssessments: 0,
+          averageAttendance: 0,
+          pendingGrading: 0,
+          upcomingDeadlines: 0,
+          recentActivities: [],
+          performanceTrend: [],
+          subjectPerformance: [],
+          attendanceTrend: []
+        };
+        
+        return {
+          status: 200,
+          data: fallbackStats,
+          message: 'Dashboard data not available, using empty data'
+        };
+      }
+    }
+    
+    const dashboardData = response.data.dashboard;
+    
+    const overview = dashboardData.overview || {};
+    
+    console.log('Dashboard overview data:', overview);
+    
+    const dashboardStats: DashboardStats = {
+      totalClasses: overview.totalClasses || 0,
+      totalStudents: overview.totalStudents || 0,
+      totalAssessments: overview.totalAssessments || 0,
+      averageAttendance: overview.averageAttendance || 0,
+      pendingGrading: overview.pendingGrading || 0,
+      upcomingDeadlines: overview.upcomingDeadlines || 0,
+      recentActivities: dashboardData.recentActivities || [],
+      performanceTrend: dashboardData.performanceTrend || [],
+      subjectPerformance: dashboardData.subjectPerformance || [],
+      attendanceTrend: dashboardData.attendanceTrend || []
+    };
+    
+    console.log('Processed dashboard stats:', dashboardStats);
+    
+    return {
+      status: response.status || 200,
+      data: dashboardStats,
+      message: 'Dashboard data fetched successfully'
+    };
+    
+  } catch (error: any) {
+    console.error('Error in getDashboardData:', error);
+    
+    // Return empty stats on error
+    const fallbackStats: DashboardStats = {
+      totalClasses: 0,
+      totalStudents: 0,
+      totalAssessments: 0,
+      averageAttendance: 0,
+      pendingGrading: 0,
+      upcomingDeadlines: 0,
+      recentActivities: [],
+      performanceTrend: [],
+      subjectPerformance: [],
+      attendanceTrend: []
+    };
+    
+    return {
+      status: 500,
+      data: fallbackStats,
+      message: error.message || 'Failed to fetch dashboard data'
+    };
+  }
+},
+
+// Add this method to teacherService
+getStudentsCount: async (teacherId: number): Promise<number> => {
+  try {
+    const response = await apiClient.get<StudentsApiResponse>('/teacher/dashboard/students');
+    console.log('Students API Response for count:', response);
+    
+    if (response.data?.data && Array.isArray(response.data.data)) {
+      return response.data.data.length;
+    }
+    return 0;
+  } catch (error) {
+    console.error('Error fetching students count:', error);
+    return 0;
+  }
+},
+  
+ getAttendance: async (teacherId: number, filters?: {
+  term?: string;
+  classId?: number;
+}): Promise<ApiResponse<{
   daily: AttendanceRecord[];
   monthly: AttendanceRecord[];
-}
+}>> => {
+  try {
+    console.log('DEBUG: Starting getAttendance...');
+    
+    // Don't use ApiResponse type here since API doesn't return that structure
+    //@ts-ignore
+    const response = await apiClient.instance.get('/teacher/dashboard/attendance', {
+      params: filters
+    });
+    
+    console.log('DEBUG: Raw axios response:', response);
+    console.log('DEBUG: Response data:', response.data);
+    
+    // The API returns: { attendance: { status, message, data: { daily, monthly } } }
+    if (response.data && response.data.attendance) {
+      const attendanceData = response.data.attendance;
+      
+      // Check if we have the expected structure
+      if (attendanceData.data && (attendanceData.data.daily !== undefined || attendanceData.data.monthly !== undefined)) {
+        return {
+          status: attendanceData.status || 200,
+          data: attendanceData.data,
+          message: attendanceData.message || 'Attendance fetched successfully'
+        };
+      }
+    }
+    
+    // If structure is unexpected, log it for debugging
+    console.log('DEBUG: Unexpected structure - full response:', response);
+    console.log('DEBUG: response.data keys:', Object.keys(response.data || {}));
+    
+    throw new Error('Unexpected API response structure');
+    
+  } catch (error: any) {
+    console.error('Error in getAttendance:', error);
+    
+    // If it's an Axios error, check the response
+    if (error.response) {
+      console.log('DEBUG: Error response data:', error.response.data);
+      
+      if (error.response.data && error.response.data.attendance) {
+        const attendanceData = error.response.data.attendance;
+        return {
+          status: attendanceData.status,
+          data: attendanceData.data || { daily: [], monthly: [] },
+          message: attendanceData.message
+        };
+      }
+    }
+    
+    // Return empty data but don't throw - let the component handle empty state
+    return {
+      status: error.status || 500,
+      data: { daily: [], monthly: [] },
+      message: error.message || 'Failed to fetch attendance data'
+    };
+  }
+},
+ // ==================== ATTENDANCE PER COURSE ====================
+getAttendancePerCourse: async (teacherId: number, filters?: {
+  term?: string;
+  classId?: number;
+}): Promise<ApiResponse<{
+  daily: AttendanceRecord[];
+  monthly: AttendanceRecord[];
+  course_details: any;
+}>> => {
+  try {
+    const courseId = filters?.classId || teacherId;
+    
+    console.log('🚀 [getAttendancePerCourse] Starting fetch...');
+    console.log('🚀 Course ID:', courseId);
+    console.log('🚀 Teacher ID:', teacherId);
+    console.log('🚀 Filters:', filters);
+    
+    // Construct the URL
+    const url = `/teacher/dashboard/attendance-by-course-id?course_id=${courseId}`;
+    console.log('🚀 Calling URL:', url);
+    
+    // Make the API call
+    const response = await apiClient.get<any>(url);
+    
+    console.log('✅ [getAttendancePerCourse] Response received');
+    console.log('✅ Response status:', response.status);
+    console.log('✅ Full response object:', response);
+    console.log('✅ Response data:', response.data);
+    
+    // If response.data is an empty object {}, handle it gracefully
+    if (!response.data || Object.keys(response.data).length === 0) {
+      console.warn('⚠️ API returned empty object. This might mean:');
+      console.warn('⚠️ 1. The endpoint doesnt exist');
+      console.warn('⚠️ 2. Authentication failed');
+      console.warn('⚠️ 3. The course has no attendance data');
+      
+      // Return empty data structure instead of throwing
+      return {
+        status: 200,
+        data: {
+          daily: [],
+          monthly: [],
+          course_details: {
+            id: courseId,
+            fullname: `Class ${courseId}`,
+            shortname: '',
+            idnumber: '',
+            category: 0,
+            categoryName: ''
+          }
+        },
+        message: 'No attendance data found for this course'
+      };
+    }
+    
+    // Try to extract data from different possible structures
+    let dailyData: any[] = [];
+    let monthlyData: any[] = [];
+    let courseDetails: any = {
+      id: courseId,
+      fullname: `Class ${courseId}`,
+      shortname: '',
+      idnumber: '',
+      category: 0,
+      categoryName: ''
+    };
+    
+    // Structure 1: Your expected structure (from Postman)
+    if (response.data.data) {
+      console.log('📊 Using structure 1: response.data.data');
+      dailyData = response.data.data.daily || [];
+      monthlyData = response.data.data.monthly || [];
+      courseDetails = response.data.data.course_details || courseDetails;
+    }
+    // Structure 2: Data directly in response
+    else if (response.data.daily || response.data.monthly) {
+      console.log('📊 Using structure 2: data at root level');
+      dailyData = response.data.daily || [];
+      monthlyData = response.data.monthly || [];
+      courseDetails = response.data.course_details || courseDetails;
+    }
+    // Structure 3: Maybe the entire response is the data
+    else if (Array.isArray(response.data.daily) || Array.isArray(response.data.monthly)) {
+      console.log('📊 Using structure 3: arrays at root');
+      dailyData = response.data.daily || [];
+      monthlyData = response.data.monthly || [];
+    }
+    // Structure 4: Completely different structure
+    else {
+      console.warn('⚠️ Unexpected response structure, using empty data');
+      console.warn('⚠️ Response structure:', JSON.stringify(response.data, null, 2));
+    }
+    
+    console.log('📊 Extracted - Daily:', dailyData.length, 'Monthly:', monthlyData.length);
+    console.log('📊 Course details:', courseDetails);
+    
+    return {
+      status: response.status || 200,
+      data: {
+        daily: dailyData,
+        monthly: monthlyData,
+        course_details: courseDetails
+      },
+      message: response.data.message || 'Attendance data fetched successfully'
+    };
+    
+  } catch (error: any) {
+    console.error('❌ [getAttendancePerCourse] Error:', error);
+    console.error('❌ Error response:', error.response?.data);
+    console.error('❌ Error status:', error.response?.status);
+    
+    return {
+      status: error.response?.status || 500,
+      data: {
+        daily: [],
+        monthly: [],
+        course_details: {
+          id: filters?.classId || 0,
+          fullname: `Class ${filters?.classId || 'Unknown'}`,
+          shortname: '',
+          idnumber: '',
+          category: 0,
+          categoryName: ''
+        }
+      },
+      message: error.message || 'Failed to fetch course attendance data'
+    };
+  }
+},
 
-<<<<<<< HEAD
-=======
-export interface Student {
-  id: number;
-  name: string;
-  email: string;
-  phone: string;
-  avatar: string;
-  status: 'active' | 'inactive';
-  class: string;
-  enrollmentDate: string;
-  subjects: string[];
-  attendance: number;
-  averageScore: number;
-}
-interface CourseStudentsResponse {
-  course_id: number;
-  fullname: string;
-  shortname: string;
-  students: Student[];
-}
-
-export interface Message {
-  id: number;
-  title: string;
-  message: string;
-  type: string;
-  sender: string;
-  timestamp: string;
-  read: boolean;
-  archived: boolean;
-}
-
-export interface DashboardStats {
-  totalClasses: number;
-  totalStudents: number;
-  totalAssessments: number;
-  averageAttendance: number;
-  pendingGrading: number;
-  upcomingDeadlines: number;
-  recentActivities: RecentActivity[];
-  performanceTrend: PerformanceData[];
-  subjectPerformance: SubjectPerformance[];
-  attendanceTrend: AttendanceTrend[];
-}
-
-export interface RecentActivity {
-  id: number;
-  type: 'assessment' | 'attendance' | 'message' | 'grade';
-  title: string;
-  description: string;
-  timestamp: string;
-  class?: string;
-}
-
-export interface PerformanceData {
-  date: string;
-  averageScore: number;
-  totalAssessments: number;
-}
-
-export interface SubjectPerformance {
-  subject: string;
-  averageScore: number;
-  totalStudents: number;
-  improvement: number;
-}
-
-export interface AttendanceTrend {
-  month: string;
-  present: number;
-  absent: number;
-  rate: number;
-
-}
-
-
-export interface StudentGroup {
-  id: number;
-  name: string;
-  description: string;
-  studentIds: number[];
-  className: string;
-  classId: number;
-  createdBy: number;
-  createdAt: string;
-}
-
-export interface GroupStudentOperation {
-  groupId: number;
-  studentId: number;
-}
-
-// Service functions
->>>>>>> 4ed5a48b64c36dee535778b1995abace6464259f
-export const teacherService = {
-  // Dashboard
-  getDashboardData: async (teacherId: number): Promise<any> => {
+  // ==================== STUDENTS ====================
+  getStudentsPerCourse: async (teacherId: number, filters?: {
+    term?: string;
+    classId?: number;
+  }): Promise<ApiResponse<any[]>> => {
     try {
-      const response = await apiClient.get<any>(`/teacher/dashboard/overview?teacherId=${teacherId}`);
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching dashboard data:', error);
-      throw error;
+      const response = await apiClient.get<any>('/teacher/dashboard/students');
+      
+      console.log('Students API Full Response:', response);
+      
+      if (response.data) {
+        const studentsData = 
+          response.data.data ||
+          response.data.students ||
+          response.data;
+        
+        if (Array.isArray(studentsData)) {
+          return {
+            status: response.status || 200,
+            data: studentsData,
+            message: 'Students data fetched successfully'
+          };
+        }
+      }
+      
+      console.error('Unexpected response structure:', response.data);
+      throw new Error('Invalid students response structure');
+      
+    } catch (error: any) {
+      console.error('Error fetching students:', error);
+      
+      return {
+        status: 500,
+        data: [],
+        message: error.message || 'Failed to fetch students data'
+      };
+    }
+  },
+ getStudents: async (teacherId: number, filters?: {
+    term?: string;
+    classId?: number;
+  }): Promise<ApiResponse<any[]>> => {
+    try {
+      const response = await apiClient.get<any>('/teacher/dashboard/students');
+      
+      console.log('Students API Full Response:', response);
+      
+      if (response.data) {
+        const studentsData = 
+          response.data.data ||
+          response.data.students ||
+          response.data;
+        
+        if (Array.isArray(studentsData)) {
+          return {
+            status: response.status || 200,
+            data: studentsData,
+            message: 'Students data fetched successfully'
+          };
+        }
+      }
+      
+      console.error('Unexpected response structure:', response.data);
+      throw new Error('Invalid students response structure');
+      
+    } catch (error: any) {
+      console.error('Error fetching students:', error);
+      
+      return {
+        status: 500,
+        data: [],
+        message: error.message || 'Failed to fetch students data'
+      };
     }
   },
 
-  // Classes
-  getClasses: async (teacherId: number, filters?: { term?: string }): Promise<Course[]> => {
+  // ==================== CLASSES ====================
+  getClasses: async (teacherId: number, filters?: { term?: string }): Promise<any[]> => {
     try {
       const params = new URLSearchParams();
       if (filters?.term) params.append('term', filters.term);
       
-      const response = await apiClient.get<Course[]>(`/teacher/dashboard/classes?${params.toString()}`);
+      const response = await apiClient.get<any[]>(`/teacher/dashboard/classes?${params.toString()}`);
       return response.data;
     } catch (error) {
       console.error('Error fetching classes:', error);
@@ -226,25 +641,23 @@ export const teacherService = {
     }
   },
 
-  // Assessments
+  // ==================== ASSESSMENTS ====================
   getAssessments: async (teacherId: number, filters?: {
     term?: string;
     classId?: number;
     type?: string;
-  }): Promise<AssessmentsData> => {
+  }): Promise<any> => {
     try {
       const params = new URLSearchParams();
       if (filters?.term) params.append('term', filters.term);
       if (filters?.classId) params.append('classId', filters.classId?.toString() || '');
       if (filters?.type) params.append('type', filters.type || '');
       
-      const response = await apiClient.get<AssessmentsData>(`/teacher/dashboard/assessments?${params.toString()}`);
+      const response = await apiClient.get<any>(`/teacher/dashboard/assessments?${params.toString()}`);
       return response.data;
     } catch (error: any) {
-      // Handle "PRO FEATURE ONLY" response
       if (error.message?.includes('PRO FEATURE ONLY') || error.response?.data?.message?.includes('PRO FEATURE')) {
         console.log('Assessments feature not available in current plan');
-        // Return empty assessments structure
         return {
           assessments: {
             upcoming: [],
@@ -258,66 +671,7 @@ export const teacherService = {
     }
   },
 
-  // Attendance
-  getAttendance: async (teacherId: number, filters?: {
-    term?: string;
-    classId?: number;
-<<<<<<< HEAD
-  }): Promise<any> => {
-    try {
-      const params = new URLSearchParams();
-      if (filters?.term) params.append('term', filters.term);
-      if (filters?.classId) params.append('classId', filters.classId?.toString() || '');
-      
-      const response = await apiClient.get<any>(`/teacher/dashboard/attendance?${params.toString()}`);
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching attendance:', error);
-      throw error;
-    }
-=======
-  }): Promise<ApiResponse<{
-    daily: AttendanceRecord[];
-    monthly: AttendanceRecord[];
-  }>> => {
-    const attendance = await apiClient.get<CourseSAttendanceResponse>(`/teacher/dashboard/attendance-by-course-id?course_id=${teacherId}`);
-    return {
-      status: 200,
-      data: attendance.data,
-      message: 'Attendance data fetched successfully'
-    };
->>>>>>> 4ed5a48b64c36dee535778b1995abace6464259f
-  },
-
-  // Students
-  getStudents: async (teacherId: number, filters?: {
-    term?: string;
-    classId?: number;
-<<<<<<< HEAD
-  }): Promise<any> => {
-    try {
-      const params = new URLSearchParams();
-      if (filters?.term) params.append('term', filters.term);
-      if (filters?.classId) params.append('classId', filters.classId?.toString() || '');
-      
-      const response = await apiClient.get<any>(`/teacher/dashboard/students?${params.toString()}`);
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching students:', error);
-      throw error;
-    }
-=======
-  }): Promise<ApiResponse<Student[]>> => {
-    const students = await apiClient.get<CourseStudentsResponse>(`/teacher/teacher-courses-and-students-by-course-id?course_id=${teacherId}`);
-    return {
-      status: 200,
-      data: students.data.students,
-      message: 'Students fetched successfully'
-    };
->>>>>>> 4ed5a48b64c36dee535778b1995abace6464259f
-  },
-
-  // Messages
+  // ==================== MESSAGES ====================
   getMessages: async (teacherId: number): Promise<any> => {
     try {
       const response = await apiClient.get<any>(`/teacher/dashboard/messages?teacherId=${teacherId}`);
@@ -328,7 +682,7 @@ export const teacherService = {
     }
   },
 
-  // Create Assessment
+  // ==================== CREATE ASSESSMENT ====================
   createAssessment: async (data: any): Promise<any> => {
     try {
       const response = await apiClient.post<any>('/teacher/dashboard/assessments/create', data);
@@ -339,7 +693,7 @@ export const teacherService = {
     }
   },
 
-  // Update Assessment
+  // ==================== UPDATE ASSESSMENT ====================
   updateAssessment: async (id: number, data: any): Promise<any> => {
     try {
       const response = await apiClient.put<any>(`/teacher/dashboard/assessments/${id}`, data);
@@ -350,7 +704,7 @@ export const teacherService = {
     }
   },
 
-  // Delete Assessment
+  // ==================== DELETE ASSESSMENT ====================
   deleteAssessment: async (id: number): Promise<any> => {
     try {
       const response = await apiClient.delete<any>(`/teacher/dashboard/assessments/${id}`);
@@ -361,22 +715,7 @@ export const teacherService = {
     }
   },
 
-  // Groups
-  getGroups: async (teacherId: number, classId?: number): Promise<any> => {
-    try {
-      const params = new URLSearchParams();
-      params.append('teacherId', teacherId.toString());
-      if (classId) params.append('classId', classId.toString());
-      
-      const response = await apiClient.get<any>(`/teacher/dashboard/groups?${params.toString()}`);
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching groups:', error);
-      throw error;
-    }
-  },
-
-  // Create Group
+  // ==================== GROUPS ====================
   createGroup: async (data: any): Promise<any> => {
     try {
       const response = await apiClient.post<any>('/teacher/dashboard/groups', data);
@@ -387,7 +726,6 @@ export const teacherService = {
     }
   },
 
-  // Update Group
   updateGroup: async (id: number, data: Partial<StudentGroup>): Promise<any> => {
     try {
       const response = await apiClient.put<any>(`/teacher/dashboard/groups/${id}`, data);
@@ -398,7 +736,6 @@ export const teacherService = {
     }
   },
 
-  // Delete Group
   deleteGroup: async (id: number): Promise<any> => {
     try {
       const response = await apiClient.delete<any>(`/teacher/dashboard/groups/${id}`);
@@ -409,7 +746,6 @@ export const teacherService = {
     }
   },
 
-  // Add Student to Group
   addStudentToGroup: async (groupId: number, studentId: number): Promise<any> => {
     try {
       const response = await apiClient.post<any>(`/teacher/dashboard/groups/${groupId}/students`, { studentId });
@@ -420,7 +756,6 @@ export const teacherService = {
     }
   },
 
-  // Remove Student from Group
   removeStudentFromGroup: async (groupId: number, studentId: number): Promise<any> => {
     try {
       const response = await apiClient.delete<any>(`/teacher/dashboard/groups/${groupId}/students/${studentId}`);
@@ -431,7 +766,7 @@ export const teacherService = {
     }
   },
 
-  // Profile
+  // ==================== PROFILE ====================
   getProfile: async (teacherId: number): Promise<TeacherProfile> => {
     try {
       const response = await apiClient.get<TeacherProfile>(`/teacher/dashboard/profile?teacherId=${teacherId}`);
@@ -442,7 +777,6 @@ export const teacherService = {
     }
   },
 
-  // Update Profile
   updateProfile: async (teacherId: number, data: Partial<TeacherProfile>): Promise<TeacherProfile> => {
     try {
       const response = await apiClient.put<TeacherProfile>(`/teacher/dashboard/profile/${teacherId}`, data);
@@ -453,7 +787,7 @@ export const teacherService = {
     }
   },
 
-  // Notification Settings
+  // ==================== NOTIFICATION SETTINGS ====================
   getNotificationSettings: async (teacherId: number): Promise<NotificationSettings> => {
     try {
       const response = await apiClient.get<NotificationSettings>(`/teacher/dashboard/settings/notifications?teacherId=${teacherId}`);
@@ -464,7 +798,6 @@ export const teacherService = {
     }
   },
 
-  // Update Notification Settings
   updateNotificationSettings: async (teacherId: number, data: NotificationSettings): Promise<NotificationSettings> => {
     try {
       const response = await apiClient.put<NotificationSettings>(`/teacher/dashboard/settings/notifications/${teacherId}`, data);
@@ -475,7 +808,7 @@ export const teacherService = {
     }
   },
 
-  // Security Settings
+  // ==================== SECURITY SETTINGS ====================
   getSecuritySettings: async (teacherId: number): Promise<any> => {
     try {
       const response = await apiClient.get<any>(`/teacher/dashboard/settings/security?teacherId=${teacherId}`);
@@ -486,7 +819,7 @@ export const teacherService = {
     }
   },
 
-  // Preferences
+  // ==================== PREFERENCES ====================
   getPreferences: async (teacherId: number): Promise<Preferences> => {
     try {
       const response = await apiClient.get<Preferences>(`/teacher/dashboard/settings/preferences?teacherId=${teacherId}`);
@@ -497,7 +830,6 @@ export const teacherService = {
     }
   },
 
-  // Update Preferences
   updatePreferences: async (teacherId: number, data: Preferences): Promise<Preferences> => {
     try {
       const response = await apiClient.put<Preferences>(`/teacher/dashboard/settings/preferences/${teacherId}`, data);
@@ -508,7 +840,7 @@ export const teacherService = {
     }
   },
 
-  // Change Password
+  // ==================== CHANGE PASSWORD ====================
   changePassword: async (teacherId: number, data: {
     currentPassword: string;
     newPassword: string;
@@ -523,7 +855,7 @@ export const teacherService = {
     }
   },
 
-  // Export Assessments
+  // ==================== EXPORT ASSESSMENTS ====================
   exportAssessments: async (teacherId: number, filters?: {
     classId?: number;
     format: 'csv' | 'excel' | 'pdf';
@@ -541,7 +873,7 @@ export const teacherService = {
     }
   },
 
-  // Export Results
+  // ==================== EXPORT RESULTS ====================
   exportResults: async (assessmentId: number, format: 'csv' | 'excel' | 'pdf' = 'csv'): Promise<any> => {
     try {
       const response = await apiClient.get<any>(`/teacher/dashboard/assessments/${assessmentId}/results/export?format=${format}`);
@@ -552,7 +884,7 @@ export const teacherService = {
     }
   },
 
-  // Get Assessment Details
+  // ==================== GET ASSESSMENT DETAILS ====================
   getAssessmentDetails: async (assessmentId: number): Promise<any> => {
     try {
       const response = await apiClient.get<any>(`/teacher/dashboard/assessments/${assessmentId}`);
@@ -563,7 +895,7 @@ export const teacherService = {
     }
   },
 
-  // Grade Assessment
+  // ==================== GRADE ASSESSMENT ====================
   gradeAssessment: async (assessmentId: number, data: any): Promise<any> => {
     try {
       const response = await apiClient.post<any>(`/teacher/dashboard/assessments/${assessmentId}/grade`, data);
@@ -574,7 +906,7 @@ export const teacherService = {
     }
   },
 
-  // Get Assessment Submissions
+  // ==================== GET ASSESSMENT SUBMISSIONS ====================
   getAssessmentSubmissions: async (assessmentId: number): Promise<any> => {
     try {
       const response = await apiClient.get<any>(`/teacher/dashboard/assessments/${assessmentId}/submissions`);
@@ -585,7 +917,7 @@ export const teacherService = {
     }
   },
 
-  // Publish Assessment Results
+  // ==================== PUBLISH ASSESSMENT RESULTS ====================
   publishAssessmentResults: async (assessmentId: number): Promise<any> => {
     try {
       const response = await apiClient.post<any>(`/teacher/dashboard/assessments/${assessmentId}/publish-results`);

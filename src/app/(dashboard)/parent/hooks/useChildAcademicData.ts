@@ -25,20 +25,20 @@ export const useChildAcademicData = () => {
     });
 
     // Sync React Query state with Zustand store
-    useEffect(() => {
-        setReportsLoading(query.isLoading);
-        setReportsError(query.error ? 'Failed to load academic data' : null);
-        if (query.data?.data) {
-            setAllReports(query.data.data);
-        }
-    }, [
-        query.data,
-        query.isLoading,
-        query.error,
-        setAllReports,
-        setReportsLoading,
-        setReportsError,
-    ]);
+    // useEffect(() => {
+    //     setReportsLoading(query.isLoading);
+    //     setReportsError(query.error ? 'Failed to load academic data' : null);
+    //     if (query.data?.data) {
+    //         setAllReports(query.data.data);
+    //     }
+    // }, [
+    //     query.data,
+    //     query.isLoading,
+    //     query.error,
+    //     setAllReports,
+    //     setReportsLoading,
+    //     setReportsError,
+    // ]);
 
     // Sync selected report with selectedStudentId
     useEffect(() => {

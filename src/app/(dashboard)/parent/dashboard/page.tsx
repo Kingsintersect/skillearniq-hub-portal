@@ -219,13 +219,13 @@ export default function ParentsDashboard() {
                     <div className="space-y-4">
                       <h3 className="font-semibold text-lg">Quick Actions</h3>
                       <div className="space-y-3 flex flex-col gap-2">
-                        <Link href="/parents/classes">
+                        <Link href="/parent/classes">
                           <Button variant="outline" className="w-full cursor-pointer dark:border-white dark:text-white justify-start h-11">
                             <BookOpen className="h-4 w-4 mr-3" />
                             View Academic Progress
                           </Button>
                         </Link>
-                        <Link href="/parents/reports">
+                        <Link href="/parent/reports">
                           <Button variant="outline" className="w-full cursor-pointer dark:border-white dark:text-white justify-start h-11">
                             <Download className="h-4 w-4 mr-3" />
                             View Reports
@@ -323,7 +323,7 @@ export default function ParentsDashboard() {
                 <CardDescription>Common actions and features</CardDescription>
               </CardHeader>
               <CardContent className="space-y-3 flex flex-col gap-2">
-                <Link href="/parents/classes">
+                <Link href="/parent/classes">
                   <Button variant="outline" className="w-full justify-start h-12">
                     <BookOpen className="h-5 w-5 mr-3" />
                     <div className="text-left">
@@ -333,7 +333,7 @@ export default function ParentsDashboard() {
                   </Button>
                 </Link>
 
-                <Link href="/parents/messages">
+                <Link href="/parent/messages">
                   <Button variant="outline" className="w-full justify-start h-12">
                     <MessageCircle className="h-5 w-5 mr-3" />
                     <div className="text-left">
@@ -343,7 +343,7 @@ export default function ParentsDashboard() {
                   </Button>
                 </Link>
 
-                <Link href="/parents/reports">
+                <Link href="/parent/reports">
                   <Button variant="outline" className="w-full justify-start h-12">
                     <Download className="h-5 w-5 mr-3" />
                     <div className="text-left">
@@ -353,7 +353,7 @@ export default function ParentsDashboard() {
                   </Button>
                 </Link>
 
-                <Link href="/parents/payments">
+                <Link href="/parent/payments">
                   <Button variant="outline" className="w-full justify-start h-12">
                     <CreditCard className="h-5 w-5 mr-3" />
                     <div className="text-left">

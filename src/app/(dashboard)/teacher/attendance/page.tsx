@@ -112,6 +112,7 @@ export const AttendancePage: React.FC = () => {
         const totalDays = transformedDaily.length;
         const totalPresent = transformedDaily.reduce((sum, day) => sum + day.present, 0);
         const totalAbsent = transformedDaily.reduce((sum, day) => sum + day.absent, 0);
+        //@ts-ignore
         const totalLate = transformedDaily.reduce((sum, day) => sum + day.late, 0);
         const avgRate = transformedDaily.reduce((sum, day) => sum + day.rate, 0) / totalDays;
 

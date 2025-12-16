@@ -1,5 +1,5 @@
 'use client'
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -19,9 +19,12 @@ import {
   Bell,
   Download,
   Eye,
-  AlertCircle
+  AlertCircle,
+  Loader2,
+  RefreshCw
 } from 'lucide-react';
 import { useTeacherQueries } from '@/hooks/useTeacherQueries';
+import { teacherService } from '@/lib/services/teacherService';
 
 // Recharts components
 import {
@@ -42,7 +45,7 @@ import {
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
-// Custom tooltip component for dark mode support
+// Custom tooltip component
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
@@ -59,17 +62,95 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   return null;
 };
 
-export const Dashboard: React.FC = () => {
-  const teacherId = 1; // This would come from auth context in real app
-  const { useDashboardData } = useTeacherQueries();
-  const { data: dashboardResponse, isLoading, error, isError } = useDashboardData(teacherId);
+// Define types
+interface PerformanceTrendItem {
+  date: string;
+  averageScore: number | null;
+  totalAssessments: number;
+}
 
-  if (isLoading) {
+interface SubjectPerformanceItem {
+  subject: string;
+  averageScore: number;
+  totalStudents: number;
+  improvement: number;
+}
+
+interface AttendanceTrendItem {
+  month: string;
+  present: number;
+  absent: number;
+  rate: number;
+}
+
+interface RecentActivity {
+  id: number;
+  title: string;
+  description: string;
+  type: 'assessment' | 'attendance' | 'message' | 'grade';
+  timestamp: string;
+  class?: string;
+}
+
+export const Dashboard: React.FC = () => {
+  const teacherId = 1; // This would come from auth context
+  const { useDashboardData } = useTeacherQueries();
+  const { data: dashboardResponse, isLoading, error, isError, refetch } = useDashboardData(teacherId);
+  
+  // State for manually fetched data
+  const [studentCount, setStudentCount] = useState<number>(0);
+  const [classCount, setClassCount] = useState<number>(0);
+  const [isFetchingFallbackData, setIsFetchingFallbackData] = useState(false);
+
+  // Fetch fallback data if dashboard doesn't provide it
+  useEffect(() => {
+    const fetchFallbackData = async () => {
+      // Only fetch if dashboard data is empty or missing critical info
+      const needsFallback = !dashboardResponse?.data?.totalStudents || 
+                           !dashboardResponse?.data?.totalClasses ||
+                           dashboardResponse?.data?.totalStudents === 0;
+      
+      if (needsFallback && dashboardResponse?.data) {
+        setIsFetchingFallbackData(true);
+        try {
+          // Fetch students count
+          try {
+            const studentsResponse = await teacherService.getStudentsPerCourse(teacherId);
+            if (studentsResponse.data && Array.isArray(studentsResponse.data)) {
+              setStudentCount(studentsResponse.data.length);
+            }
+          } catch (studentError) {
+            console.error('Failed to fetch students count:', studentError);
+          }
+
+          // Fetch classes count
+          try {
+            const classesResponse = await teacherService.getClasses(teacherId);
+            if (Array.isArray(classesResponse)) {
+              setClassCount(classesResponse.length);
+            }
+          } catch (classError) {
+            console.error('Failed to fetch classes count:', classError);
+          }
+        } catch (err) {
+          console.error('Failed to fetch fallback data:', err);
+        } finally {
+          setIsFetchingFallbackData(false);
+        }
+      }
+    };
+
+    fetchFallbackData();
+  }, [dashboardResponse, teacherId]);
+
+  if (isLoading || isFetchingFallbackData) {
     return (
       <div className="min-h-screen p-6 flex items-center justify-center bg-background">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <div className="text-foreground">Loading dashboard...</div>
+          <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto mb-4" />
+          <div className="text-foreground">
+            {isFetchingFallbackData ? 'Loading additional data...' : 'Loading dashboard...'}
+          </div>
         </div>
       </div>
     );
@@ -87,8 +168,9 @@ export const Dashboard: React.FC = () => {
           <Button 
             variant="outline" 
             className="mt-4"
-            onClick={() => window.location.reload()}
+            onClick={() => refetch()}
           >
+            <RefreshCw className="h-4 w-4 mr-2" />
             Retry
           </Button>
         </div>
@@ -96,48 +178,71 @@ export const Dashboard: React.FC = () => {
     );
   }
 
-  const dashboardData = dashboardResponse?.data;
-
-  if (!dashboardData) {
+  // Check if we have valid data
+  if (!dashboardResponse || !dashboardResponse.data) {
     return (
       <div className="min-h-screen p-6 flex items-center justify-center bg-background">
         <div className="text-center">
           <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-          <div className="text-foreground">No data available</div>
+          <div className="text-foreground">No dashboard data available</div>
           <div className="text-sm text-muted-foreground mt-2">
-            Start by adding classes and students to see your dashboard
+            The API returned an empty response.
           </div>
+          <Button 
+            variant="outline" 
+            className="mt-4"
+            onClick={() => refetch()}
+          >
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Try Again
+          </Button>
         </div>
       </div>
     );
   }
 
-  // Handle null/undefined values in data
-  const safePerformanceTrend = dashboardData.performanceTrend?.map(item => ({
-    date: item.date,
+  const dashboardData = dashboardResponse.data;
+
+  // Use dashboard data or fallback data
+  const totalStudents = dashboardData.totalStudents > 0 
+    ? dashboardData.totalStudents 
+    : studentCount;
+
+  const totalClasses = dashboardData.totalClasses > 0 
+    ? dashboardData.totalClasses 
+    : classCount;
+
+  const totalAssessments = dashboardData.totalAssessments || 0;
+  const averageAttendance = dashboardData.averageAttendance || 0;
+  const pendingGrading = dashboardData.pendingGrading || 0;
+  const upcomingDeadlines = dashboardData.upcomingDeadlines || 0;
+
+  // Handle data with proper typing
+  const safePerformanceTrend: PerformanceTrendItem[] = dashboardData.performanceTrend?.map((item: PerformanceTrendItem) => ({
+    date: item.date || '',
     averageScore: item.averageScore || 0,
     totalAssessments: item.totalAssessments || 0
   })) || [];
 
-  const safeSubjectPerformance = dashboardData.subjectPerformance?.map(item => ({
-    subject: item.subject,
+  const safeSubjectPerformance: SubjectPerformanceItem[] = dashboardData.subjectPerformance?.map((item: SubjectPerformanceItem) => ({
+    subject: item.subject || 'Unknown',
     averageScore: item.averageScore || 0,
     totalStudents: item.totalStudents || 0,
     improvement: item.improvement || 0
   })) || [];
 
-  const safeAttendanceTrend = dashboardData.attendanceTrend?.map(item => ({
-    month: item.month,
+  const safeAttendanceTrend: AttendanceTrendItem[] = dashboardData.attendanceTrend?.map((item: AttendanceTrendItem) => ({
+    month: item.month || '',
     present: item.present || 0,
     absent: item.absent || 0,
     rate: item.rate || 0
   })) || [];
 
-  const safeRecentActivities = dashboardData.recentActivities || [];
+  const safeRecentActivities: RecentActivity[] = dashboardData.recentActivities || [];
 
-  // Calculate total present and absent for summary
-  const totalPresent = safeAttendanceTrend.reduce((sum, month) => sum + month.present, 0);
-  const totalAbsent = safeAttendanceTrend.reduce((sum, month) => sum + month.absent, 0);
+  // Calculate totals for attendance
+  const totalPresent: number = safeAttendanceTrend.reduce((sum: number, month: AttendanceTrendItem) => sum + month.present, 0);
+  const totalAbsent: number = safeAttendanceTrend.reduce((sum: number, month: AttendanceTrendItem) => sum + month.absent, 0);
 
   return (
     <div className="min-h-screen p-6 bg-background text-foreground">
@@ -167,7 +272,7 @@ export const Dashboard: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Total Classes</p>
-                  <p className="text-2xl font-bold text-foreground">{dashboardData.totalClasses}</p>
+                  <p className="text-2xl font-bold text-foreground">{totalClasses}</p>
                   <div className="flex items-center space-x-1 mt-1">
                     <TrendingUp className="h-4 w-4 text-green-500" />
                     <span className="text-sm text-muted-foreground">Active this term</span>
@@ -185,7 +290,7 @@ export const Dashboard: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Total Students</p>
-                  <p className="text-2xl font-bold text-foreground">{dashboardData.totalStudents}</p>
+                  <p className="text-2xl font-bold text-foreground">{totalStudents}</p>
                   <div className="text-sm text-muted-foreground mt-1">Across all classes</div>
                 </div>
                 <div className="w-12 h-12 bg-green-500/10 rounded-lg flex items-center justify-center">
@@ -200,7 +305,7 @@ export const Dashboard: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Assessments</p>
-                  <p className="text-2xl font-bold text-foreground">{dashboardData.totalAssessments}</p>
+                  <p className="text-2xl font-bold text-foreground">{totalAssessments}</p>
                   <div className="text-sm text-muted-foreground mt-1">This term</div>
                 </div>
                 <div className="w-12 h-12 bg-blue-500/10 rounded-lg flex items-center justify-center">
@@ -215,8 +320,8 @@ export const Dashboard: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Attendance Rate</p>
-                  <p className="text-2xl font-bold text-foreground">{dashboardData.averageAttendance}%</p>
-                  <Progress value={dashboardData.averageAttendance} className="w-full mt-2 h-2" />
+                  <p className="text-2xl font-bold text-foreground">{averageAttendance}%</p>
+                  <Progress value={averageAttendance} className="w-full mt-2 h-2" />
                 </div>
                 <div className="w-12 h-12 bg-orange-500/10 rounded-lg flex items-center justify-center">
                   <Calendar className="h-6 w-6 text-orange-500" />
@@ -230,7 +335,7 @@ export const Dashboard: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Pending Grading</p>
-                  <p className="text-2xl font-bold text-foreground">{dashboardData.pendingGrading}</p>
+                  <p className="text-2xl font-bold text-foreground">{pendingGrading}</p>
                   <div className="text-sm text-muted-foreground mt-1">Need attention</div>
                 </div>
                 <div className="w-12 h-12 bg-purple-500/10 rounded-lg flex items-center justify-center">
@@ -245,7 +350,7 @@ export const Dashboard: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Upcoming Deadlines</p>
-                  <p className="text-2xl font-bold text-foreground">{dashboardData.upcomingDeadlines}</p>
+                  <p className="text-2xl font-bold text-foreground">{upcomingDeadlines}</p>
                   <div className="text-sm text-muted-foreground mt-1">This week</div>
                 </div>
                 <div className="w-12 h-12 bg-red-500/10 rounded-lg flex items-center justify-center">
@@ -259,30 +364,10 @@ export const Dashboard: React.FC = () => {
         {/* Main Content */}
         <Tabs defaultValue="overview" className="space-y-6">
           <TabsList className="grid w-full grid-cols-4 bg-muted p-1">
-            <TabsTrigger
-              value="overview"
-              className="data-[state=active]:bg-background data-[state=active]:text-foreground"
-            >
-              Overview
-            </TabsTrigger>
-            <TabsTrigger
-              value="performance"
-              className="data-[state=active]:bg-background data-[state=active]:text-foreground"
-            >
-              Performance
-            </TabsTrigger>
-            <TabsTrigger
-              value="attendance"
-              className="data-[state=active]:bg-background data-[state=active]:text-foreground"
-            >
-              Attendance
-            </TabsTrigger>
-            <TabsTrigger
-              value="activities"
-              className="data-[state=active]:bg-background data-[state=active]:text-foreground"
-            >
-              Recent Activities
-            </TabsTrigger>
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="performance">Performance</TabsTrigger>
+            <TabsTrigger value="attendance">Attendance</TabsTrigger>
+            <TabsTrigger value="activities">Recent Activities</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview">
@@ -303,39 +388,12 @@ export const Dashboard: React.FC = () => {
                           stroke="hsl(var(--muted-foreground))"
                           tickFormatter={(value) => new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                         />
-                        <YAxis
-                          yAxisId="left"
-                          stroke="hsl(var(--muted-foreground))"
-                          domain={[0, 100]}
-                        />
-                        <YAxis
-                          yAxisId="right"
-                          orientation="right"
-                          stroke="hsl(var(--muted-foreground))"
-                        />
-                        <Tooltip 
-                          content={<CustomTooltip />}
-                          labelFormatter={(value) => new Date(value).toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'long', day: 'numeric' })}
-                        />
+                        <YAxis yAxisId="left" stroke="hsl(var(--muted-foreground))" domain={[0, 100]} />
+                        <YAxis yAxisId="right" orientation="right" stroke="hsl(var(--muted-foreground))" />
+                        <Tooltip content={<CustomTooltip />} />
                         <Legend />
-                        <Line
-                          yAxisId="left"
-                          type="monotone"
-                          dataKey="averageScore"
-                          stroke="#0088FE"
-                          strokeWidth={2}
-                          name="Average Score"
-                          dot={{ r: 4 }}
-                        />
-                        <Line
-                          yAxisId="right"
-                          type="monotone"
-                          dataKey="totalAssessments"
-                          stroke="#00C49F"
-                          strokeWidth={2}
-                          name="Total Assessments"
-                          dot={{ r: 4 }}
-                        />
+                        <Line yAxisId="left" type="monotone" dataKey="averageScore" stroke="#0088FE" strokeWidth={2} name="Average Score" dot={{ r: 4 }} />
+                        <Line yAxisId="right" type="monotone" dataKey="totalAssessments" stroke="#00C49F" strokeWidth={2} name="Total Assessments" dot={{ r: 4 }} />
                       </LineChart>
                     </ResponsiveContainer>
                   ) : (
@@ -361,17 +419,8 @@ export const Dashboard: React.FC = () => {
                     <ResponsiveContainer width="100%" height={300}>
                       <BarChart data={safeSubjectPerformance}>
                         <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                        <XAxis
-                          dataKey="subject"
-                          stroke="hsl(var(--muted-foreground))"
-                          angle={-45}
-                          textAnchor="end"
-                          height={60}
-                        />
-                        <YAxis
-                          stroke="hsl(var(--muted-foreground))"
-                          domain={[0, 100]}
-                        />
+                        <XAxis dataKey="subject" stroke="hsl(var(--muted-foreground))" angle={-45} textAnchor="end" height={60} />
+                        <YAxis stroke="hsl(var(--muted-foreground))" domain={[0, 100]} />
                         <Tooltip content={<CustomTooltip />} />
                         <Legend />
                         <Bar dataKey="averageScore" fill="#8884d8" name="Average Score" />
@@ -400,24 +449,11 @@ export const Dashboard: React.FC = () => {
                     <ResponsiveContainer width="100%" height={300}>
                       <LineChart data={safeAttendanceTrend}>
                         <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                        <XAxis
-                          dataKey="month"
-                          stroke="hsl(var(--muted-foreground))"
-                        />
-                        <YAxis
-                          stroke="hsl(var(--muted-foreground))"
-                          domain={[0, 100]}
-                        />
+                        <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" />
+                        <YAxis stroke="hsl(var(--muted-foreground))" domain={[0, 100]} />
                         <Tooltip content={<CustomTooltip />} />
                         <Legend />
-                        <Line
-                          type="monotone"
-                          dataKey="rate"
-                          stroke="#FF8042"
-                          strokeWidth={2}
-                          name="Attendance Rate (%)"
-                          dot={{ r: 4 }}
-                        />
+                        <Line type="monotone" dataKey="rate" stroke="#FF8042" strokeWidth={2} name="Attendance Rate (%)" dot={{ r: 4 }} />
                       </LineChart>
                     </ResponsiveContainer>
                   ) : (
@@ -488,16 +524,8 @@ export const Dashboard: React.FC = () => {
                     <ResponsiveContainer width="100%" height={300}>
                       <BarChart data={safeSubjectPerformance}>
                         <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                        <XAxis
-                          dataKey="subject"
-                          stroke="hsl(var(--muted-foreground))"
-                          angle={-45}
-                          textAnchor="end"
-                          height={60}
-                        />
-                        <YAxis
-                          stroke="hsl(var(--muted-foreground))"
-                        />
+                        <XAxis dataKey="subject" stroke="hsl(var(--muted-foreground))" angle={-45} textAnchor="end" height={60} />
+                        <YAxis stroke="hsl(var(--muted-foreground))" />
                         <Tooltip content={<CustomTooltip />} />
                         <Legend />
                         <Bar dataKey="averageScore" fill="#8884d8" name="Average Score" />
@@ -531,13 +559,8 @@ export const Dashboard: React.FC = () => {
                     <ResponsiveContainer width="100%" height={300}>
                       <BarChart data={safeAttendanceTrend}>
                         <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                        <XAxis
-                          dataKey="month"
-                          stroke="hsl(var(--muted-foreground))"
-                        />
-                        <YAxis
-                          stroke="hsl(var(--muted-foreground))"
-                        />
+                        <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" />
+                        <YAxis stroke="hsl(var(--muted-foreground))" />
                         <Tooltip content={<CustomTooltip />} />
                         <Legend />
                         <Bar dataKey="present" stackId="a" fill="#00C49F" name="Present" />
@@ -565,7 +588,7 @@ export const Dashboard: React.FC = () => {
                 <CardContent>
                   {safeAttendanceTrend.length > 0 ? (
                     <div className="space-y-4">
-                      {safeAttendanceTrend.map((month, index) => (
+                      {safeAttendanceTrend.map((month: AttendanceTrendItem, index: number) => (
                         <div key={index} className="space-y-2">
                           <div className="flex justify-between text-sm">
                             <span className="text-foreground">{month.month}</span>
@@ -596,23 +619,17 @@ export const Dashboard: React.FC = () => {
                   <div className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                       <div className="text-center p-3 bg-green-100 dark:bg-green-900/20 rounded-lg">
-                        <div className="text-2xl font-bold text-green-600 dark:text-green-400">
-                          {totalPresent}
-                        </div>
+                        <div className="text-2xl font-bold text-green-600 dark:text-green-400">{totalPresent}</div>
                         <div className="text-sm text-muted-foreground">Total Present</div>
                       </div>
                       <div className="text-center p-3 bg-red-100 dark:bg-red-900/20 rounded-lg">
-                        <div className="text-2xl font-bold text-red-600 dark:text-red-400">
-                          {totalAbsent}
-                        </div>
+                        <div className="text-2xl font-bold text-red-600 dark:text-red-400">{totalAbsent}</div>
                         <div className="text-sm text-muted-foreground">Total Absent</div>
                       </div>
                     </div>
                     <Separator className="bg-border" />
                     <div className="text-center">
-                      <div className="text-3xl font-bold text-primary">
-                        {dashboardData.averageAttendance}%
-                      </div>
+                      <div className="text-3xl font-bold text-primary">{averageAttendance}%</div>
                       <div className="text-sm text-muted-foreground">Overall Attendance Rate</div>
                     </div>
                   </div>
@@ -631,7 +648,7 @@ export const Dashboard: React.FC = () => {
                 {safeRecentActivities.length > 0 ? (
                   <ScrollArea className="h-[400px]">
                     <div className="space-y-4">
-                      {safeRecentActivities.map((activity) => (
+                      {safeRecentActivities.map((activity: RecentActivity) => (
                         <div key={activity.id} className="flex items-start space-x-4 p-4 border border-border rounded-lg bg-background">
                           <div className={`w-10 h-10 rounded-full flex items-center justify-center ${activity.type === 'assessment' ? 'bg-blue-100 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400' :
                             activity.type === 'attendance' ? 'bg-green-100 dark:bg-green-900/20 text-green-600 dark:text-green-400' :
