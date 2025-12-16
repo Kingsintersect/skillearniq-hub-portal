@@ -25,20 +25,20 @@ export const useParentMessages = () => {
     });
 
     // Sync React Query state with Zustand store
-    useEffect(() => {
-        setMessagesLoading(query.isLoading);
-        setMessagesError(query.error ? 'Failed to load messages' : null);
-        if (query.data?.data) {
-            setMessages(query.data.data);
-        }
-    }, [
-        query.data,
-        query.isLoading,
-        query.error,
-        setMessages,
-        setMessagesLoading,
-        setMessagesError,
-    ]);
+    // useEffect(() => {
+    //     setMessagesLoading(query.isLoading);
+    //     setMessagesError(query.error ? 'Failed to load messages' : null);
+    //     if (query.data?.data) {
+    //         setMessages(query.data.data);
+    //     }
+    // }, [
+    //     query.data,
+    //     query.isLoading,
+    //     query.error,
+    //     setMessages,
+    //     setMessagesLoading,
+    //     setMessagesError,
+    // ]);
 
     // Sync selected message with selectedStudentId
     useEffect(() => {

@@ -437,13 +437,16 @@ export const ParentNavMain: SidebarNavConfig = {
     ],
     flat: [
 
+        // {
+        //     title: "MESSAGES",
+        //     url: "/parent/messages",
+        //     icon: SendHorizonal,
+        //     display: true,
+        // },
+        
+
         {
-            title: "MESSAGES",
-            url: "/parent/messages",
-            icon: SendHorizonal,
-            display: true,
-        },
-        {
+
             title: "COURSES",
             url: "/parent/classes",
             icon: BookOpen,
