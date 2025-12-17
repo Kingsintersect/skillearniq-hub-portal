@@ -1,31 +1,81 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { NotificationSettings, Preferences, StudentGroup, TeacherProfile, teacherService } from '@/lib/services/teacherService';
+import { teacherService } from '@/lib/services/teacherService';
 import { toast } from 'sonner';
 
 export const useTeacherQueries = () => {
   const queryClient = useQueryClient();
 
-  // Dashboard
+  // ==================== DASHBOARD ====================
   const useDashboardData = (teacherId: number) => {
     return useQuery({
       queryKey: ['teacher', 'dashboard', teacherId],
       queryFn: () => teacherService.getDashboardData(teacherId),
-      staleTime: 5 * 60 * 1000, // 5 minutes
+      staleTime: 5 * 60 * 1000,
+      retry: 2,
     });
   };
 
-  // Classes
-  const useClasses = (teacherId: number, filters?: {
+  // ==================== ATTENDANCE (General) ====================
+ // In your useTeacherQueries hook
+const useAttendance = (
+  teacherId?: number, // Make teacherId optional
+  filters?: {
     term?: string;
+    classId?: number;
+  }
+) => {
+  return useQuery({
+    queryKey: ['teacher', 'attendance', teacherId, filters],
+    queryFn: () => {
+      if (!teacherId) {
+        throw new Error('Teacher ID is required');
+      }
+      return teacherService.getAttendance(teacherId, filters);
+    },
+    staleTime: 5 * 60 * 1000,
+    retry: 2,
+    enabled: !!teacherId, // Only enable when teacherId is truthy
+  });
+};
+
+  // ==================== STUDENTS ====================
+  const useStudents = (teacherId: number, filters?: {
+    term?: string;
+    classId?: number;
   }) => {
+    return useQuery({
+      queryKey: ['teacher', 'students', teacherId, filters],
+      queryFn: () => teacherService.getStudentsPerCourse(teacherId, filters),
+      staleTime: 10 * 60 * 1000,
+      retry: 2,
+    });
+  };
+
+  // ==================== ATTENDANCE PER COURSE ====================
+  const useAttendancePerCourse = (teacherId: number, filters?: {
+    term?: string;
+    classId?: number;
+  }) => {
+    return useQuery({
+      queryKey: ['teacher', 'attendance-per-course', teacherId, filters],
+      queryFn: () => teacherService.getAttendancePerCourse(teacherId, filters),
+      staleTime: 5 * 60 * 1000,
+      retry: 2,
+      enabled: !!filters?.classId,
+    });
+  };
+
+  // ==================== CLASSES ====================
+  const useClasses = (teacherId: number, filters?: { term?: string }) => {
     return useQuery({
       queryKey: ['teacher', 'classes', teacherId, filters],
       queryFn: () => teacherService.getClasses(teacherId, filters),
-      staleTime: 10 * 60 * 1000, // 10 minutes
+      staleTime: 10 * 60 * 1000,
+      retry: 2,
     });
   };
 
-  // Assessments
+  // ==================== ASSESSMENTS ====================
   const useAssessments = (teacherId: number, filters?: {
     term?: string;
     classId?: number;
@@ -33,46 +83,75 @@ export const useTeacherQueries = () => {
   }) => {
     return useQuery({
       queryKey: ['teacher', 'assessments', teacherId, filters],
-      queryFn: () => teacherService.getAssessments(teacherId, filters),
+      queryFn: async () => {
+        if (!filters?.classId) {
+          console.log('No classId provided, skipping assessments fetch');
+          return null;
+        }
+        
+        try {
+          const data = await teacherService.getAssessments(teacherId, filters);
+          return data;
+        } catch (error: any) {
+          console.warn('Error fetching assessments:', error.message || error);
+          return {
+            assessments: {
+              upcoming: [],
+              completed: [],
+              drafts: []
+            }
+          };
+        }
+      },
       staleTime: 5 * 60 * 1000,
+      retry: 1,
+      enabled: !!teacherId && !!filters?.classId,
     });
   };
 
-  // Attendance
-  const useAttendance = (teacherId: number, filters?: {
-    term?: string;
-    classId?: number;
-  }) => {
+  // ==================== PROFILE ====================
+  const useProfile = (teacherId: number) => {
     return useQuery({
-      queryKey: ['teacher', 'attendance', teacherId, filters],
-      queryFn: () => teacherService.getAttendance(teacherId, filters),
-      staleTime: 5 * 60 * 1000,
+      queryKey: ['teacher', 'profile', teacherId],
+      queryFn: () => teacherService.getProfile(teacherId),
+      staleTime: 30 * 60 * 1000,
+      retry: 2,
     });
   };
 
-  // Students
-  const useStudents = (teacherId: number, filters?: {
-    term?: string;
-    classId?: number;
-  }) => {
+  // ==================== NOTIFICATION SETTINGS ====================
+  const useNotificationSettings = (teacherId: number) => {
     return useQuery({
-      queryKey: ['teacher', 'students', teacherId, filters],
-      queryFn: () => teacherService.getStudents(teacherId, filters),
-      staleTime: 10 * 60 * 1000,
+      queryKey: ['teacher', 'notifications', teacherId],
+      queryFn: () => teacherService.getNotificationSettings(teacherId),
+      staleTime: 30 * 60 * 1000,
+      retry: 2,
     });
   };
 
-  // Messages
-  const useMessages = (teacherId: number) => {
+  // ==================== SECURITY SETTINGS ====================
+  const useSecuritySettings = (teacherId: number) => {
     return useQuery({
-      queryKey: ['teacher', 'messages', teacherId],
-      queryFn: () => teacherService.getMessages(teacherId),
-      staleTime: 2 * 60 * 1000, // 2 minutes
+      queryKey: ['teacher', 'security', teacherId],
+      queryFn: () => teacherService.getSecuritySettings(teacherId),
+      staleTime: 30 * 60 * 1000,
+      retry: 2,
     });
   };
 
+  // ==================== PREFERENCES ====================
+  const usePreferences = (teacherId: number) => {
+    return useQuery({
+      queryKey: ['teacher', 'preferences', teacherId],
+      queryFn: () => teacherService.getPreferences(teacherId),
+      staleTime: 30 * 60 * 1000,
+      retry: 2,
+    });
+  };
 
-  // Mutations
+  // ==================== MUTATIONS ====================
+
+  // Create Assessment
   const useCreateAssessment = () => {
     return useMutation({
       mutationFn: teacherService.createAssessment,
@@ -87,6 +166,7 @@ export const useTeacherQueries = () => {
     });
   };
 
+  // Update Assessment
   const useUpdateAssessment = () => {
     return useMutation({
       mutationFn: ({ id, data }: { id: number; data: any }) =>
@@ -101,6 +181,7 @@ export const useTeacherQueries = () => {
     });
   };
 
+  // Delete Assessment
   const useDeleteAssessment = () => {
     return useMutation({
       mutationFn: teacherService.deleteAssessment,
@@ -115,16 +196,7 @@ export const useTeacherQueries = () => {
     });
   };
 
-  // Groups
-  const useGroups = (teacherId: number, classId?: number) => {
-    return useQuery({
-      queryKey: ['teacher', 'groups', teacherId, classId],
-      queryFn: () => teacherService.getGroups(teacherId, classId),
-      staleTime: 10 * 60 * 1000,
-    });
-  };
-
-  // Group Mutations
+  // Create Group
   const useCreateGroup = () => {
     return useMutation({
       mutationFn: teacherService.createGroup,
@@ -138,9 +210,10 @@ export const useTeacherQueries = () => {
     });
   };
 
+  // Update Group
   const useUpdateGroup = () => {
     return useMutation({
-      mutationFn: ({ id, data }: { id: number; data: Partial<StudentGroup> }) =>
+      mutationFn: ({ id, data }: { id: number; data: any }) =>
         teacherService.updateGroup(id, data),
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ['teacher', 'groups'] });
@@ -152,6 +225,7 @@ export const useTeacherQueries = () => {
     });
   };
 
+  // Delete Group
   const useDeleteGroup = () => {
     return useMutation({
       mutationFn: teacherService.deleteGroup,
@@ -165,44 +239,10 @@ export const useTeacherQueries = () => {
     });
   };
 
-  const useAddStudentToGroup = () => {
-    return useMutation({
-      mutationFn: teacherService.addStudentToGroup,
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['teacher', 'groups'] });
-        toast.success('Student added to group');
-      },
-      onError: (error: any) => {
-        toast.error(error.message || 'Failed to add student to group');
-      }
-    });
-  };
-
-  const useRemoveStudentFromGroup = () => {
-    return useMutation({
-      mutationFn: teacherService.removeStudentFromGroup,
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['teacher', 'groups'] });
-        toast.success('Student removed from group');
-      },
-      onError: (error: any) => {
-        toast.error(error.message || 'Failed to remove student from group');
-      }
-    });
-  };
-
-  // Profile
-  const useProfile = (teacherId: number) => {
-    return useQuery({
-      queryKey: ['teacher', 'profile', teacherId],
-      queryFn: () => teacherService.getProfile(teacherId),
-      staleTime: 30 * 60 * 1000, // 30 minutes
-    });
-  };
-
+  // Update Profile
   const useUpdateProfile = () => {
     return useMutation({
-      mutationFn: ({ teacherId, data }: { teacherId: number; data: Partial<TeacherProfile> }) =>
+      mutationFn: ({ teacherId, data }: { teacherId: number; data: any }) =>
         teacherService.updateProfile(teacherId, data),
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ['teacher', 'profile'] });
@@ -214,18 +254,10 @@ export const useTeacherQueries = () => {
     });
   };
 
-  // Notification Settings
-  const useNotificationSettings = (teacherId: number) => {
-    return useQuery({
-      queryKey: ['teacher', 'notifications', teacherId],
-      queryFn: () => teacherService.getNotificationSettings(teacherId),
-      staleTime: 30 * 60 * 1000,
-    });
-  };
-
+  // Update Notification Settings
   const useUpdateNotificationSettings = () => {
     return useMutation({
-      mutationFn: ({ teacherId, data }: { teacherId: number; data: NotificationSettings }) =>
+      mutationFn: ({ teacherId, data }: { teacherId: number; data: any }) =>
         teacherService.updateNotificationSettings(teacherId, data),
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ['teacher', 'notifications'] });
@@ -237,27 +269,10 @@ export const useTeacherQueries = () => {
     });
   };
 
-  // Security Settings
-  const useSecuritySettings = (teacherId: number) => {
-    return useQuery({
-      queryKey: ['teacher', 'security', teacherId],
-      queryFn: () => teacherService.getSecuritySettings(teacherId),
-      staleTime: 30 * 60 * 1000,
-    });
-  };
-
-  // Preferences
-  const usePreferences = (teacherId: number) => {
-    return useQuery({
-      queryKey: ['teacher', 'preferences', teacherId],
-      queryFn: () => teacherService.getPreferences(teacherId),
-      staleTime: 30 * 60 * 1000,
-    });
-  };
-
+  // Update Preferences
   const useUpdatePreferences = () => {
     return useMutation({
-      mutationFn: ({ teacherId, data }: { teacherId: number; data: Preferences }) =>
+      mutationFn: ({ teacherId, data }: { teacherId: number; data: any }) =>
         teacherService.updatePreferences(teacherId, data),
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ['teacher', 'preferences'] });
@@ -289,12 +304,12 @@ export const useTeacherQueries = () => {
     useClasses,
     useAssessments,
     useAttendance,
+    useAttendancePerCourse,
     useStudents,
-    useMessages,
-    useGroups,
-
-
-
+    useProfile,
+    useNotificationSettings,
+    useSecuritySettings,
+    usePreferences,
 
     // Mutations
     useCreateAssessment,
@@ -303,15 +318,9 @@ export const useTeacherQueries = () => {
     useCreateGroup,
     useUpdateGroup,
     useDeleteGroup,
-    useAddStudentToGroup,
-    useRemoveStudentFromGroup,
     useUpdateProfile,
     useUpdateNotificationSettings,
     useUpdatePreferences,
     useChangePassword,
-    usePreferences,
-    useProfile,
-    useNotificationSettings,
-    useSecuritySettings,
   };
 };

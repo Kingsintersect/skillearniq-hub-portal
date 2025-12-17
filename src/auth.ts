@@ -5,6 +5,7 @@ import { authApi } from "./lib/services/auth"
 import { UserInterface } from "./types/global"
 
 export const { auth, handlers, signIn, signOut } = NextAuth({
+    trustHost: true,
     providers: [
         Credentials({
             credentials: {

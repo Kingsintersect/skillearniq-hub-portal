@@ -33,23 +33,23 @@ export const useParentPayments = () => {
     });
 
     // Sync React Query state with Zustand store
-    useEffect(() => {
-        setPaymentsLoading(paymentsQuery.isLoading);
-        setPaymentsError(paymentsQuery.error ? 'Failed to load payments' : null);
+    // useEffect(() => {
+    //     setPaymentsLoading(paymentsQuery.isLoading);
+    //     setPaymentsError(paymentsQuery.error ? 'Failed to load payments' : null);
 
-        if (paymentsQuery.data?.data) {
-            setPayments(paymentsQuery.data.data.payments || []);
-            setPaymentSummary(paymentsQuery.data.data.summary || null);
-        }
-    }, [
-        paymentsQuery.data,
-        paymentsQuery.isLoading,
-        paymentsQuery.error,
-        setPayments,
-        setPaymentSummary,
-        setPaymentsLoading,
-        setPaymentsError,
-    ]);
+    //     if (paymentsQuery.data?.data) {
+    //         setPayments(paymentsQuery.data.data.payments || []);
+    //         setPaymentSummary(paymentsQuery.data.data.summary || null);
+    //     }
+    // }, [
+    //     paymentsQuery.data,
+    //     paymentsQuery.isLoading,
+    //     paymentsQuery.error,
+    //     setPayments,
+    //     setPaymentSummary,
+    //     setPaymentsLoading,
+    //     setPaymentsError,
+    // ]);
 
     // Filter payments based on selectedStudentId and filters
     useEffect(() => {

@@ -24,7 +24,7 @@ const layout = async ({ children }: { children: React.ReactNode }) => {
     const session = await auth()
 
     return (
-        <MainLayout requireAuth revealHeader={true}>
+        <MainLayout requireAuth revealHeader={true} >
             <ExtensionCleanup />
             <SidebarProvider>
                 <SafeSidebarProvider>
