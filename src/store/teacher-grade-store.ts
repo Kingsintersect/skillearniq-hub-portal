@@ -1,10 +1,10 @@
-// store/gradeStore.ts
+// store/teacher-grade-store.ts
 import { create } from 'zustand';
-import { GradeStore, Student } from '@/types/grades';
-import { gradeService } from '@/lib/services/admin/gradeService';
+import { TeacherGradeStore, StudentGradeData, Grade } from '@/types/teacher-grades';
+import { teacherService } from '@/lib/services/teacherService';
 import { toast } from 'sonner';
 
-const getLetterGrade = (percentage: number): string => {
+const getLetterGrade = (percentage: number): Grade => {
   if (percentage >= 90) return 'A';
   if (percentage >= 80) return 'B';
   if (percentage >= 70) return 'C';
@@ -12,107 +12,78 @@ const getLetterGrade = (percentage: number): string => {
   return 'F';
 };
 
-export const useGradeStore = create<GradeStore>((set, get) => ({
-  courseCategories: [],
+export const useTeacherGradeStore = create<TeacherGradeStore>((set, get) => ({
   courses: [],
-  selectedCategory: '',
   selectedCourse: '',
   gradeData: [],
   isLoading: false,
   error: null,
   courseInfo: null,
 
-  // FIXED: fetchCategories function with better error handling
-  fetchCategories: async () => {
+  // Fetch teacher's assigned courses using existing getClasses method
+  fetchCourses: async () => {
     set({ isLoading: true, error: null });
     
-    try {
-      const response = await gradeService.getCourseCategories();
-      
-      console.log('Categories API Response:', response); // Debug log
-      
-      if (response.status === 200 || response.status === 201) {
-        const categories = response.data.map((cat: any) => ({
-          id: cat.id.toString(),
-          name: cat.name
-        }));
-        
-        console.log('Processed categories:', categories); // Debug log
-        
-        set({ 
-          courseCategories: categories, 
-          isLoading: false,
-          error: null 
-        });
-        
-        // Show success toast only if we actually got categories
-        if (categories.length > 0) {
-          toast.success(`Loaded ${categories.length} categories`);
-        } else {
-          toast.info('No categories available');
+    const getCurrentTeacherId = (): number => {
+      if (typeof window !== 'undefined') {
+        const userData = localStorage.getItem('user');
+        if (userData) {
+          try {
+            const user = JSON.parse(userData);
+            return user.id || 22;
+          } catch (e) {
+            console.error('Error parsing user data:', e);
+            return 22;
+          }
         }
-      } else {
-        const errorMsg = response.message || 'Failed to fetch categories';
-        set({ 
-          error: errorMsg, 
-          isLoading: false 
-        });
-        toast.error(errorMsg);
       }
-    } catch (error: any) {
-      console.error('Error in fetchCategories:', error); // Debug log
-      const errorMsg = error.message || 'Network error while fetching categories';
-      set({ 
-        error: errorMsg, 
-        isLoading: false 
-      });
-      toast.error(errorMsg);
-    }
-  },
-
-  // FIXED: setSelectedCategory with better error handling
-  setSelectedCategory: async (categoryId: string) => {
-    set({ 
-      selectedCategory: categoryId,
-      selectedCourse: '',
-      courses: [],
-      gradeData: [],
-      courseInfo: null,
-      error: null
-    });
-
-    if (!categoryId) return;
-
-    set({ isLoading: true });
+      return 22;
+    };
 
     try {
-      const response = await gradeService.getCoursesByCategory(parseInt(categoryId));
+      const teacherId = getCurrentTeacherId();
       
-      console.log('Courses API Response:', response); // Debug log
+      // Use the existing getClasses method that works in AssessmentsPage
+      const classesData = await teacherService.getClasses(teacherId);
       
-      if (response.status === 200 || response.status === 201) {
-        const courses = response.data.map((course: any) => ({
+      console.log('Teacher Courses Raw Response:', classesData);
+      
+      // teacherService.getClasses returns the data directly (not wrapped in ApiResponse)
+      if (Array.isArray(classesData)) {
+        const courses = classesData.map((course: any) => ({
           id: course.id.toString(),
-          name: course.fullname,
-          category: course.category.toString(),
-          course_code: course.shortname
+          name: course.name,
+          course_code: course.shortName || course.code,
+          shortname: course.shortName,
+          category: course.category?.toString() || '0',
+          studentCount: course.studentCount,
+          term: course.term,
+          academicYear: course.academicYear,
+          progress: course.progress,
+          averageGrade: course.averageGrade,
+          room: course.room,
+          schedule: course.schedule,
+          subject: course.subject,
+          level: course.level,
+          arm: course.arm
         }));
         
-        console.log('Processed courses:', courses); // Debug log
+        console.log('Processed teacher courses:', courses);
         
         set({ 
-          courses, 
+          courses: courses, 
           isLoading: false,
           error: null 
         });
         
         if (courses.length > 0) {
-          toast.success(`Found ${courses.length} courses`);
+          toast.success(`Loaded ${courses.length} assigned courses`);
         } else {
-          toast.info('No courses available for this category');
+          toast.info('No courses assigned to you');
         }
       } else {
-        const errorMsg = response.message || 'Failed to fetch courses';
+        console.error('Unexpected response structure from getClasses:', classesData);
+        const errorMsg = 'Invalid course data structure received';
         set({ 
           error: errorMsg, 
           isLoading: false 
@@ -120,7 +91,7 @@ export const useGradeStore = create<GradeStore>((set, get) => ({
         toast.error(errorMsg);
       }
     } catch (error: any) {
-      console.error('Error in setSelectedCategory:', error); // Debug log
+      console.error('Error in fetchCourses:', error);
       const errorMsg = error.message || 'Network error while fetching courses';
       set({ 
         error: errorMsg, 
@@ -131,10 +102,15 @@ export const useGradeStore = create<GradeStore>((set, get) => ({
   },
 
   setSelectedCourse: (courseId: string) => {
-    set({ selectedCourse: courseId });
+    set({ 
+      selectedCourse: courseId,
+      gradeData: [],
+      courseInfo: null,
+      error: null
+    });
   },
 
-  setGradeData: (data: Student[]) => {
+  setGradeData: (data: StudentGradeData[]) => {
     set({ gradeData: data });
   },
 
@@ -146,7 +122,7 @@ export const useGradeStore = create<GradeStore>((set, get) => ({
     set({ error });
   },
 
-  // FIXED: fetchGradeData with better error handling
+  // Fetch grade data for selected course
   fetchGradeData: async () => {
     const { selectedCourse } = get();
     if (!selectedCourse) {
@@ -164,9 +140,9 @@ export const useGradeStore = create<GradeStore>((set, get) => ({
     });
 
     try {
-      const response = await gradeService.getCourseGrades(parseInt(selectedCourse));
+      const response = await teacherService.getCourseGrades(parseInt(selectedCourse));
       
-      console.log('Grades API Response:', response); // Debug log
+      console.log('Teacher Grades API Response:', response);
       
       if (response.status === 200 || response.status === 201) {
         const courseData = response.data;
@@ -181,7 +157,7 @@ export const useGradeStore = create<GradeStore>((set, get) => ({
           }
         });
 
-        const students: Student[] = courseData.students.map((student: any, index: number) => {
+        const students: StudentGradeData[] = courseData.students.map((student: any, index: number) => {
           let assignmentScore = 0;
           let quizScore = 0;
           let examScore = student.final_grade || 0;
@@ -202,6 +178,8 @@ export const useGradeStore = create<GradeStore>((set, get) => ({
           const firstName = nameParts[0] || 'Student';
           const lastName = nameParts[1] || (index + 1).toString();
 
+          const grade: Grade = student.letter_grade as Grade || getLetterGrade(total);
+
           return {
             id: (index + 1).toString(),
             email: student.student_email || '',
@@ -211,7 +189,7 @@ export const useGradeStore = create<GradeStore>((set, get) => ({
             quiz: quizScore,
             exam: examScore,
             total: total,
-            grade: student.letter_grade || getLetterGrade(total)
+            grade: grade
           };
         });
 
@@ -230,7 +208,7 @@ export const useGradeStore = create<GradeStore>((set, get) => ({
         toast.error(errorMsg);
       }
     } catch (error: any) {
-      console.error('Error in fetchGradeData:', error); // Debug log
+      console.error('Error in fetchGradeData:', error);
       const errorMsg = error.message || 'Network error while fetching grades';
       set({ 
         error: errorMsg, 
@@ -240,13 +218,12 @@ export const useGradeStore = create<GradeStore>((set, get) => ({
     }
   },
 
-  getLetterGrade: (percentage: number): string => {
+  getLetterGrade: (percentage: number): Grade => {
     return getLetterGrade(percentage);
   },
 
   resetState: () => {
     set({
-      selectedCategory: '',
       selectedCourse: '',
       courses: [],
       gradeData: [],

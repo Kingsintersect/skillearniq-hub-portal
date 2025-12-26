@@ -15,6 +15,58 @@ export interface DashboardStats {
   attendanceTrend: AttendanceTrend[];
 }
 
+export interface CourseCategory {
+  id: number;
+  name: string;
+  parent: number;
+  sortorder: number;
+}
+
+export interface Course {
+  id: number;
+  fullname: string;
+  shortname: string;
+  category: number;
+  visible: number;
+  startdate: number;
+  summary: string;
+}
+
+export interface Instructor {
+  id: number;
+  firstname: string;
+  lastname: string;
+  email: string;
+}
+
+export interface StudentActivity {
+  activity_name: string;
+  type: 'quiz' | 'assign' | 'exam' | 'other';
+  grade: number;
+  max_grade: number;
+}
+
+export interface StudentGrade {
+  student_id: number;
+  student_email: string;
+  student_username: string;
+  final_grade: number;
+  letter_grade: string;
+  quality_points: number;
+  credit_load: number;
+  activities: StudentActivity[];
+}
+
+export interface CourseGradesResponse {
+  course_id: number;
+  course_code: string;
+  course_name: string;
+  course_image_url: string;
+  instructors: Instructor[];
+  students: StudentGrade[];
+}
+
+
 
 export interface GeneralAttendanceApiResponse {
   attendance: {
@@ -341,7 +393,44 @@ getDashboardData: async (teacherId: number): Promise<ApiResponse<DashboardStats>
   }
 },
 
-// Add this method to teacherService
+getTeacherCourses: async (): Promise<ApiResponse<Course[]>> => {
+  try {
+    const response = await apiClient.get<any>('/teacher/courses');
+    
+    // Handle different response structures
+    let coursesData: Course[] = [];
+    
+    if (Array.isArray(response.data)) {
+      // Direct array response
+      coursesData = response.data;
+    } else if (response.data && Array.isArray(response.data.data)) {
+      // Nested data property
+      coursesData = response.data.data;
+    } else if (response.data?.data) {
+      // Single object response
+      coursesData = [response.data.data];
+    } else if (response.data) {
+      // If response.data is already an array of courses
+      coursesData = response.data;
+    }
+    
+    return {
+      status: 200,
+      message: 'Success',
+      data: coursesData
+    };
+  } catch (error: any) {
+    console.error('Error fetching teacher courses:', error);
+    return {
+      status: error.statusCode || 500,
+      message: error.message || 'Failed to fetch courses',
+      data: []
+    };
+  }
+},
+
+
+
 getStudentsCount: async (teacherId: number): Promise<number> => {
   try {
     const response = await apiClient.get<StudentsApiResponse>('/teacher/dashboard/students');
@@ -926,5 +1015,53 @@ getAttendancePerCourse: async (teacherId: number, filters?: {
       console.error('Error publishing assessment results:', error);
       throw error;
     }
+  },
+
+  getCourseGrades: async (courseId: number): Promise<ApiResponse<CourseGradesResponse>> => {
+  try {
+    const response = await apiClient.get<any>(`/teacher/course/course-gradings/${courseId}`);
+    
+    console.log('Teacher Course Grades Response:', response);
+    
+    // Handle different response structures
+    let courseData: any = {};
+    
+    if (response.data && typeof response.data === 'object') {
+      if (response.data.data) {
+        courseData = response.data.data;
+      } else {
+        courseData = response.data;
+      }
+    }
+    
+    const formattedData: CourseGradesResponse = {
+      course_id: courseData.course_id || courseId,
+      course_code: courseData.course_code || '',
+      course_name: courseData.course_name || '',
+      course_image_url: courseData.course_image_url || '',
+      instructors: Array.isArray(courseData.instructors) ? courseData.instructors : [],
+      students: Array.isArray(courseData.students) ? courseData.students : []
+    };
+    
+    return {
+      status: 200,
+      message: 'Success',
+      data: formattedData
+    };
+  } catch (error: any) {
+    console.error('Error fetching teacher course grades:', error);
+    return {
+      status: error.statusCode || 500,
+      message: error.message || 'Failed to fetch course grades',
+      data: {
+        course_id: courseId,
+        course_code: '',
+        course_name: '',
+        course_image_url: '',
+        instructors: [],
+        students: []
+      }
+    };
   }
+}
 };
