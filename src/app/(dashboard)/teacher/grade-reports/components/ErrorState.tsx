@@ -1,17 +1,18 @@
-// app/(admin)/grade-reports/components/ErrorState.tsx
-'use client';
+// app/(teacher)/grade-reports/components/LoadingState.tsx
+// Same as admin version
 
+// app/(teacher)/grade-reports/components/ErrorState.tsx
+'use client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AlertCircle, RefreshCw, Home } from "lucide-react";
-import { useGradeStore } from "@/store/gradeStore";
+import { useTeacherGradeStore } from "@/store/teacher-grade-store";
 
 export default function ErrorState() {
-  const { error, fetchCategories, resetState } = useGradeStore();
+  const { error, fetchCourses, resetState } = useTeacherGradeStore();
 
   const handleRetry = () => {
-    // Try to fetch categories first, which is likely where the error occurred
-    fetchCategories();
+    fetchCourses();
   };
 
   const handleReset = () => {

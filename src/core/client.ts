@@ -1,3 +1,4 @@
+// core/client.ts (or wherever your apiClient.ts file is)
 import axios, {
     AxiosError,
     AxiosInstance,
@@ -8,27 +9,17 @@ import axios, {
 import { ApiError, ApiResponse } from "@/types/auth";
 import { APP_CONFIG, LOCAL_STORAGE_KEYS } from "@/config";
 
-// Extend the InternalAxiosRequestConfig to include _retry property
-// interface ExtendedAxiosRequestConfig extends InternalAxiosRequestConfig {
-//     _retry?: boolean;
-// }
-
-// Define the structure for refresh token response
-// interface RefreshTokenResponse {
-//     accessToken: string;
-//     refreshToken: string;
-// }
-
 // Define the structure for API error response
 interface ApiErrorResponse {
     message?: string;
     errors?: Record<string, string[]>;
     success?: boolean;
+    error?: string;
 }
 
 // Queue item interface for failed requests
 interface QueueItem {
-    resolve: (value: string) => void;  // We'll pass the new access token
+    resolve: (value: string) => void;
     reject: (reason: unknown) => void;
 }
 
@@ -73,66 +64,63 @@ class ApiClient {
             (error: unknown) => Promise.reject(error)
         );
 
-        // Response interceptor
+        // Response interceptor - FIXED VERSION
         this.instance.interceptors.response.use(
-            (response: AxiosResponse<ApiResponse>) => response,
+            (response: AxiosResponse) => {
+                // Handle 204 No Content responses - THE FIX FOR YOUR ISSUE
+                if (response.status === 204) {
+                    return {
+                        ...response,
+                        data: {
+                            status: 200,
+                            message: 'No content',
+                            data: []
+                        }
+                    };
+                }
+                
+                // Handle different response structures
+                const responseData = response.data;
+                
+                // If it's already in ApiResponse format, return as is
+                if (responseData && typeof responseData === 'object' && 'status' in responseData) {
+                    return response;
+                }
+                
+                // If response is an array (like categories data from /odl/categories)
+                if (Array.isArray(responseData)) {
+                    response.data = {
+                        status: 200,
+                        message: 'Success',
+                        data: responseData
+                    };
+                    return response;
+                }
+                
+                // If response is an object with data property
+                if (responseData && typeof responseData === 'object' && 'data' in responseData) {
+                    // Already formatted correctly
+                    return response;
+                }
+                
+                // For any other response structure, wrap it
+                response.data = {
+                    status: 200,
+                    message: 'Success',
+                    data: responseData || null
+                };
+                
+                return response;
+            },
             async (error: unknown) => {
                 const axiosError = error as AxiosError<ApiErrorResponse>;
-                // const originalRequest = axiosError.config as ExtendedAxiosRequestConfig;
 
-                // Handle 401 unauthorized errors with token refresh
-                // if (axiosError.response?.status === 401 && originalRequest && !originalRequest._retry) {
-                //     if (this.isRefreshing) {
-                //         return new Promise<AxiosResponse>((resolve, reject) => {
-                //             this.failedQueue.push({
-                //                 resolve: () => resolve(this.instance(originalRequest)),
-                //                 reject: (error) => reject(error)
-                //             });
-                //         });
-                //     }
-
-                //     originalRequest._retry = true;
-                //     this.isRefreshing = true;
                 if (axiosError.response?.status === 401) {
-                    // this.clearAuthTokens();
-                    // if (typeof window !== "undefined") {
-                    //     window.location.href = "/auth/signin";
-                    // }
+                    this.clearAuthTokens();
+                    if (typeof window !== "undefined") {
+                        window.location.href = "/auth/signin";
+                    }
                     return Promise.reject(this.handleError(error));
-
-                    // try {
-                    //     const refreshToken = localStorage.getItem(LOCAL_STORAGE_KEYS.refreshToken);
-                    //     if (refreshToken) {
-                    //         // Use the instance directly to avoid circular dependency during refresh
-                    //         const refreshResponse = await this.instance.post<ApiResponse<RefreshTokenResponse>>(
-                    //             "/auth/refresh",
-                    //             { refreshToken }
-                    //         );
-
-                    //         if (refreshResponse.data.status && refreshResponse.data.data) {
-                    //             const { accessToken, refreshToken: newRefreshToken } = refreshResponse.data.data;
-                    //             localStorage.setItem(LOCAL_STORAGE_KEYS.accessToken, accessToken);
-                    //             localStorage.setItem(LOCAL_STORAGE_KEYS.refreshToken, newRefreshToken);
-
-                    //             this.processQueue(null);
-                    //             return this.instance(originalRequest);
-                    //         } else {
-                    //             throw new Error("Failed to refresh token");
-                    //         }
-                    //     } else {
-                    //         throw new Error("No refresh token available");
-                    //     }
-                    // } catch (refreshError) {
-                    //     this.processQueue(refreshError);
-                    //     this.clearAuthTokens();
-                    //     if (typeof window !== "undefined") {
-                    //         alert("client.ts")
-                    //         window.location.href = "/auth/signin";
-                    //     }
-                    //     return Promise.reject(refreshError);
-                    // } finally {
-                    //     this.isRefreshing = false;
-                    // }
                 }
 
                 return Promise.reject(this.handleError(error));
@@ -145,7 +133,7 @@ class ApiClient {
             if (error) {
                 reject(error);
             } else {
-                resolve(""); // Signal success, the actual retry happens in the resolve function
+                resolve("");
             }
         });
 
@@ -159,9 +147,12 @@ class ApiClient {
 
             // Server responded with error status
             if (axiosError.response) {
+                const responseData = axiosError.response.data;
                 return {
-                    message: axiosError.response.data?.message || `HTTP ${axiosError.response.status}: ${axiosError.response.statusText}`,
-                    errors: axiosError.response.data?.errors,
+                    message: responseData?.message || 
+                             responseData?.error || 
+                             `HTTP ${axiosError.response.status}: ${axiosError.response.statusText}`,
+                    errors: responseData?.errors,
                     statusCode: axiosError.response.status,
                 };
             }
@@ -193,7 +184,6 @@ class ApiClient {
     private clearAuthTokens(): void {
         if (typeof window !== "undefined") {
             localStorage.removeItem(LOCAL_STORAGE_KEYS.accessToken);
-            // localStorage.removeItem(LOCAL_STORAGE_KEYS.refreshToken);
             localStorage.removeItem(LOCAL_STORAGE_KEYS.user);
         }
     }
@@ -299,8 +289,6 @@ class ApiClient {
         if (typeof window === "undefined") return false;
 
         const token = localStorage.getItem(LOCAL_STORAGE_KEYS.accessToken);
-        // const refreshToken = localStorage.getItem(LOCAL_STORAGE_KEYS.refreshToken);
-
         return !!(token);
     }
 

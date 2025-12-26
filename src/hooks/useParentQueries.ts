@@ -22,15 +22,29 @@ export const useParentQueries = () => {
     setPaymentsError,
     setGradeReportsLoading,
     setGradeReportsError,
-    selectedStudentId
+    selectedStudentId,
+    setSelectedStudentId,
+    setDashboardStats,
+    setMessages,
+    setMessagesLoading,
+    setMessagesError
   } = useParentStore();
 
   // Dashboard stats
   const useDashboardStats = () => {
     return useQuery({
       queryKey: ['parent', 'dashboard', 'stats'],
-      queryFn: () => parentService.getDashboardStats(),
-      staleTime: 5 * 60 * 1000, // 5 minutes
+      queryFn: async () => {
+        try {
+          const stats = await parentService.getDashboardStats();
+          setDashboardStats(stats);
+          return stats;
+        } catch (error: any) {
+          console.error('Error in dashboard stats query:', error);
+          throw error;
+        }
+      },
+      staleTime: 5 * 60 * 1000,
       retry: 2,
     });
   };
@@ -40,19 +54,28 @@ export const useParentQueries = () => {
     return useQuery({
       queryKey: ['parent', 'children'],
       queryFn: async () => {
-        const children = await parentService.getChildren();
-        
-        // Update store with children data
-        setChildren(children);
-        
-        // If no child is selected, select the first one
-        if (children.length > 0 && !selectedChild) {
-          setSelectedChild(children[0]);
+        try {
+          const children = await parentService.getChildren();
+          
+          console.log('Children fetched:', children);
+          
+          // Update store with children data
+          setChildren(children);
+          
+          // If no child is selected, select the first one
+          if (children.length > 0 && !selectedChild) {
+            const firstChild = children[0];
+            setSelectedChild(firstChild);
+            setSelectedStudentId(firstChild.id.toString());
+          }
+          
+          return children;
+        } catch (error: any) {
+          console.error('Error in children query:', error);
+          throw error;
         }
-        
-        return children;
       },
-      staleTime: 10 * 60 * 1000, // 10 minutes
+      staleTime: 10 * 60 * 1000,
       retry: 2,
     });
   };
@@ -71,7 +94,11 @@ export const useParentQueries = () => {
           
           // Set selected report if childId is provided
           if (childId && data.length > 0) {
-            const report = data.find(r => r.id === childId) || data[0];
+            const report = data.find(r => r.id.toString() === childId) || data[0];
+            setSelectedReport(report);
+          } else if (data.length > 0 && !selectedChild) {
+            // If no child selected but we have data, use first one
+            const report = data[0];
             setSelectedReport(report);
           }
           
@@ -85,7 +112,7 @@ export const useParentQueries = () => {
       },
       staleTime: 10 * 60 * 1000,
       retry: 2,
-      enabled: !!childId || true,
+      enabled: true,
     });
   };
 
@@ -160,8 +187,22 @@ export const useParentQueries = () => {
   const useTeacherMessages = () => {
     return useQuery({
       queryKey: ['parent', 'messages'],
-      queryFn: () => parentService.getTeacherMessages(),
-      staleTime: 2 * 60 * 1000, // 2 minutes
+      queryFn: async () => {
+        setMessagesLoading(true);
+        setMessagesError(null);
+        
+        try {
+          const messages = await parentService.getTeacherMessages();
+          setMessages(messages);
+          return messages;
+        } catch (error: any) {
+          setMessagesError(error.message);
+          throw error;
+        } finally {
+          setMessagesLoading(false);
+        }
+      },
+      staleTime: 2 * 60 * 1000,
       retry: 2,
     });
   };

@@ -1,4 +1,4 @@
-// app/(admin)/grade-reports/components/GradeTable.tsx
+
 'use client';
 
 import {

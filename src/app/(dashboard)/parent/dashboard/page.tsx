@@ -1,3 +1,4 @@
+// app/parent/dashboard/page.tsx - COMPLETE
 'use client'
 import React, { useEffect } from 'react';
 import Link from 'next/link';
@@ -12,11 +13,16 @@ import {
   MessageCircle,
   Download,
   CreditCard,
-  Loader2
+  Loader2,
+  TrendingUp,
+  AlertCircle,
+  CheckCircle,
+  Clock
 } from 'lucide-react';
 import { useParentStore } from '@/store/parentStore';
 import { useParentQueries } from '@/hooks/useParentQueries';
 import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
 
 export default function ParentsDashboard() {
   const {
@@ -25,7 +31,9 @@ export default function ParentsDashboard() {
     setChildren,
     setSelectedStudentId,
     selectedChild,
-    setSelectedChild
+    setSelectedChild,
+    dashboardStats,
+    setDashboardStats
   } = useParentStore();
 
   const { useDashboardStats, useChildren } = useParentQueries();
@@ -39,23 +47,33 @@ export default function ParentsDashboard() {
       
       // If no child is selected, select the first one
       if (!selectedChild && childrenData.length > 0) {
-        setSelectedChild(childrenData[0]);
-        setSelectedStudentId(childrenData[0].id.toString());
+        const firstChild = childrenData[0];
+        setSelectedChild(firstChild);
+        setSelectedStudentId(firstChild.id.toString());
       }
     }
   }, [childrenData, setChildren, selectedChild, setSelectedChild, setSelectedStudentId]);
 
+  // Sync dashboard stats
+  useEffect(() => {
+    if (stats) {
+      setDashboardStats(stats);
+    }
+  }, [stats, setDashboardStats]);
+
   // Find stats for selected child
-  const selectedChildStats = stats?.childrenStats?.find(child => 
+  const selectedChildStats = dashboardStats?.childrenStats?.find(child => 
     child.first_name === selectedChild?.first_name
-  ) || stats?.childrenStats?.[0];
+  ) || dashboardStats?.childrenStats?.[0];
 
   // Calculate overall stats
   const totalChildren = children.length;
-  const averageAttendance = stats?.childrenStats?.reduce((sum, child) => sum + (child.attendance || 0), 0) || 0;
+  const averageAttendance = dashboardStats?.childrenStats?.reduce((sum, child) => sum + (child.attendance || 0), 0) || 0;
   const avgAttendance = totalChildren > 0 ? Math.round(averageAttendance / totalChildren) : 0;
   
-  const totalPendingAssignments = stats?.childrenStats?.reduce((sum, child) => sum + (child.pendingAssignments || 0), 0) || 0;
+  const totalPendingAssignments = dashboardStats?.childrenStats?.reduce((sum, child) => sum + (child.pendingAssignments || 0), 0) || 0;
+  const enrolledChildren = dashboardStats?.childrenStats?.filter(child => child.enrollment_status === 'enrolled').length || 0;
+  const notEnrolledChildren = totalChildren - enrolledChildren;
 
   const isLoading = statsLoading || childrenLoading;
   const hasError = statsError || childrenError;
@@ -133,13 +151,23 @@ export default function ParentsDashboard() {
         </div>
 
         {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
-                  <p className="text-sm font-medium text-muted-foreground">Children</p>
-                  <p className="text-2xl font-bold">{stats?.childrenCount || totalChildren}</p>
+                  <p className="text-sm font-medium text-muted-foreground">Total Children</p>
+                  <p className="text-2xl font-bold">{totalChildren}</p>
+                  <div className="flex items-center gap-2 text-xs">
+                    <span className="text-green-600 flex items-center">
+                      <CheckCircle className="h-3 w-3 mr-1" />
+                      {enrolledChildren} enrolled
+                    </span>
+                    <span className="text-yellow-600 flex items-center">
+                      <AlertCircle className="h-3 w-3 mr-1" />
+                      {notEnrolledChildren} not enrolled
+                    </span>
+                  </div>
                 </div>
                 <div className="p-3 rounded-lg bg-blue-50 dark:bg-blue-950">
                   <Users className="h-6 w-6 text-blue-600" />
@@ -154,6 +182,10 @@ export default function ParentsDashboard() {
                 <div className="space-y-1">
                   <p className="text-sm font-medium text-muted-foreground">Average Attendance</p>
                   <p className="text-2xl font-bold">{avgAttendance}%</p>
+                  <div className="flex items-center">
+                    <Progress value={avgAttendance} className="h-2 flex-1" />
+                    <span className="text-xs text-muted-foreground ml-2">{avgAttendance}%</span>
+                  </div>
                 </div>
                 <div className="p-3 rounded-lg bg-green-50 dark:bg-green-950">
                   <Calendar className="h-6 w-6 text-green-600" />
@@ -166,11 +198,38 @@ export default function ParentsDashboard() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
-                  <p className="text-sm font-medium text-muted-foreground">Total Pending Work</p>
+                  <p className="text-sm font-medium text-muted-foreground">Pending Assignments</p>
                   <p className="text-2xl font-bold">{totalPendingAssignments}</p>
+                  <div className="text-xs text-muted-foreground flex items-center">
+                    <Clock className="h-3 w-3 mr-1" />
+                    Across all children
+                  </div>
                 </div>
                 <div className="p-3 rounded-lg bg-orange-50 dark:bg-orange-950">
                   <FileText className="h-6 w-6 text-orange-600" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-muted-foreground">Average Grade</p>
+                  <p className="text-2xl font-bold">
+                    {dashboardStats?.childrenStats?.length 
+                      ? Math.round(dashboardStats.childrenStats.reduce((sum, child) => sum + (child.avgGrade || 0), 0) / dashboardStats.childrenStats.length)
+                      : 0
+                    }%
+                  </p>
+                  <div className="text-xs text-muted-foreground flex items-center">
+                    <TrendingUp className="h-3 w-3 mr-1" />
+                    Overall performance
+                  </div>
+                </div>
+                <div className="p-3 rounded-lg bg-purple-50 dark:bg-purple-950">
+                  <TrendingUp className="h-6 w-6 text-purple-600" />
                 </div>
               </div>
             </CardContent>
@@ -186,7 +245,7 @@ export default function ParentsDashboard() {
                 <CardHeader className="pb-4">
                   <CardTitle className="text-xl">{selectedChild.first_name}'s Overview</CardTitle>
                   <CardDescription>
-                    Student ID: {selectedChild.id}
+                    Student ID: {selectedChild.id} • Email: {selectedChild.email}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
@@ -204,15 +263,31 @@ export default function ParentsDashboard() {
                         </div>
                         <div className="flex justify-between items-center py-2">
                           <span className="text-muted-foreground">Average Grade</span>
-                          <span className="font-semibold">{selectedChildStats.avgGrade || 0}%</span>
+                          <div className="flex items-center">
+                            <span className="font-semibold">{selectedChildStats.avgGrade || 0}%</span>
+                            {selectedChildStats.avgGrade && (
+                              <Progress value={selectedChildStats.avgGrade} className="h-2 w-20 ml-2" />
+                            )}
+                          </div>
                         </div>
                         <div className="flex justify-between items-center py-2">
                           <span className="text-muted-foreground">Attendance Rate</span>
-                          <span className="font-semibold">{selectedChildStats.attendance || 0}%</span>
+                          <div className="flex items-center">
+                            <span className="font-semibold">{selectedChildStats.attendance || 0}%</span>
+                            {selectedChildStats.attendance && (
+                              <Progress value={selectedChildStats.attendance} className="h-2 w-20 ml-2" />
+                            )}
+                          </div>
                         </div>
                         <div className="flex justify-between items-center py-2">
                           <span className="text-muted-foreground">Enrolled Courses</span>
                           <span className="font-semibold">{selectedChildStats.enrolled_courses?.length || 0}</span>
+                        </div>
+                        <div className="flex justify-between items-center py-2">
+                          <span className="text-muted-foreground">Pending Assignments</span>
+                          <Badge variant="outline" className={selectedChildStats.pendingAssignments > 0 ? 'text-red-600 border-red-200' : ''}>
+                            {selectedChildStats.pendingAssignments || 0}
+                          </Badge>
                         </div>
                       </div>
                     </div>
@@ -229,6 +304,18 @@ export default function ParentsDashboard() {
                           <Button variant="outline" className="w-full cursor-pointer dark:border-white dark:text-white justify-start h-11">
                             <Download className="h-4 w-4 mr-3" />
                             View Reports
+                          </Button>
+                        </Link>
+                        <Link href="/parent/messages">
+                          <Button variant="outline" className="w-full cursor-pointer dark:border-white dark:text-white justify-start h-11">
+                            <MessageCircle className="h-4 w-4 mr-3" />
+                            Teacher Messages
+                          </Button>
+                        </Link>
+                        <Link href="/parent/payments">
+                          <Button variant="outline" className="w-full cursor-pointer dark:border-white dark:text-white justify-start h-11">
+                            <CreditCard className="h-4 w-4 mr-3" />
+                            Fee Payments
                           </Button>
                         </Link>
                       </div>
@@ -248,7 +335,7 @@ export default function ParentsDashboard() {
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {children.map((child) => {
-                      const childStats = stats?.childrenStats?.find(s => s.id.toString() === child.id.toString());
+                      const childStats = dashboardStats?.childrenStats?.find(s => s.id.toString() === child.id.toString());
                       const isSelected = child.id.toString() === selectedStudentId;
 
                       return (
@@ -266,7 +353,7 @@ export default function ParentsDashboard() {
                           <CardContent className="p-4">
                             <div className="flex justify-between items-start mb-4">
                               <div className="space-y-1">
-                                <h3 className="font-semibold text-lg">{child.first_name}</h3>
+                                <h3 className="font-semibold text-lg">{child.first_name} {child.last_name}</h3>
                                 <p className="text-sm text-muted-foreground">
                                   {childStats?.enrollment_status === 'enrolled' ? 'Enrolled' : 'Not Enrolled'}
                                 </p>
@@ -290,6 +377,10 @@ export default function ParentsDashboard() {
                               <div className="flex justify-between text-sm">
                                 <span className="text-muted-foreground">Courses</span>
                                 <span className="font-semibold">{childStats?.enrolled_courses?.length || 0}</span>
+                              </div>
+                              <div className="flex justify-between text-sm">
+                                <span className="text-muted-foreground">Pending Work</span>
+                                <span className="font-semibold">{childStats?.pendingAssignments || 0}</span>
                               </div>
                             </div>
 
@@ -364,6 +455,50 @@ export default function ParentsDashboard() {
                 </Link>
               </CardContent>
             </Card>
+
+            {/* Recent Activity */}
+            {selectedChildStats && (
+              <Card>
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-xl">Recent Activity</CardTitle>
+                  <CardDescription>Latest updates for {selectedChild?.first_name}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {selectedChildStats.assignments?.upcoming?.slice(0, 3).map((assignment: any, index: number) => (
+                      <div key={index} className="flex items-start gap-3">
+                        <div className="p-2 rounded-lg bg-blue-50 dark:bg-blue-900">
+                          <Clock className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                        </div>
+                        <div>
+                          <div className="font-medium text-sm">{assignment.title || 'Upcoming Assignment'}</div>
+                          <div className="text-xs text-muted-foreground">Due: {assignment.dueDate || 'Soon'}</div>
+                        </div>
+                      </div>
+                    ))}
+                    
+                    {selectedChildStats.assignments?.overdue?.slice(0, 3).map((assignment: any, index: number) => (
+                      <div key={index} className="flex items-start gap-3">
+                        <div className="p-2 rounded-lg bg-red-50 dark:bg-red-900">
+                          <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
+                        </div>
+                        <div>
+                          <div className="font-medium text-sm">{assignment.title || 'Overdue Assignment'}</div>
+                          <div className="text-xs text-muted-foreground">Overdue</div>
+                        </div>
+                      </div>
+                    ))}
+
+                    {selectedChildStats.assignments?.upcoming?.length === 0 && 
+                     selectedChildStats.assignments?.overdue?.length === 0 && (
+                      <div className="text-center py-4 text-muted-foreground text-sm">
+                        No recent activity
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
       </div>

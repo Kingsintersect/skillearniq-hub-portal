@@ -25,6 +25,7 @@ export const useParentPayments = () => {
 
   const { usePaymentHistory } = useParentQueries();
   const { data: paymentsData, isLoading: paymentsLoading, error: paymentsQueryError } = usePaymentHistory();
+  console.log('Payments data in hook:', paymentsData);
 
   // Sync payment data from query to store
   useEffect(() => {

@@ -17,10 +17,11 @@ export default function PaymentsPage() {
   const { exportToPDF, exportToCSV, exportToExcel } = useExportPayments();
 
   const {
-    // payments: paymentsResponse,
+     payments: paymentsResponse,
     isPaymentsLoading: isLoading,
     filteredPayments
   } = useParentPayments();
+  console.log('Filtered Payments in Page:', paymentsResponse);
 
   const totalAmount = filteredPayments.reduce((sum, payment) => sum + payment.amount, 0);
   const paidAmount = filteredPayments.filter(p => p.status === 'paid').reduce((sum, payment) => sum + payment.amount, 0);
