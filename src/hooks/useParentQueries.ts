@@ -127,30 +127,30 @@ export const useParentQueries = () => {
     });
   };
 
-  // Payment history
-  const usePaymentHistory = () => {
-    return useQuery<{ payments: Payment[]; summary: any }, Error>({
-      queryKey: ['parent', 'payments'],
-      queryFn: async () => {
-        setPaymentsLoading(true);
-        setPaymentsError(null);
+  // // Payment history
+  // const usePaymentHistory = () => {
+  //   return useQuery<{ payments: Payment[]; summary: any }, Error>({
+  //     queryKey: ['parent', 'payments'],
+  //     queryFn: async () => {
+  //       setPaymentsLoading(true);
+  //       setPaymentsError(null);
         
-        try {
-          const { payments, summary } = await parentService.getPaymentHistory();
-          setPayments(payments);
-          setPaymentSummary(summary);
-          return { payments, summary };
-        } catch (error: any) {
-          setPaymentsError(error.message);
-          throw error;
-        } finally {
-          setPaymentsLoading(false);
-        }
-      },
-      staleTime: 5 * 60 * 1000,
-      retry: 2,
-    });
-  };
+  //       try {
+  //         const { payments, summary } = await parentService.getPaymentHistory();
+  //         setPayments(payments);
+  //         setPaymentSummary(summary);
+  //         return { payments, summary };
+  //       } catch (error: any) {
+  //         setPaymentsError(error.message);
+  //         throw error;
+  //       } finally {
+  //         setPaymentsLoading(false);
+  //       }
+  //     },
+  //     staleTime: 5 * 60 * 1000,
+  //     retry: 2,
+  //   });
+  // };
 
   // Grade reports
   const useGradeReports = () => {
@@ -218,7 +218,7 @@ export const useParentQueries = () => {
     useChildren,
     useChildAcademicData,
     useCourseGradings,
-    usePaymentHistory,
+    //usePaymentHistory,
     useGradeReports,
     useTeacherMessages,
     

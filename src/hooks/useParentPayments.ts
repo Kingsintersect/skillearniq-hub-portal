@@ -1,4 +1,3 @@
-// app/dashboard/parent/hooks/useParentPayments.ts
 import { useEffect, useState, useCallback } from 'react';
 import { useParentStore } from '@/store/parentStore';
 import { parentService } from '@/lib/services/parentService';
