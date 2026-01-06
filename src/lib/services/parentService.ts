@@ -9,8 +9,8 @@ import {
   PaymentSummary, 
   StudentGradeReport 
 } from '@/store/parentStore';
+import { toast } from 'sonner';
 
-// Your API returns direct data, not wrapped
 export interface ParentDashboardResponse {
   children: Array<{
     id: number;
@@ -98,20 +98,66 @@ export interface PerformanceReportResponse {
   }>;
 }
 
+export interface PaymentResponse {
+  id: string;
+  studentId: string;
+  studentName: string;
+  description: string | null;
+  amount: number;
+  dueDate: string | null;
+  paymentDate: string | null;
+  status: string;
+  referenceNumber: string;
+  paymentMethod: string | null;
+  program: string | null;
+  createdAt: string;
+}
+
+export interface PaymentsSummary {
+  totalPaid: number;
+  totalPending: number;
+  totalOverdue: number;
+  upcomingPayments: any[];
+  totalPayments: number;
+}
+
+export interface PaymentsApiResponse {
+  status: number;
+  message: string;
+  data: {
+    student: {
+      id: string;
+      name: string;
+      email: string;
+    };
+    payments: Array<{
+      id: string;
+      description: string;
+      amount: number;
+      dueDate: string | null;
+      paymentDate: string | null;
+      status: string;
+      referenceNumber: string;
+      paymentMethod: string | null;
+      program: string | null;
+      createdAt: string;
+    }>;
+    summary: {
+      totalPaid: number;
+      totalPending: number;
+      totalOverdue: number;
+      totalPayments: number;
+      upcomingPayments: any[];
+    };
+  };
+}
+
 export const parentService = {
-  // Get dashboard stats - SIMPLE VERSION
   getDashboardStats: async (): Promise<ParentDashboardStats> => {
     try {
       console.log('Fetching dashboard stats...');
-      
       const response = await apiClient.get<ParentDashboardResponse>('/parent/dashboard');
-      
-      console.log('Dashboard API response:', response);
-      
-      // apiClient returns: { status: number, data: ParentDashboardResponse, message: string }
-      // So response.data is ParentDashboardResponse
       const children = response.data?.children || [];
-      console.log('Found children in dashboard:', children.length);
       
       const childrenStats = children.map(child => ({
         id: child.id,
@@ -142,21 +188,12 @@ export const parentService = {
     }
   },
 
-  // Get children list - SIMPLE VERSION
   getChildren: async (): Promise<ParentChild[]> => {
     try {
       console.log('Fetching children...');
-      
       const response = await apiClient.get<ParentChildrenResponse>('/parent/children');
-      
-      console.log('Children API response:', response);
-      
-      // apiClient returns: { status: number, data: ParentChildrenResponse, message: string }
-      // So response.data is ParentChildrenResponse
       const apiChildren = response.data?.children || [];
-      console.log('Found children:', apiChildren.length);
       
-      // Convert API children to ParentChild format
       const children: ParentChild[] = apiChildren.map(child => ({
         id: child.id.toString(),
         first_name: child.first_name,
@@ -168,7 +205,6 @@ export const parentService = {
         phone: child.phone
       }));
       
-      console.log('Converted children:', children);
       return children;
     } catch (error) {
       console.error('Error fetching children:', error);
@@ -176,107 +212,241 @@ export const parentService = {
     }
   },
 
-  // Get child academic data - SIMPLE VERSION
   getChildAcademicData: async (childId?: string): Promise<ChildAcademicData[]> => {
-  try {
-    console.log('Fetching academic data...');
-    
-    const response = await apiClient.get<PerformanceReportResponse>('/parent/performance-report');
-    
-    console.log('Performance report API response:', response);
-    
-    const apiChildren = response.data?.children || [];
-    console.log('Found children in performance report:', apiChildren.length);
-    
-    // Convert API response to ChildAcademicData format
-    const academicData: ChildAcademicData[] = apiChildren.map(child => {
-      const courses = child.moodle?.courses?.map(course => ({
-        course_name: course.course_name,
-        course_code: course.course_code || '',
-        finalgrade: course.finalgrade,
-        activities: course.activities || [],
-        // Add all required properties from Course interface
-        teacher: '',
-        testScores: [0, 0, 0],
-        quizScores: [0, 0, 0],
-        examScore: course.finalgrade || 0,
-        assignments: [],
-        attendance: 0
-      })) || [];
+    try {
+      console.log('Fetching academic data...');
+      const response = await apiClient.get<PerformanceReportResponse>('/parent/performance-report');
+      const apiChildren = response.data?.children || [];
+      
+      const academicData: ChildAcademicData[] = apiChildren.map(child => {
+        const courses = child.moodle?.courses?.map(course => ({
+          course_id: course.course_id,
+          course_name: course.course_name,
+          course_code: course.course_code || '',
+          finalgrade: course.finalgrade,
+          activities: course.activities || []
+        })) || [];
 
-      return {
-        id: child.id.toString(),
-        name: child.name,
-        email: child.email,
-        class: '',
-        classTeacher: '',
-        groups: [],
-        attendance: 0,
-        courses,
-        moodle: child.moodle
-      };
-    });
+        return {
+          id: child.id.toString(),
+          name: child.name,
+          email: child.email,
+          class: '',
+          classTeacher: '',
+          groups: [],
+          attendance: 0,
+          courses,
+          moodle: child.moodle
+        };
+      });
 
-    // Filter by childId if provided
-    if (childId) {
-      return academicData.filter(child => child.id === childId);
+      if (childId) {
+        return academicData.filter(child => child.id === childId);
+      }
+
+      return academicData;
+    } catch (error) {
+      console.error('Error fetching academic data:', error);
+      return [];
     }
+  },
 
-    return academicData;
-  } catch (error) {
-    console.error('Error fetching academic data:', error);
-    return [];
-  }
-},
+  getCourseGradings: async (studentEmail: string): Promise<CourseGradingData[]> => {
+    try {
+      console.log('Fetching course gradings for:', studentEmail);
+      const response = await apiClient.get<any>(
+        `/parent/course/course-gradings?student_email=${encodeURIComponent(studentEmail)}`
+      );
+      
+      if (response.data && Array.isArray(response.data)) {
+        return response.data;
+      }
+      
+      if (response.data && typeof response.data === 'object') {
+        return [response.data];
+      }
+      
+      return [];
+    } catch (error: any) {
+      console.error('Error fetching course gradings:', error);
+      return [];
+    }
+  },
 
-  // Get course gradings
-  // In lib/services/parentService.ts - update getCourseGradings method
-getCourseGradings: async (studentEmail: string): Promise<CourseGradingData[]> => {
-  try {
-    console.log('Fetching course gradings for:', studentEmail);
-    
-    const response = await apiClient.get<any>(
-      `/parent/course/course-gradings?student_email=${encodeURIComponent(studentEmail)}`
-    );
-    
-    console.log('Course gradings response:', response);
-    
-    // Handle single course or array response
-    if (response.data && Array.isArray(response.data)) {
-      return response.data;
-    }
-    
-    if (response.data && typeof response.data === 'object') {
-      // If it's a single course object, wrap it in an array
-      return [response.data];
-    }
-    
-    return [];
-  } catch (error: any) {
-    console.error('Error fetching course gradings:', error);
-    return [];
-  }
-},
-  // Get teacher messages
+ 
   getTeacherMessages: async (): Promise<Message[]> => {
     return [];
   },
 
-  // Get payment history
-  getPaymentHistory: async (): Promise<{ payments: Payment[]; summary: PaymentSummary }> => {
-    return {
-      payments: [],
-      summary: {
+getGradeReports: async (): Promise<StudentGradeReport[]> => {
+  return [];
+},
+
+getPaymentHistory: async (childId: string): Promise<{ payments: Payment[]; summary: PaymentSummary }> => {
+    try {
+      console.log('🔄 getPaymentHistory called with childId:', childId);
+      
+      if (!childId || childId === 'undefined') {
+        console.error('❌ Invalid childId:', childId);
+        return getEmptyPaymentResponse();
+      }
+      
+      const endpoint = `/parent/child/${childId}/payments`;
+      console.log('📞 Calling endpoint:', endpoint);
+      
+      // Make the API call
+      const response = await apiClient.get<any>(endpoint);
+      console.log('✅ Raw API Response:', response);
+      
+      // IMPORTANT: Your apiClient already returns { status, message, data }
+      // So response is already the ApiResponse object
+      const apiResponse = response;
+      
+      if (!apiResponse) {
+        console.error('❌ No response received');
+        return getEmptyPaymentResponse();
+      }
+      
+      console.log('Response status:', apiResponse.status);
+      console.log('Response message:', apiResponse.message);
+      console.log('Response data:', apiResponse.data);
+      
+      // The data is in response.data, not response.data.data
+      const apiData = apiResponse.data;
+      
+      if (!apiData) {
+        console.error('❌ No data in response');
+        return getEmptyPaymentResponse();
+      }
+      
+      // Check the structure of apiData
+      console.log('apiData structure:', apiData);
+      console.log('apiData.payments:', apiData.payments);
+      console.log('apiData.student:', apiData.student);
+      console.log('apiData.summary:', apiData.summary);
+      
+      const apiPayments = apiData.payments || [];
+      const apiSummary = apiData.summary || {
         totalPaid: 0,
         totalPending: 0,
         totalOverdue: 0,
+        totalPayments: 0,
         upcomingPayments: []
+      };
+      
+      console.log(`💰 Found ${apiPayments.length} payments`);
+      
+      // Convert to our format
+      const payments: Payment[] = apiPayments.map((payment: any, index: number) => ({
+        id: payment.id?.toString() || `pay-${index}`,
+        invoiceNumber: payment.referenceNumber || payment.id?.toString() || '',
+        studentId: apiData.student?.id || childId,
+        studentName: apiData.student?.name || 'Student',
+        description: payment.description || 'Payment',
+        amount: Number(payment.amount) || 0,
+        dueDate: payment.dueDate || '',
+        status: getPaymentStatus(payment.status),
+        paymentDate: payment.paymentDate || undefined,
+        paymentMethod: payment.paymentMethod || undefined,
+        transactionId: payment.referenceNumber,
+        createdAt: payment.createdAt || new Date().toISOString(),
+        updatedAt: payment.createdAt || new Date().toISOString()
+      }));
+      
+      // Create summary
+      const paidPayments = payments.filter(p => p.status === 'paid');
+      const pendingPayments = payments.filter(p => p.status === 'pending');
+      const overduePayments = payments.filter(p => p.status === 'overdue');
+      
+      const summary: PaymentSummary = {
+        totalPaid: apiSummary.totalPaid || sumAmount(paidPayments),
+        totalPending: apiSummary.totalPending || sumAmount(pendingPayments),
+        totalOverdue: apiSummary.totalOverdue || sumAmount(overduePayments),
+        upcomingPayments: apiSummary.upcomingPayments || [],
+        totalAmount: sumAmount(payments),
+        totalCount: payments.length,
+        paidCount: paidPayments.length,
+        pendingCount: pendingPayments.length,
+        overdueCount: overduePayments.length,
+        paidAmount: sumAmount(paidPayments),
+        pendingAmount: sumAmount(pendingPayments),
+        overdueAmount: sumAmount(overduePayments)
+      };
+      
+      console.log('✅ Successfully processed payment history');
+      console.log('Payments:', payments);
+      console.log('Summary:', summary);
+      
+      return { payments, summary };
+      
+    } catch (error: any) {
+      console.error('❌ Error in getPaymentHistory:', error);
+      
+      if (error.response) {
+        console.error('Response status:', error.response.status);
+        console.error('Response data:', error.response.data);
       }
-    };
-  },
-
-  // Get grade reports
-  getGradeReports: async (): Promise<StudentGradeReport[]> => {
-    return [];
+      
+      return getEmptyPaymentResponse();
+    }
   },
 };
+
+function getPaymentStatus(status: string): Payment['status'] {
+  if (!status) return 'pending';
+  
+  const statusLower = status.toLowerCase();
+  if (statusLower === 'paid') return 'paid';
+  if (statusLower === 'pending') return 'pending';
+  if (statusLower === 'overdue') return 'overdue';
+  return 'pending';
+}
+
+function sumAmount(payments: Payment[]): number {
+  return payments.reduce((sum, p) => sum + p.amount, 0);
+}
+
+function getEmptyPaymentResponse(): { payments: Payment[]; summary: PaymentSummary } {
+  return {
+    payments: [],
+    summary: {
+      totalPaid: 0,
+      totalPending: 0,
+      totalOverdue: 0,
+      upcomingPayments: [],
+      totalAmount: 0,
+      totalCount: 0,
+      paidCount: 0,
+      pendingCount: 0,
+      overdueCount: 0,
+      paidAmount: 0,
+      pendingAmount: 0,
+      overdueAmount: 0
+    }
+  };
+}
+
+function mapPaymentStatus(apiStatus: string): Payment['status'] {
+  const statusMap: Record<string, Payment['status']> = {
+    'paid': 'paid',
+    'PAID': 'paid',
+    'pending': 'pending',
+    'PENDING': 'pending',
+    'overdue': 'overdue',
+    'OVERDUE': 'overdue',
+    'cancelled': 'cancelled',
+    'CANCELLED': 'cancelled'
+  };
+  
+  const normalizedStatus = (apiStatus || '').toLowerCase();
+  return statusMap[normalizedStatus] || 'pending';
+}
+
+function calculateTotalAmount(payments: Payment[]): number {
+  return payments.reduce((sum, payment) => sum + payment.amount, 0);
+}
+
+
+
+
+

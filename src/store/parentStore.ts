@@ -2,7 +2,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-// Types for parent data
 export interface ParentChild {
   id: string;
   first_name: string;
@@ -49,14 +48,11 @@ export interface MoodleActivity {
 }
 
 export interface Course {
-  // From first structure (from Moodle API)
   course_id?: number;
   course_name: string;
   course_code?: string;
   finalgrade?: number | null;
   activities?: MoodleActivity[];
-
-  // From second structure (from your academic system) - make these optional
   teacher?: string;
   testScores?: number[];
   quizScores?: number[];
@@ -103,6 +99,14 @@ export interface PaymentSummary {
   totalPending: number;
   totalOverdue: number;
   upcomingPayments: Payment[];
+  totalAmount?: number;
+  totalCount?: number;
+  paidCount?: number;
+  pendingCount?: number;
+  overdueCount?: number;
+  paidAmount?: number;
+  pendingAmount?: number;
+  overdueAmount?: number;
 }
 
 export interface Message {
@@ -184,19 +188,16 @@ export interface ParentDashboardStats {
 export type ExportFormat = 'pdf' | 'csv' | 'excel';
 
 interface ParentStore {
-  // CHILDREN MANAGEMENT
   selectedStudentId: string | null;
   selectedChild: ParentChild | null;
   children: ParentChild[];
   setSelectedStudentId: (id: string | null) => void;
-  setSelectedChild: (child: ParentChild) => void;
+  setSelectedChild: (child: ParentChild | null) => void;
   setChildren: (children: ParentChild[]) => void;
   
-  // DASHBOARD STATS
   dashboardStats: ParentDashboardStats | null;
   setDashboardStats: (stats: ParentDashboardStats | null) => void;
 
-  // PERFORMANCE REPORT
   allReports: ChildAcademicData[];
   selectedReport: ChildAcademicData | null;
   selectedReportId: string | null;
@@ -204,7 +205,6 @@ interface ParentStore {
   setAllReports: (reports: ChildAcademicData[]) => void;
   setSelectedReport: (report: ChildAcademicData | null) => void;
 
-  // MESSAGES
   messages: Message[];
   selectedMessage: Message | null;
   selectedMessageId: string | null;
@@ -214,7 +214,6 @@ interface ParentStore {
   markMessageAsRead: (messageId: string) => void;
   getUnreadCount: (studentId?: string) => number;
 
-  // PAYMENTS
   payments: Payment[];
   paymentSummary: PaymentSummary | null;
   selectedPayment: Payment | null;
@@ -227,7 +226,7 @@ interface ParentStore {
     };
   };
   setPayments: (payments: Payment[]) => void;
-  setPaymentSummary: (summary: PaymentSummary) => void;
+  setPaymentSummary: (summary: PaymentSummary | null) => void;
   setSelectedPayment: (payment: Payment | null) => void;
   setFilteredPayments: (payments: Payment[]) => void;
   setPaymentFilters: (filters: Partial<ParentStore['paymentFilters']>) => void;
@@ -235,8 +234,12 @@ interface ParentStore {
   getPaymentsByStudentId: (studentId: string) => Payment[];
   getPaymentById: (paymentId: string) => Payment | undefined;
   updatePaymentStatus: (paymentId: string, status: Payment['status']) => void;
+  
+  isPaymentsLoading: boolean;
+  paymentsError: string | null;
+  setPaymentsLoading: (loading: boolean) => void;
+  setPaymentsError: (error: string | null) => void;
 
-  // GRADE REPORTS
   gradeReports: StudentGradeReport[];
   selectedGradeReport: StudentGradeReport | null;
   selectedGradeReportId: string | null;
@@ -246,16 +249,10 @@ interface ParentStore {
   setSelectedGradeReportId: (id: string | null) => void;
   setGradeSummary: (summary: GradeSummary | null) => void;
 
-  // LOADING STATES
   isReportsLoading: boolean;
   reportsError: string | null;
   setReportsLoading: (loading: boolean) => void;
   setReportsError: (error: string | null) => void;
-  
-  isPaymentsLoading: boolean;
-  paymentsError: string | null;
-  setPaymentsLoading: (loading: boolean) => void;
-  setPaymentsError: (error: string | null) => void;
   
   isMessagesLoading: boolean;
   messagesError: string | null;
@@ -266,27 +263,33 @@ interface ParentStore {
   gradeReportsError: string | null;
   setGradeReportsLoading: (loading: boolean) => void;
   setGradeReportsError: (error: string | null) => void;
+  
+  resetPaymentData: () => void;
+  clearSelectedChild: () => void;
 }
 
 export const useParentStore = create<ParentStore>()(
   persist(
     (set, get) => ({
-      // CHILDREN MANAGEMENT
       selectedStudentId: null,
       children: [],
       selectedChild: null,
-      setSelectedStudentId: (id) => set({ selectedStudentId: id }),
-      setSelectedChild: (child) => set({ 
-        selectedChild: child,
-        selectedStudentId: child.id.toString()
-      }),
+      setSelectedStudentId: (id) => {
+        console.log('Store: Setting selectedStudentId:', id);
+        set({ selectedStudentId: id });
+      },
+      setSelectedChild: (child) => {
+        console.log('Store: Setting selectedChild:', child);
+        set({ 
+          selectedChild: child,
+          selectedStudentId: child?.id || null
+        });
+      },
       setChildren: (children) => set({ children }),
       
-      // DASHBOARD STATS
       dashboardStats: null,
       setDashboardStats: (dashboardStats) => set({ dashboardStats }),
 
-      // PERFORMANCE REPORT
       allReports: [],
       selectedReport: null,
       selectedReportId: null,
@@ -297,7 +300,6 @@ export const useParentStore = create<ParentStore>()(
         selectedReportId: report?.id.toString() || null
       }),
 
-      // MESSAGES
       messages: [],
       selectedMessage: null,
       selectedMessageId: null,
@@ -327,7 +329,6 @@ export const useParentStore = create<ParentStore>()(
         return messages.filter(msg => !msg.isRead).length;
       },
 
-      // PAYMENTS
       payments: [],
       paymentSummary: null,
       selectedPayment: null,
@@ -392,7 +393,11 @@ export const useParentStore = create<ParentStore>()(
             : state.selectedPayment
         })),
 
-      // GRADE REPORTS
+      isPaymentsLoading: false,
+      paymentsError: null,
+      setPaymentsLoading: (isPaymentsLoading) => set({ isPaymentsLoading }),
+      setPaymentsError: (paymentsError) => set({ paymentsError }),
+
       gradeReports: [],
       selectedGradeReport: null,
       selectedGradeReportId: null,
@@ -402,16 +407,10 @@ export const useParentStore = create<ParentStore>()(
       setSelectedGradeReportId: (selectedGradeReportId) => set({ selectedGradeReportId }),
       setGradeSummary: (gradeSummary) => set({ gradeSummary }),
 
-      // LOADING STATES
       isReportsLoading: false,
       reportsError: null,
       setReportsLoading: (isReportsLoading) => set({ isReportsLoading }),
       setReportsError: (reportsError) => set({ reportsError }),
-      
-      isPaymentsLoading: false,
-      paymentsError: null,
-      setPaymentsLoading: (isPaymentsLoading) => set({ isPaymentsLoading }),
-      setPaymentsError: (paymentsError) => set({ paymentsError }),
       
       isMessagesLoading: false,
       messagesError: null,
@@ -422,6 +421,20 @@ export const useParentStore = create<ParentStore>()(
       gradeReportsError: null,
       setGradeReportsLoading: (isGradeReportsLoading) => set({ isGradeReportsLoading }),
       setGradeReportsError: (gradeReportsError) => set({ gradeReportsError }),
+
+      resetPaymentData: () => set({
+        payments: [],
+        paymentSummary: null,
+        filteredPayments: [],
+        selectedPayment: null,
+        paymentsError: null,
+        isPaymentsLoading: false
+      }),
+      
+      clearSelectedChild: () => set({
+        selectedChild: null,
+        selectedStudentId: null
+      })
     }),
     {
       name: 'parent-storage',

@@ -1,96 +1,110 @@
-// hooks/useParentPayments.ts
-import { useEffect } from 'react';
+// app/dashboard/parent/hooks/useParentPayments.ts
+import { useEffect, useState, useCallback } from 'react';
 import { useParentStore } from '@/store/parentStore';
-import { useParentQueries } from './useParentQueries';
+import { parentService } from '@/lib/services/parentService';
 
-export const useParentPayments = () => {
+export function useParentPayments() {
   const {
-    selectedChild,
     payments,
     paymentSummary,
     filteredPayments,
+    isPaymentsLoading,
+    paymentsError,
+    selectedChild,
     paymentFilters,
     setPayments,
     setPaymentSummary,
     setFilteredPayments,
-    setPaymentFilters,
-    clearPaymentFilters,
-    getPaymentsByStudentId,
-    updatePaymentStatus,
-    isPaymentsLoading,
-    paymentsError,
     setPaymentsLoading,
-    setPaymentsError
+    setPaymentsError,
+    setPaymentFilters,
+    resetPaymentData
   } = useParentStore();
 
-  const { usePaymentHistory } = useParentQueries();
-  const { data: paymentsData, isLoading: paymentsLoading, error: paymentsQueryError } = usePaymentHistory();
-  console.log('Payments data in hook:', paymentsData);
+  const [lastFetchedChildId, setLastFetchedChildId] = useState<string | null>(null);
 
-  // Sync payment data from query to store
-  useEffect(() => {
-    if (paymentsData) {
-      setPayments(paymentsData.payments);
-      setPaymentSummary(paymentsData.summary);
+  const fetchPayments = useCallback(async () => {
+    try {
+      console.log('🔄 useParentPayments: Starting fetch...');
+      console.log('👤 Selected Child:', selectedChild);
+      
+      if (!selectedChild || !selectedChild.id) {
+        console.log('⏸️ No child selected, clearing data');
+        resetPaymentData();
+        setLastFetchedChildId(null);
+        return;
+      }
+      
+      if (lastFetchedChildId === selectedChild.id) {
+        console.log('✅ Already fetched data for this child');
+        return;
+      }
+      
+      setPaymentsLoading(true);
+      setPaymentsError(null);
+      
+      console.log('📞 Fetching payments for child ID:', selectedChild.id);
+      const result = await parentService.getPaymentHistory(selectedChild.id);
+      
+      console.log('✅ Payments fetched successfully');
+      console.log('Payments count:', result.payments.length);
+      console.log('Summary:', result.summary);
+      
+      setPayments(result.payments);
+      setPaymentSummary(result.summary);
+      setFilteredPayments(result.payments);
+      setLastFetchedChildId(selectedChild.id);
+      
+    } catch (error: any) {
+      console.error('❌ Error fetching payments:', error);
+      setPaymentsError(error.message || 'Failed to load payment history');
+      resetPaymentData();
+      setLastFetchedChildId(null);
+    } finally {
+      setPaymentsLoading(false);
     }
-  }, [paymentsData, setPayments, setPaymentSummary]);
+  }, [
+    selectedChild, 
+    lastFetchedChildId,
+    setPayments, 
+    setPaymentSummary, 
+    setFilteredPayments, 
+    setPaymentsLoading, 
+    setPaymentsError,
+    resetPaymentData
+  ]);
 
-  // Update filtered payments when filters or selected child changes
   useEffect(() => {
-    let filtered = selectedChild 
-      ? getPaymentsByStudentId(selectedChild.id.toString())
-      : payments;
+    fetchPayments();
+  }, [fetchPayments]);
 
-    // Apply status filter
-    if (paymentFilters.status !== 'all') {
+  useEffect(() => {
+    if (!payments.length) {
+      setFilteredPayments([]);
+      return;
+    }
+
+    let filtered = [...payments];
+    if (paymentFilters.status && paymentFilters.status !== 'all') {
       filtered = filtered.filter(payment => payment.status === paymentFilters.status);
     }
-
-    // Apply date range filter
-    if (paymentFilters.dateRange.from) {
-      filtered = filtered.filter(payment => 
-        new Date(payment.createdAt) >= new Date(paymentFilters.dateRange.from)
-      );
-    }
-
-    if (paymentFilters.dateRange.to) {
-      filtered = filtered.filter(payment => 
-        new Date(payment.createdAt) <= new Date(paymentFilters.dateRange.to)
-      );
-    }
-
     setFilteredPayments(filtered);
-  }, [payments, selectedChild, paymentFilters, getPaymentsByStudentId, setFilteredPayments]);
+  }, [payments, paymentFilters.status, setFilteredPayments]);
 
-  // Update loading and error states
-  useEffect(() => {
-    setPaymentsLoading(paymentsLoading);
-    setPaymentsError(paymentsQueryError?.message || null);
-  }, [paymentsLoading, paymentsQueryError, setPaymentsLoading, setPaymentsError]);
+  const refetch = useCallback(() => {
+    console.log('🔄 Manual refetch triggered');
+    setLastFetchedChildId(null);
+  }, []);
 
   return {
-    // Data
     payments,
     paymentSummary,
     filteredPayments,
-    paymentFilters,
-    
-    // Selected child info
-    selectedChild,
-    
-    // Loading and error states
     isPaymentsLoading,
     paymentsError,
-    
-    // Actions
+    paymentFilters,
     setPaymentFilters,
-    clearPaymentFilters,
-    updatePaymentStatus,
-    
-    // Filtered data summary
-    totalPayments: filteredPayments.length,
-    totalAmount: filteredPayments.reduce((sum, payment) => sum + payment.amount, 0),
-    paidAmount: filteredPayments.filter(p => p.status === 'paid').reduce((sum, payment) => sum + payment.amount, 0),
-    pendingAmount: filteredPayments.filter(p => p.status === 'pending').reduce((sum, payment) => sum + payment.amount, 0),
+    refetch,
+    fetchPayments
   };
-};
+}

@@ -1,4 +1,4 @@
-// components/StudentSelector.tsx - FULL CODE
+// components/StudentSelector.tsx
 'use client'
 import React from 'react';
 import {
@@ -16,7 +16,7 @@ export function StudentSelector() {
     children,
     selectedChild,
     setSelectedChild,
-    setSelectedStudentId
+    resetPaymentData
   } = useParentStore();
 
   if (children.length === 0) {
@@ -29,26 +29,37 @@ export function StudentSelector() {
   }
 
   const handleStudentChange = (childId: string) => {
-    const child = children.find(c => c.id.toString() === childId);
+    console.log('StudentSelector: Changing to child ID:', childId);
+    const child = children.find(c => c.id === childId);
     if (child) {
+      console.log('StudentSelector: Setting selected child:', child);
+      resetPaymentData(); // Clear old payment data
       setSelectedChild(child);
-      setSelectedStudentId(childId);
     }
   };
+
+  const currentChildId = selectedChild?.id || children[0]?.id;
 
   return (
     <div className="flex items-center gap-2">
       <User className="h-4 w-4 text-muted-foreground" />
       <Select
-        value={selectedChild?.id.toString() || children[0]?.id.toString()}
+        value={currentChildId}
         onValueChange={handleStudentChange}
       >
         <SelectTrigger className="w-[180px]">
-          <SelectValue placeholder="Select student" />
+          <SelectValue placeholder="Select student">
+            {selectedChild 
+              ? `${selectedChild.first_name} ${selectedChild.last_name}`
+              : children[0] 
+                ? `${children[0].first_name} ${children[0].last_name}`
+                : 'Select student'
+            }
+          </SelectValue>
         </SelectTrigger>
         <SelectContent>
           {children.map((child) => (
-            <SelectItem key={child.id} value={child.id.toString()}>
+            <SelectItem key={child.id} value={child.id}>
               {child.first_name} {child.last_name}
             </SelectItem>
           ))}
