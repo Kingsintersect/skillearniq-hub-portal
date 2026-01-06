@@ -387,8 +387,8 @@ export const TeacherNavMain: SidebarNavConfig = {
             display: true,
         },
         {
-            title: "ASSESSMENTS",
-            url: "/teacher/assessments",
+            title: "STUDENT REPORTS",
+            url: "/teacher/grade-reports",
             icon: BookOpenCheck,
             display: true,
         },

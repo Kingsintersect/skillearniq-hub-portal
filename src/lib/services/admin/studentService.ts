@@ -41,6 +41,41 @@ export interface StudentFilterParams extends PaginationParams {
   role?: string;
 }
 
+export interface CourseGradesResponse {
+  course_id: number;
+  course_code: string;
+  course_name: string;
+  course_image_url: string;
+  instructors: Instructor[];
+  students: StudentGrade[];
+}
+
+export interface Instructor {
+  id: number;
+  firstname: string;
+  lastname: string;
+  email: string;
+}
+
+export interface StudentActivity {
+  activity_name: string;
+  type: 'quiz' | 'assign' | 'exam' | 'other';
+  grade: number;
+  max_grade: number;
+}
+
+export interface StudentGrade {
+  student_id: number;
+  student_email: string;
+  student_username: string;
+  final_grade: number;
+  letter_grade: string;
+  quality_points: number;
+  credit_load: number;
+  activities: StudentActivity[];
+}
+
+
 export const studentService = {
   // Get all students (simple list)
   getAllStudents: async (): Promise<Student[]> => {
@@ -131,3 +166,4 @@ export const studentService = {
     }
   }
 };
+

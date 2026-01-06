@@ -1,17 +1,16 @@
-// app/(admin)/grade-reports/components/ErrorState.tsx
+// app/(student)/grade-reports/components/ErrorState.tsx
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AlertCircle, RefreshCw, Home } from "lucide-react";
-import { useGradeStore } from "@/store/gradeStore";
+import { useStudentGradeStore } from "@/store/student-grade-store";
 
 export default function ErrorState() {
-  const { error, fetchCategories, resetState } = useGradeStore();
+  const { error, fetchCourses, resetState } = useStudentGradeStore();
 
   const handleRetry = () => {
-    // Try to fetch categories first, which is likely where the error occurred
-    fetchCategories();
+    fetchCourses();
   };
 
   const handleReset = () => {
@@ -26,7 +25,7 @@ export default function ErrorState() {
           Error Loading Data
         </CardTitle>
         <CardDescription className="text-muted-foreground">
-          There was a problem loading the grade data
+          There was a problem loading your grade data
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -46,7 +45,7 @@ export default function ErrorState() {
               </li>
               <li className="flex items-start">
                 <span className="mr-2 font-bold">2.</span>
-                <span>Verify you're logged in with proper permissions</span>
+                <span>Verify you're logged in properly</span>
               </li>
               <li className="flex items-start">
                 <span className="mr-2 font-bold">3.</span>
