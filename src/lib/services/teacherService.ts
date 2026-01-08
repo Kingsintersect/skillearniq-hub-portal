@@ -475,7 +475,7 @@ export const teacherService = {
   },
 
   // Attendance
-  getAttendance: async (teacherId: number, filters?: {
+  getAttendancePerCourse: async (teacherId: number, filters?: {
     term?: string;
     classId?: number;
   }): Promise<ApiResponse<{
@@ -491,7 +491,7 @@ export const teacherService = {
   },
 
   // Students
-  getStudents: async (teacherId: number, filters?: {
+  getStudentsPerCourse: async (teacherId: number, filters?: {
     term?: string;
     classId?: number;
   }): Promise<ApiResponse<Student[]>> => {

@@ -45,7 +45,7 @@ export const useTeacherQueries = () => {
   }) => {
     return useQuery({
       queryKey: ['teacher', 'attendance', teacherId, filters],
-      queryFn: () => teacherService.getAttendance(teacherId, filters),
+      queryFn: () => teacherService.getAttendancePerCourse(teacherId, filters),
       staleTime: 5 * 60 * 1000,
     });
   };
@@ -57,7 +57,7 @@ export const useTeacherQueries = () => {
   }) => {
     return useQuery({
       queryKey: ['teacher', 'students', teacherId, filters],
-      queryFn: () => teacherService.getStudents(teacherId, filters),
+      queryFn: () => teacherService.getStudentsPerCourse(teacherId, filters),
       staleTime: 10 * 60 * 1000,
     });
   };
