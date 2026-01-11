@@ -233,7 +233,7 @@ export const Dashboard: React.FC = () => {
                 variant="outline"
                 size="sm"
                 className="hidden sm:inline-flex"
-                onClick={() => router.push('/student/settings')}
+                onClick={() => router.push('/student/profile')}
               >
                 <Settings className="h-4 w-4 mr-2" />
                 Settings
@@ -348,7 +348,7 @@ export const Dashboard: React.FC = () => {
             <Button 
               variant="outline" 
               className="h-auto py-3 sm:py-4 flex flex-col items-center justify-center hover:bg-accent"
-              onClick={() => router.push('/student/payments')}
+              onClick={() => router.push('/student/history/student-payments')}
             >
               <CreditCard className="h-6 w-6 sm:h-8 sm:w-8 mb-1 sm:mb-2" />
               <span className="text-xs sm:text-sm md:text-base">Payments</span>
