@@ -205,7 +205,7 @@ export function DashboardView({ userId }: { userId: string }) {
                                             <div className="grid grid-cols-2 gap-5">
                                                 <Button
                                                     className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-                                                    onClick={() => courseService.redirectToCourseWarePlatform(String(user?.email))}
+                                                    onClick={() => courseService.redirectToCourseWarePlatform(String(user?.username))}
                                                 >
                                                     Continue Learning
                                                 </Button>
