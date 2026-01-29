@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { Progress } from '@/components/ui/progress';
+import Link from 'next/link';
 
 export const PaymentsPage: React.FC = () => {
   // All hooks must be called unconditionally - move them to the top
@@ -154,10 +155,10 @@ export const PaymentsPage: React.FC = () => {
               <h1 className="text-4xl font-bold text-foreground mb-2">Payment Management</h1>
               <p className="text-lg text-muted-foreground">View and manage your payment records</p>
             </div>
-            <Button>
-              <CreditCard className="h-4 w-4 mr-2" />
+            <Link href="/enrollment" className='inline'>
+              <CreditCard className="h-4 w-4 mr-2 inline" />
               Make New Payment
-            </Button>
+            </Link>
           </div>
         </div>
 
@@ -267,12 +268,12 @@ export const PaymentsPage: React.FC = () => {
                 </Select>
               </div>
 
-              <div className="flex items-end">
+              {/* <div className="flex items-end">
                 <Button variant="outline" className="w-full">
                   <Download className="h-4 w-4 mr-2" />
                   Export Records
                 </Button>
-              </div>
+              </div> */}
             </div>
           </CardContent>
         </Card>
@@ -309,7 +310,7 @@ export const PaymentsPage: React.FC = () => {
                       <TableHead>Due Date</TableHead>
                       <TableHead>Payment Date</TableHead>
                       <TableHead>Status</TableHead>
-                      <TableHead>Actions</TableHead>
+                      {/* <TableHead>Actions</TableHead> */}
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -356,7 +357,7 @@ export const PaymentsPage: React.FC = () => {
                             <span className="capitalize">{payment.status}</span>
                           </Badge>
                         </TableCell>
-                        <TableCell>
+                        {/* <TableCell>
                           <div className="flex space-x-2">
                             <Button size="sm" variant="outline">
                               <Receipt className="h-4 w-4" />
@@ -367,7 +368,7 @@ export const PaymentsPage: React.FC = () => {
                               </Button>
                             )}
                           </div>
-                        </TableCell>
+                        </TableCell> */}
                       </TableRow>
                     ))}
                   </TableBody>
@@ -454,7 +455,7 @@ export const PaymentsPage: React.FC = () => {
         </Card>
 
         {/* Payment Instructions */}
-        <Card className="mt-6">
+        {/* <Card className="mt-6">
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
               <FileText className="h-5 w-5" />
@@ -494,7 +495,7 @@ export const PaymentsPage: React.FC = () => {
               </div>
             </div>
           </CardContent>
-        </Card>
+        </Card> */}
       </div>
     </div>
   );

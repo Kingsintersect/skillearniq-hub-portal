@@ -352,8 +352,8 @@ class CourseService {
         }
     }
 
-    redirectToCourseWarePlatform = (user_email: string): void => {
-        const courseUrl = `${lmsLoginUrl}/ssotester/index.php?sso_loggers=1&u=${user_email}&password=1`;
+    redirectToCourseWarePlatform = (username: string): void => {
+        const courseUrl = `${lmsLoginUrl}/ssotester/index.php?sso_loggers=1&u=${username}&password=1`;
         window.open(courseUrl, '_blank');
     }
 
