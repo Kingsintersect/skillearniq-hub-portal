@@ -1,7 +1,6 @@
-// src/components/teachers/TeachersPageProvider.tsx
 "use client";
 
-import React, { createContext, useContext, ReactNode, useMemo } from 'react';
+import React, { createContext, useContext, ReactNode, useMemo, useEffect } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useTeachersPage } from '../hooks/useTeachersPage';
 
@@ -62,6 +61,11 @@ export const TeachersPageProvider: React.FC<TeachersPageProviderProps> = ({ chil
 
     // Memoize the context value to prevent unnecessary re-renders
     const contextValue = useMemo(() => teachersPageData, [teachersPageData]);
+
+    // Debug: log when provider renders
+    useEffect(() => {
+        console.log('TeachersPageProvider rendered');
+    }, []);
 
     return (
         <QueryClientProvider client={queryClient}>

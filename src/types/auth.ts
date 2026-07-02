@@ -11,6 +11,58 @@ export type Department =
 
 export type Level = "100" | "200" | "300" | "400" | "500";
 
+// Message Types
+export interface MessageRecipient {
+  id: number;
+  message_id: number;
+  recipient_type: string;
+  recipient_id: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Message {
+  id: number;
+  sender_id: number;
+  message: string;
+  subject?: string;
+  recipient_ids: number[] | null;
+  created_at: string;
+  updated_at: string;
+  recipients: MessageRecipient[];
+}
+
+export interface MessageResponse {
+  status: 'Success' | string;
+  message: string;
+  data: {
+    sender_id: number;
+    message: string;
+    updated_at: string;
+    created_at: string;
+    id: number;
+    recipients: MessageRecipient[];
+  };
+  recipient_count: number;
+}
+
+export interface MessagesListResponse {
+  status: 'Success' | string;
+  messages: Message[];
+}
+
+export interface SendMessagePayload {
+  recipient_type: 'all_teachers' | 'all_students' | 'all_parents' | 'specific_teacher' | 'specific_student' | 'specific_parent';
+  recipient_ids?: number[];
+  message: string;
+  subject?: string;
+}
+
+export interface UpdateMessagePayload {
+  message: string;
+  subject?: string;
+}
+
 // SIGNUP RESPONSE TYPES
 export interface SignupResponse {
     status: number;
