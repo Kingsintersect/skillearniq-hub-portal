@@ -21,7 +21,9 @@ import {
     MessageSquare,
     FileText,
     Sheet,
-    FileDown
+    FileDown,
+    Loader2,
+    AlertCircle
 } from 'lucide-react';
 
 // Import the actual hooks and services
@@ -39,26 +41,39 @@ const StudentManagementPage: React.FC = () => {
     const params = useParams();
     const id = parseInt(params.id as string);
     const { user } = useAuthContext();
-    const teacherId = Number(user?.id) || 1; // This should come from your auth context or props
+    const teacherId = user?.id ? Number(user.id) : 1;
 
     const [activeTab, setActiveTab] = useState<'students' | 'groups' | 'attendance'>('students');
     const [dialogOpen, setDialogOpen] = useState<'createGroup' | 'manageGroup' | 'sendMessage' | null>(null);
     const [selectedGroup, setSelectedGroup] = useState<any>(null);
     const [selectedStudents, setSelectedStudents] = useState<number[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
-    const [filters, setFilters] = useState({
+    
+    // FIXED: Use the actual class ID from URL
+    const [filters] = useState({
         term: '1st',
-        classId: 1,
+        classId: id, // This is now the actual class ID from the URL
     });
+
+    console.log('=== PAGE DEBUG ===');
+    console.log('URL Class ID:', id);
+    console.log('Teacher ID:', teacherId);
+    console.log('Filters:', filters);
 
     // Use actual service data
     const {
         students,
         classes,
-        groups,
         attendance,
-        isLoading
-    } = useStudentManagement(id, filters);
+        isLoading,
+        isError
+    } = useStudentManagement(teacherId, filters);
+
+    console.log('Students data:', students);
+    console.log('Classes data:', classes);
+    console.log('Attendance data:', attendance);
+    console.log('Course details:', attendance?.course_details);
+    console.log('=== END PAGE DEBUG ===');
 
     // Export functionality
     const { exportToCSV, exportToExcel, exportToPDF } = useExportStudents();
@@ -67,40 +82,44 @@ const StudentManagementPage: React.FC = () => {
     const {
         useCreateGroup,
         useDeleteGroup,
-        useAddStudentToGroup,
-        useRemoveStudentFromGroup
     } = useTeacherQueries();
 
     const createGroupMutation = useCreateGroup();
     const deleteGroupMutation = useDeleteGroup();
-    const addStudentMutation = useAddStudentToGroup();
-    const removeStudentMutation = useRemoveStudentFromGroup();
 
     const { register, handleSubmit, reset, formState: { errors } } = useForm<GroupFormData>({
         resolver: zodResolver(groupSchema),
     });
 
     // Available classes from service data
-    const availableClasses = classes.map(cls => ({
-        id: cls.id,
-        name: cls.shortName,
-        level: cls.level
-    }));
+    const availableClasses = Array.isArray(classes) ? classes.map(cls => ({
+        id: cls.id || 0,
+        name: cls.name || cls.shortName || 'Unknown Class',
+        level: cls.level || ''
+    })) : [];
 
     const terms = ['1st', '2nd', '3rd'];
 
     // Filter students based on search term
     const filteredStudents = useMemo(() => {
-        if (!students) return [];
-        return students.filter((student) =>
-            student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            student.email.toLowerCase().includes(searchTerm.toLowerCase())
-        );
+        if (!Array.isArray(students)) return [];
+        return students.filter((student) => {
+            if (!student) return false;
+            const nameMatch = student.name?.toLowerCase().includes(searchTerm.toLowerCase()) || false;
+            const emailMatch = student.email?.toLowerCase().includes(searchTerm.toLowerCase()) || false;
+            const classNameMatch = student.class?.toLowerCase().includes(searchTerm.toLowerCase()) || false;
+            return nameMatch || emailMatch || classNameMatch;
+        });
     }, [students, searchTerm]);
 
     // Properly define the onSubmitGroup function
     const onSubmitGroup = async (data: GroupFormData) => {
         try {
+            if (!teacherId) {
+                toast.error('Teacher ID not found');
+                return;
+            }
+
             await createGroupMutation.mutateAsync({
                 ...data,
                 classId: filters.classId,
@@ -112,8 +131,8 @@ const StudentManagementPage: React.FC = () => {
             toast.success(`"${data.name}" group created successfully!`);
             reset();
             setDialogOpen(null);
-        } catch (error) {
-            toast.error('Failed to create group. Please try again.');
+        } catch (error: any) {
+            toast.error(error.message || 'Failed to create group. Please try again.');
         }
     };
 
@@ -121,31 +140,13 @@ const StudentManagementPage: React.FC = () => {
         try {
             await deleteGroupMutation.mutateAsync(groupId);
             toast.success('Group deleted successfully!');
-        } catch (error) {
-            toast.error('Failed to delete group. Please try again.');
-        }
-    };
-
-    const handleAddStudentToGroup = async (groupId: number, studentId: number) => {
-        try {
-            await addStudentMutation.mutateAsync({ groupId, studentId });
-            toast.success('Student added to group!');
-        } catch (error) {
-            toast.error('Failed to add student to group.');
-        }
-    };
-
-    const handleRemoveStudentFromGroup = async (groupId: number, studentId: number) => {
-        try {
-            await removeStudentMutation.mutateAsync({ groupId, studentId });
-            toast.success('Student removed from group!');
-        } catch (error) {
-            toast.error('Failed to remove student from group.');
+        } catch (error: any) {
+            toast.error(error.message || 'Failed to delete group. Please try again.');
         }
     };
 
     const handleExportData = (format: ExportFormat, studentsToExport: any[]) => {
-        if (studentsToExport.length === 0) {
+        if (!Array.isArray(studentsToExport) || studentsToExport.length === 0) {
             toast.error('No students to export');
             return;
         }
@@ -190,10 +191,15 @@ const StudentManagementPage: React.FC = () => {
     };
 
     const selectAllStudents = () => {
+        if (!Array.isArray(students) || students.length === 0) {
+            setSelectedStudents([]);
+            return;
+        }
+        
         if (selectedStudents.length === students.length) {
             setSelectedStudents([]);
         } else {
-            setSelectedStudents(students.map((student) => student.id));
+            setSelectedStudents(students.map((student) => student.id || 0));
         }
     };
 
@@ -201,126 +207,81 @@ const StudentManagementPage: React.FC = () => {
         return (
             <div className="min-h-screen p-6 flex items-center justify-center">
                 <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+                    <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto mb-4" />
                     <p className="text-muted-foreground">Loading student data...</p>
                 </div>
             </div>
         );
     }
 
-    return (
-        <div className="min-h-screen">
-            <div className="w-full">
+    if (isError) {
+        return (
+            <div className="min-h-screen p-6 flex items-center justify-center">
+                <div className="text-center">
+                    <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold mb-2">Error Loading Student Data</h3>
+                    <p className="text-muted-foreground mb-4">
+                        Unable to load student information. Please try again later.
+                    </p>
+                    <Button onClick={() => window.location.reload()}>
+                        Retry
+                    </Button>
+                </div>
+            </div>
+        );
+    }
 
-                {/* Messaging and Export Selected Button */}
-                <Card className="mb-6 px-12 py-8">
-                    {/* Header */}
-                    <div className="mb-8 text-center">
-                        <div className="inline-flex items-center justify-center w-16 h-16 bg-primary rounded-2xl mb-4">
-                            <Users className="h-8 w-8 text-primary-foreground" />
-                        </div>
-                        <h1 className="text-4xl font-bold text-foreground mb-2">Student Management</h1>
-                        <p className="text-muted-foreground text-lg">Manage student enrollments, groups, and attendance records</p>
+    const totalStudents = Array.isArray(students) ? students.length : 0;
+
+    return (
+        <div className="min-h-screen p-6">
+            <div className="max-w-7xl mx-auto">
+                {/* Header */}
+                <div className="mb-8 text-center">
+                    <div className="inline-flex items-center justify-center w-16 h-16 bg-primary rounded-2xl mb-4">
+                        <Users className="h-8 w-8 text-primary-foreground" />
                     </div>
-                    <CardContent className="space-y-10 p-4">
-                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                            <div>
-                                <h3 className="font-semibold">Quick Actions</h3>
-                                <p className="text-sm text-muted-foreground">Send messages or export selected students</p>
-                            </div>
-                            <div className="flex flex-wrap gap-2">
-                                <Button
-                                    variant="outline"
-                                    onClick={() => setDialogOpen('sendMessage')}
-                                    disabled={selectedStudents.length === 0}
-                                >
-                                    <MessageSquare className="h-4 w-4 mr-2" />
-                                    Send Message ({selectedStudents.length})
-                                </Button>
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                        <Button
-                                            variant="outline"
-                                            disabled={selectedStudents.length === 0}
-                                        >
-                                            <Download className="h-4 w-4 mr-2" />
-                                            Export Selected ({selectedStudents.length})
-                                        </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end">
-                                        <DropdownMenuItem
-                                            onClick={() => handleExportData('csv', students.filter(s => selectedStudents.includes(s.id)))}
-                                            className="flex items-center space-x-2"
-                                        >
-                                            <Sheet className="h-4 w-4" />
-                                            <span>Export as CSV</span>
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem
-                                            onClick={() => handleExportData('excel', students.filter(s => selectedStudents.includes(s.id)))}
-                                            className="flex items-center space-x-2"
-                                        >
-                                            <FileDown className="h-4 w-4" />
-                                            <span>Export as Excel</span>
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem
-                                            onClick={() => handleExportData('pdf', students.filter(s => selectedStudents.includes(s.id)))}
-                                            className="flex items-center space-x-2"
-                                        >
-                                            <FileText className="h-4 w-4" />
-                                            <span>Export as PDF</span>
-                                        </DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
-                            </div>
+                    <h1 className="text-4xl font-bold text-foreground mb-2">Student Management</h1>
+                    <p className="text-muted-foreground text-lg">
+                        Manage {totalStudents} student{totalStudents !== 1 ? 's' : ''} across {availableClasses.length} class{availableClasses.length !== 1 ? 'es' : ''}
+                    </p>
+                </div>
+
+                {/* Quick Actions Card */}
+                <Card className="mb-6">
+                    <CardContent className="p-6">
+                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                           
+                            
                         </div>
 
                         {/* Filters and Search */}
-                        <div className="flex gap-3">
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button variant="outline">
-                                        <Download className="h-4 w-4 mr-2" />
-                                        Export All
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                    <DropdownMenuItem
-                                        onClick={() => handleExportData('csv', filteredStudents)}
-                                        className="flex items-center space-x-2"
-                                    >
-                                        <Sheet className="h-4 w-4" />
-                                        <span>Export as CSV</span>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem
-                                        onClick={() => handleExportData('excel', filteredStudents)}
-                                        className="flex items-center space-x-2"
-                                    >
-                                        <FileDown className="h-4 w-4" />
-                                        <span>Export as Excel</span>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem
-                                        onClick={() => handleExportData('pdf', filteredStudents)}
-                                        className="flex items-center space-x-2"
-                                    >
-                                        <FileText className="h-4 w-4" />
-                                        <span>Export as PDF</span>
-                                    </DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                            {/* <Button onClick={() => setDialogOpen('createGroup')}>
-                                <UserPlus className="h-4 w-4 mr-2" />
-                                New Group
-                            </Button> */}
+                        <div className="flex flex-col sm:flex-row gap-4 mb-4">
+                            <div className="flex-1">
+                                <div className="relative">
+                                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                    <Input
+                                        placeholder="Search students by name, email, or class..."
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        className="pl-10"
+                                    />
+                                </div>
+                            </div>
+                            
                         </div>
-                        {/* Search Bar */}
-                        <div className="relative mt-4">
-                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                            <Input
-                                placeholder="Search students by name, email, or class..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="pl-10"
-                            />
+
+                        {/* Stats Summary */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                            <div className="bg-muted/50 p-4 rounded-lg">
+                                <div className="text-2xl font-bold">{totalStudents}</div>
+                                <div className="text-sm text-muted-foreground">Total Students</div>
+                            </div>
+                            <div className="bg-muted/50 p-4 rounded-lg">
+                                <div className="text-2xl font-bold">{availableClasses.length}</div>
+                                <div className="text-sm text-muted-foreground">Classes</div>
+                            </div>
+                            
                         </div>
                     </CardContent>
                 </Card>
@@ -330,12 +291,9 @@ const StudentManagementPage: React.FC = () => {
                     <TabsList className="grid w-full grid-cols-3">
                         <TabsTrigger value="students" className="flex items-center space-x-2">
                             <Users className="h-4 w-4" />
-                            <span>Students</span>
+                            <span>Students ({totalStudents})</span>
                         </TabsTrigger>
-                        {/* <TabsTrigger value="groups" className="flex items-center space-x-2">
-                            <Shield className="h-4 w-4" />
-                            <span>Groups</span>
-                        </TabsTrigger> */}
+                       
                         <TabsTrigger value="attendance" className="flex items-center space-x-2">
                             <Calendar className="h-4 w-4" />
                             <span>Attendance</span>
@@ -344,19 +302,40 @@ const StudentManagementPage: React.FC = () => {
 
                     {/* Students Tab */}
                     <TabsContent value="students">
-                        <StudentsOverview
-                            students={filteredStudents}
-                            selectedStudents={selectedStudents}
-                            onStudentSelect={toggleStudentSelection}
-                            onSelectAll={selectAllStudents}
-                            className={availableClasses.find(c => c.id === filters.classId)?.name || ''}
-                        />
+                        {filteredStudents.length === 0 ? (
+                            <Card>
+                                <CardContent className="p-12 text-center">
+                                    <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                                    <h3 className="text-lg font-semibold mb-2">No Students Found</h3>
+                                    <p className="text-muted-foreground">
+                                        {searchTerm ? 'No students match your search criteria' : 'No students available in this class'}
+                                    </p>
+                                    {searchTerm && (
+                                        <Button 
+                                            variant="outline" 
+                                            className="mt-4"
+                                            onClick={() => setSearchTerm('')}
+                                        >
+                                            Clear Search
+                                        </Button>
+                                    )}
+                                </CardContent>
+                            </Card>
+                        ) : (
+                            <StudentsOverview
+                                students={filteredStudents}
+                                selectedStudents={selectedStudents}
+                                onStudentSelect={toggleStudentSelection}
+                                onSelectAll={selectAllStudents}
+                                className={availableClasses.find(c => c.id === filters.classId)?.name || ''}
+                            />
+                        )}
                     </TabsContent>
 
                     {/* Groups Tab */}
                     {/* <TabsContent value="groups">
-                        <GroupsOverview
-                            groups={groups}
+                        <GroupManagement
+                            groups={Array.isArray(groupsQuery.data?.data) ? groupsQuery.data.data : []}
                             students={students}
                             onManageGroup={(group) => {
                                 setSelectedGroup(group);
@@ -370,7 +349,6 @@ const StudentManagementPage: React.FC = () => {
                     <TabsContent value="attendance">
                         <AttendanceOverview
                             attendance={attendance}
-                            term={filters.term}
                         />
                     </TabsContent>
                 </Tabs>
@@ -409,7 +387,12 @@ const StudentManagementPage: React.FC = () => {
                                     Cancel
                                 </Button>
                                 <Button type="submit" disabled={createGroupMutation.isPending}>
-                                    {createGroupMutation.isPending ? 'Creating...' : 'Create Group'}
+                                    {createGroupMutation.isPending ? (
+                                        <>
+                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                            Creating...
+                                        </>
+                                    ) : 'Create Group'}
                                 </Button>
                             </DialogFooter>
                         </form>
@@ -425,20 +408,20 @@ const StudentManagementPage: React.FC = () => {
                                 Add or remove students from this group
                             </DialogDescription>
                         </DialogHeader>
-                        {selectedGroup && (
+                        {/* {selectedGroup && (
                             <ScrollArea className="flex-1 pr-4">
                                 <GroupManagement
                                     group={selectedGroup}
                                     students={students}
-                                    onAddStudent={handleAddStudentToGroup}
-                                    onRemoveStudent={handleRemoveStudentFromGroup}
+                                    onAddStudent={() => {}}
+                                    onRemoveStudent={() => {}}
                                     onDelete={() => {
                                         handleDeleteGroup(selectedGroup.id);
                                         setDialogOpen(null);
                                     }}
                                 />
                             </ScrollArea>
-                        )}
+                        )} */}
                     </DialogContent>
                 </Dialog>
 

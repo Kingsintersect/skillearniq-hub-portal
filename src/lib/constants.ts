@@ -387,8 +387,8 @@ export const TeacherNavMain: SidebarNavConfig = {
             display: true,
         },
         {
-            title: "ASSESSMENTS",
-            url: "/teacher/assessments",
+            title: "STUDENT REPORTS",
+            url: "/teacher/grade-reports",
             icon: BookOpenCheck,
             display: true,
         },
@@ -437,13 +437,16 @@ export const ParentNavMain: SidebarNavConfig = {
     ],
     flat: [
 
+        // {
+        //     title: "MESSAGES",
+        //     url: "/parent/messages",
+        //     icon: SendHorizonal,
+        //     display: true,
+        // },
+        
+
         {
-            title: "MESSAGES",
-            url: "/parent/messages",
-            icon: SendHorizonal,
-            display: true,
-        },
-        {
+
             title: "COURSES",
             url: "/parent/classes",
             icon: BookOpen,

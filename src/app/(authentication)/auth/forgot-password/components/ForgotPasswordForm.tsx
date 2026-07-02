@@ -6,7 +6,6 @@ import { Input } from '@/components/ui/input';
 import { useForgotPasswordForm } from '@/hooks/use-forgot-password';
 import Link from 'next/link';
 import React from 'react'
-import { FormState } from 'react-hook-form';
 
 export const ForgotPasswordForm = () => {
     const {
@@ -27,7 +26,7 @@ export const ForgotPasswordForm = () => {
                             <FormItem>
                                 <FormLabel>Email Address</FormLabel>
                                 <FormControl>
-                                    <Input placeholder="Eneter email address" {...field} />
+                                    <Input placeholder="Enter email address" {...field} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>

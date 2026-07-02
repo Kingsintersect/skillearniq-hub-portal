@@ -10,6 +10,13 @@ import {
   Category,
   Course
 } from '@/lib/services/admin/teacherService';
+
+import { 
+  gradeService,
+  CourseCategory,
+  CourseGradesResponse
+} from '@/lib/services/admin/gradeService';
+
 import { 
   studentService, 
   Student, 
@@ -51,6 +58,78 @@ export const useAdminQueries = () => {
     return useQuery({
       queryKey: ['teachers', params],
       queryFn: () => teacherService.getTeachers(params),
+      staleTime: 5 * 60 * 1000,
+    });
+  };
+
+ // Grade Reports Queries
+  const useCourseCategories = () => {
+    return useQuery({
+      queryKey: ['course-categories'],
+      queryFn: () => gradeService.getCourseCategories(),
+      staleTime: 10 * 60 * 1000,
+    });
+  };
+
+  const useSubCategories = (parentId: number | null) => {
+    return useQuery({
+      queryKey: ['sub-categories', parentId],
+      queryFn: () => {
+        if (!parentId) return Promise.resolve({
+          status: 400,
+          message: 'Parent ID is required',
+          data: []
+        });
+        return gradeService.getSubCategories(parentId);
+      },
+      enabled: !!parentId,
+      staleTime: 10 * 60 * 1000,
+    });
+  };
+
+  const useCoursesByCategory = (categoryId: number | null) => {
+    return useQuery({
+      queryKey: ['courses-by-category', categoryId],
+      queryFn: () => {
+        if (!categoryId) return Promise.resolve({
+          status: 400,
+          message: 'Category ID is required',
+          data: []
+        });
+        return gradeService.getCoursesByCategory(categoryId);
+      },
+      enabled: !!categoryId,
+      staleTime: 10 * 60 * 1000,
+    });
+  };
+
+  const useAllCourses = () => {
+    return useQuery({
+      queryKey: ['all-courses'],
+      queryFn: () => gradeService.getAllCourses(),
+      staleTime: 10 * 60 * 1000,
+    });
+  };
+
+  const useCourseGrades = (courseId: number | null) => {
+    return useQuery({
+      queryKey: ['course-grades', courseId],
+      queryFn: () => {
+        if (!courseId) return Promise.resolve({
+          status: 400,
+          message: 'Course ID is required',
+          data: {
+            course_id: 0,
+            course_code: '',
+            course_name: '',
+            course_image_url: '',
+            instructors: [],
+            students: []
+          }
+        });
+        return gradeService.getCourseGrades(courseId);
+      },
+      enabled: !!courseId,
       staleTime: 5 * 60 * 1000,
     });
   };
@@ -339,5 +418,12 @@ const useTeacherSubjects = () => {
     // Payments
     usePayments,
     usePaymentDetails,
+
+     // Grade Reports
+     useCourseCategories,
+    useCoursesByCategory,
+    useAllCourses,
+    useCourseGrades,
+    useSubCategories
   };
 };

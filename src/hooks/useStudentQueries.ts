@@ -1,101 +1,178 @@
+// hooks/useStudentQueries.ts - Complete Updated Version
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { studentService } from '@/lib/services/studentService';
+import { studentService, GamificationData } from '@/lib/services/studentService';
 import { toast } from 'sonner';
 
 export const useStudentQueries = () => {
   const queryClient = useQueryClient();
 
-  // Dashboard
-  const useDashboardData = () => {
+  // Profile
+  const useProfile = () => {
     return useQuery({
-      queryKey: ['student', 'dashboard'],
-      queryFn: () => studentService.getDashboardData(),
-      staleTime: 5 * 60 * 1000, // 5 minutes
-    });
-  };
-
-  // Classes
-  const useClasses = (filters?: {
-    term?: string;
-    teacher?: string;
-    subject?: string;
-  }) => {
-    return useQuery({
-      queryKey: ['student', 'classes', filters],
-      queryFn: () => studentService.getClasses(filters),
-      staleTime: 10 * 60 * 1000, // 10 minutes
-    });
-  };
-
-  // Results
-  const useResults = (filters?: {
-    term?: string;
-  }) => {
-    return useQuery({
-      queryKey: ['student', 'results', filters],
-      queryFn: () => studentService.getResults(filters),
-      staleTime: 15 * 60 * 1000, // 15 minutes
-    });
-  };
-
-  // Gamification
-  const useGamificationData = () => {
-    return useQuery({
-      queryKey: ['student', 'gamification'],
-      queryFn: () => studentService.getGamificationData(),
+      queryKey: ['student', 'profile'],
+      queryFn: () => studentService.getProfile(),
       staleTime: 5 * 60 * 1000,
     });
   };
 
-  // Settings
-  const useSettings = () => {
+  // Gamification data query
+  const useGamificationData = () => {
     return useQuery({
-      queryKey: ['student', 'settings'],
-      queryFn: () => studentService.getSettings(),
-      staleTime: 30 * 60 * 1000, // 30 minutes
+      queryKey: ['student', 'gamification'],
+      queryFn: async () => {
+        const response = await studentService.getGamificationData();
+        console.log('Gamification response in hook:', response);
+        return response;
+      },
+      staleTime: 5 * 60 * 1000,
+      retry: 2,
+    });
+  };
+
+  // Enrolled courses query
+  const useEnrolledCourses = () => {
+    return useQuery({
+      queryKey: ['student', 'enrolled-courses'],
+      queryFn: () => studentService.getEnrolledCourses(),
+      staleTime: 10 * 60 * 1000,
+      retry: 2,
+    });
+  };
+
+  // Course grades query
+  const useStudentCourseGrades = (courseId: number | null) => {
+    return useQuery({
+      queryKey: ['student', 'course-grades', courseId],
+      queryFn: () => {
+        if (!courseId) return Promise.resolve({
+          status: 400,
+          message: 'Course ID is required',
+          data: {
+            course_id: 0,
+            course_code: '',
+            course_name: '',
+            course_image_url: '',
+            instructors: [],
+            students: []
+          }
+        });
+        return studentService.getCourseGrades(courseId);
+      },
+      enabled: !!courseId,
+      staleTime: 5 * 60 * 1000,
+    });
+  };
+
+  // Redeem reward mutation
+  const useRedeemReward = () => {
+    return useMutation({
+      mutationFn: async (rewardId: number) => {
+        const response = await studentService.redeemReward(rewardId);
+        return response;
+      },
+      onSuccess: (data) => {
+        queryClient.invalidateQueries({ queryKey: ['student', 'gamification'] });
+        
+        if (data.message) {
+          toast.success(data.message);
+        } else {
+          toast.success('Reward redeemed successfully!');
+        }
+      },
+      onError: (error: any) => {
+        toast.error(error.message || 'Failed to redeem reward');
+      },
+    });
+  };
+
+  // Dashboard Summary
+  const useDashboardSummary = () => {
+    return useQuery({
+      queryKey: ['student', 'dashboard', 'summary'],
+      queryFn: () => studentService.getDashboardSummary(),
+      staleTime: 5 * 60 * 1000,
+    });
+  };
+
+  // Payment Stats
+  const usePaymentStats = () => {
+    return useQuery({
+      queryKey: ['student', 'payment', 'stats'],
+      queryFn: () => studentService.getPaymentStats(),
+      staleTime: 10 * 60 * 1000,
+    });
+  };
+
+  // Assessments
+  const useAssessments = () => {
+    return useQuery({
+      queryKey: ['student', 'assessments'],
+      queryFn: () => studentService.getAssessments(),
+      staleTime: 10 * 60 * 1000,
+    });
+  };
+
+  // Attendance
+  const useAttendance = () => {
+    return useQuery({
+      queryKey: ['student', 'attendance'],
+      queryFn: () => studentService.getAttendance(),
+      staleTime: 10 * 60 * 1000,
+    });
+  };
+
+  // Classes
+  const useClasses = () => {
+    return useQuery({
+      queryKey: ['student', 'classes'],
+      queryFn: () => studentService.getClasses(),
+      staleTime: 10 * 60 * 1000,
+    });
+  };
+
+  // Moodle Courses
+  const useCourses = () => {
+    return useQuery({
+      queryKey: ['student', 'courses'],
+      queryFn: () => studentService.getCourses(),
+      staleTime: 10 * 60 * 1000,
+    });
+  };
+
+  // Student Courses with Progress
+  const useStudentCourses = () => {
+    return useQuery({
+      queryKey: ['student', 'courses', 'progress'],
+      queryFn: () => studentService.getStudentCourses(),
+      staleTime: 10 * 60 * 1000,
+    });
+  };
+
+  // Export results mutation
+  const useExportResults = () => {
+    return useMutation({
+      mutationFn: (format: 'csv' | 'excel' | 'pdf') => 
+        studentService.exportResults(format),
+      onSuccess: () => {
+        toast.success('Results exported successfully');
+      },
+      onError: (error: any) => {
+        toast.error(error.message || 'Failed to export results');
+      }
     });
   };
 
   // Mutations
-  const useUpdateSettings = () => {
-    return useMutation({
-      mutationFn: studentService.updateSettings,
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['student', 'settings'] });
-        queryClient.invalidateQueries({ queryKey: ['student', 'dashboard'] });
-        toast.success('Settings updated successfully');
-      },
-      onError: (error: any) => {
-        toast.error(error.message || 'Failed to update settings');
-      }
-    });
-  };
-
   const useUpdateProfile = () => {
     return useMutation({
       mutationFn: studentService.updateProfile,
       onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['student', 'profile'] });
         queryClient.invalidateQueries({ queryKey: ['student', 'dashboard'] });
-        queryClient.invalidateQueries({ queryKey: ['student', 'settings'] });
-        queryClient.invalidateQueries({ queryKey: ['student', 'gamification'] });
         toast.success('Profile updated successfully');
       },
       onError: (error: any) => {
         toast.error(error.message || 'Failed to update profile');
-      }
-    });
-  };
-
-  const useRedeemReward = () => {
-    return useMutation({
-      mutationFn: studentService.redeemReward,
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['student', 'gamification'] });
-        queryClient.invalidateQueries({ queryKey: ['student', 'dashboard'] });
-        toast.success('Reward redeemed successfully');
-      },
-      onError: (error: any) => {
-        toast.error(error.message || 'Failed to redeem reward');
       }
     });
   };
@@ -127,17 +204,23 @@ export const useStudentQueries = () => {
 
   return {
     // Queries
-    useDashboardData,
+    useProfile,
+    useDashboardSummary,
+    usePaymentStats,
+    useAssessments,
+    useAttendance,
     useClasses,
-    useResults,
+    useCourses,
+    useStudentCourses,
     useGamificationData,
-    useSettings,
+    useEnrolledCourses,
+    useStudentCourseGrades,
+    useRedeemReward,
 
     // Mutations
-    useUpdateSettings,
     useUpdateProfile,
-    useRedeemReward,
     useChangePassword,
     useExportData,
+    useExportResults,
   };
 };

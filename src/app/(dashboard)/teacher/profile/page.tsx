@@ -33,19 +33,22 @@ import {
   Key,
   Trash2,
   Eye,
-  EyeOff
+  EyeOff,
+  Loader2,
+  AlertCircle
 } from 'lucide-react';
 
 // Import hooks
 import { useTeacherQueries } from '@/hooks/useTeacherQueries';
-import { NotificationSettings, Preferences } from '@/lib/services/teacherService';
 
 // Validation schemas
 const profileSchema = z.object({
-  name: z.string().min(1, 'Name is required'),
+  firstName: z.string().min(1, 'First name is required'),
+  lastName: z.string().min(1, 'Last name is required'),
   email: z.string().email('Invalid email address'),
-  phone: z.string().min(10, 'Phone number is required'),
+  phone: z.string().optional(),
   department: z.string().min(1, 'Department is required'),
+  title: z.string().optional(),
   bio: z.string().optional(),
 });
 
@@ -91,15 +94,17 @@ const TeacherSettingsPage: React.FC = () => {
   const updatePreferencesMutation = useUpdatePreferences();
   const changePasswordMutation = useChangePassword();
 
-  // Forms
+  // Forms - FIXED: Use profileQuery.data directly (not .data.data)
   const profileForm = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
-    values: profileQuery.data?.data ? {
-      name: profileQuery.data.data.name,
-      email: profileQuery.data.data.email,
-      phone: profileQuery.data.data.phone,
-      department: profileQuery.data.data.department,
-      bio: profileQuery.data.data.bio,
+    values: profileQuery.data ? {
+      firstName: profileQuery.data.firstName || '',
+      lastName: profileQuery.data.lastName || '',
+      email: profileQuery.data.email || '',
+      phone: profileQuery.data.phone || '',
+      department: profileQuery.data.department || '',
+      title: profileQuery.data.title || '',
+      bio: profileQuery.data.bio || '',
     } : undefined
   });
 
@@ -125,11 +130,11 @@ const TeacherSettingsPage: React.FC = () => {
     }
   };
 
-  const handleNotificationChange = async (key: keyof NotificationSettings, value: boolean) => {
-    if (!notificationQuery.data?.data) return;
+  const handleNotificationChange = async (key: string, value: boolean) => {
+    if (!notificationQuery.data) return;
 
     const updatedSettings = {
-      ...notificationQuery.data.data,
+      ...notificationQuery.data,
       [key]: value
     };
 
@@ -140,11 +145,11 @@ const TeacherSettingsPage: React.FC = () => {
     }
   };
 
-  const handlePreferenceChange = async (key: keyof Preferences, value: any) => {
-    if (!preferencesQuery.data?.data) return;
+  const handlePreferenceChange = async (key: string, value: any) => {
+    if (!preferencesQuery.data) return;
 
     const updatedPreferences = {
-      ...preferencesQuery.data.data,
+      ...preferencesQuery.data,
       [key]: value
     };
 
@@ -171,17 +176,82 @@ const TeacherSettingsPage: React.FC = () => {
     return (
       <div className="min-h-screen p-6 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto mb-4" />
           <p className="text-muted-foreground">Loading settings...</p>
         </div>
       </div>
     );
   }
 
-  const profile = profileQuery.data?.data;
-  const notifications = notificationQuery.data?.data;
-  const security = securityQuery.data?.data;
-  const preferences = preferencesQuery.data?.data;
+  if (profileQuery.error) {
+    return (
+      <div className="min-h-screen p-6 flex items-center justify-center">
+        <div className="text-center">
+          <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold mb-2">Error Loading Profile</h3>
+          <p className="text-muted-foreground mb-4">
+            {profileQuery.error.message || 'Failed to load profile data'}
+          </p>
+          <Button onClick={() => profileQuery.refetch()}>
+            Try Again
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  const profile = profileQuery.data;
+  const notifications = notificationQuery.data;
+  const security = securityQuery.data;
+  const preferences = preferencesQuery.data;
+
+  // Fallback data if API returns null/undefined
+  const safeProfile = profile || {
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    department: '',
+    title: '',
+    bio: '',
+    profileImage: '',
+    createdAt: '',
+    updatedAt: ''
+  };
+
+  const safeNotifications = notifications || {
+    emailNotifications: true,
+    pushNotifications: true,
+    smsNotifications: false,
+    assessmentReminders: true,
+    attendanceAlerts: true,
+    parentMessages: true,
+    systemUpdates: true
+  };
+
+  const safePreferences = preferences || {
+    language: 'en',
+    timezone: 'Africa/Lagos',
+    dateFormat: 'DD/MM/YYYY',
+    theme: 'system' as const,
+    defaultView: 'dashboard',
+    exportFormat: 'pdf',
+    autoSave: true
+  };
+
+  const safeSecurity = security || {
+    twoFactorEnabled: false,
+    activeSessions: [
+      {
+        id: '1',
+        device: 'Chrome on Windows',
+        browser: 'Chrome',
+        location: 'Lagos, Nigeria',
+        ipAddress: '192.168.1.1',
+        lastActive: new Date().toISOString()
+      }
+    ]
+  };
 
   return (
     <div className="min-h-screen p-6 bg-background">
@@ -235,9 +305,9 @@ const TeacherSettingsPage: React.FC = () => {
               <CardContent className="space-y-6">
                 <div className="flex items-center space-x-6">
                   <Avatar className="h-20 w-20">
-                    <AvatarImage src={profile?.avatar} />
+                    <AvatarImage src={safeProfile.profileImage} />
                     <AvatarFallback className="text-lg">
-                      {profile?.name?.split(' ').map(n => n[0]).join('')}
+                      {safeProfile.firstName?.[0]}{safeProfile.lastName?.[0]}
                     </AvatarFallback>
                   </Avatar>
                   <div>
@@ -253,14 +323,26 @@ const TeacherSettingsPage: React.FC = () => {
                 <form onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <Label htmlFor="name">Full Name</Label>
+                      <Label htmlFor="firstName">First Name</Label>
                       <Input
-                        id="name"
-                        {...profileForm.register('name')}
-                        placeholder="Enter your full name"
+                        id="firstName"
+                        {...profileForm.register('firstName')}
+                        placeholder="Enter your first name"
                       />
-                      {profileForm.formState.errors.name && (
-                        <p className="text-red-500 text-sm mt-1">{profileForm.formState.errors.name.message}</p>
+                      {profileForm.formState.errors.firstName && (
+                        <p className="text-red-500 text-sm mt-1">{profileForm.formState.errors.firstName.message}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <Label htmlFor="lastName">Last Name</Label>
+                      <Input
+                        id="lastName"
+                        {...profileForm.register('lastName')}
+                        placeholder="Enter your last name"
+                      />
+                      {profileForm.formState.errors.lastName && (
+                        <p className="text-red-500 text-sm mt-1">{profileForm.formState.errors.lastName.message}</p>
                       )}
                     </div>
 
@@ -300,6 +382,18 @@ const TeacherSettingsPage: React.FC = () => {
                         <p className="text-red-500 text-sm mt-1">{profileForm.formState.errors.department.message}</p>
                       )}
                     </div>
+
+                    <div>
+                      <Label htmlFor="title">Title</Label>
+                      <Input
+                        id="title"
+                        {...profileForm.register('title')}
+                        placeholder="Enter your title (e.g., Senior Teacher)"
+                      />
+                      {profileForm.formState.errors.title && (
+                        <p className="text-red-500 text-sm mt-1">{profileForm.formState.errors.title.message}</p>
+                      )}
+                    </div>
                   </div>
 
                   <div>
@@ -315,11 +409,13 @@ const TeacherSettingsPage: React.FC = () => {
                   <div className="flex justify-between items-center">
                     <div>
                       <p className="text-sm text-muted-foreground">
-                        Teacher ID: {profile?.teacherId}
+                        Member since {new Date(safeProfile.createdAt).toLocaleDateString()}
                       </p>
-                      <p className="text-sm text-muted-foreground">
-                        Member since {new Date(profile?.joinDate || '').toLocaleDateString()}
-                      </p>
+                      {safeProfile.updatedAt && (
+                        <p className="text-sm text-muted-foreground">
+                          Last updated {new Date(safeProfile.updatedAt).toLocaleDateString()}
+                        </p>
+                      )}
                     </div>
                     <Button 
                       type="submit" 
@@ -356,7 +452,7 @@ const TeacherSettingsPage: React.FC = () => {
                       </div>
                       <Switch
                         id="email-notifications"
-                        checked={notifications?.emailNotifications}
+                        checked={safeNotifications.emailNotifications}
                         onCheckedChange={(checked) => 
                           handleNotificationChange('emailNotifications', checked)
                         }
@@ -372,37 +468,13 @@ const TeacherSettingsPage: React.FC = () => {
                       </div>
                       <Switch
                         id="push-notifications"
-                        checked={notifications?.pushNotifications}
+                        checked={safeNotifications.pushNotifications}
                         onCheckedChange={(checked) => 
                           handleNotificationChange('pushNotifications', checked)
                         }
                       />
                     </div>
 
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-0.5">
-                        <Label htmlFor="sms-notifications">SMS Notifications</Label>
-                        <p className="text-sm text-muted-foreground">
-                          Receive SMS alerts (carrier charges may apply)
-                        </p>
-                      </div>
-                      <Switch
-                        id="sms-notifications"
-                        checked={notifications?.smsNotifications}
-                        onCheckedChange={(checked) => 
-                          handleNotificationChange('smsNotifications', checked)
-                        }
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <Separator />
-
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold">Notification Types</h3>
-                  
-                  <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <div className="space-y-0.5">
                         <Label htmlFor="assessment-reminders">Assessment Reminders</Label>
@@ -412,7 +484,7 @@ const TeacherSettingsPage: React.FC = () => {
                       </div>
                       <Switch
                         id="assessment-reminders"
-                        checked={notifications?.assessmentReminders}
+                        checked={safeNotifications.assessmentReminders}
                         onCheckedChange={(checked) => 
                           handleNotificationChange('assessmentReminders', checked)
                         }
@@ -428,7 +500,7 @@ const TeacherSettingsPage: React.FC = () => {
                       </div>
                       <Switch
                         id="attendance-alerts"
-                        checked={notifications?.attendanceAlerts}
+                        checked={safeNotifications.attendanceAlerts}
                         onCheckedChange={(checked) => 
                           handleNotificationChange('attendanceAlerts', checked)
                         }
@@ -437,34 +509,12 @@ const TeacherSettingsPage: React.FC = () => {
 
                     <div className="flex items-center justify-between">
                       <div className="space-y-0.5">
-                        <Label htmlFor="parent-messages">Parent Messages</Label>
+                        <Label htmlFor="message-notifications">Message Notifications</Label>
                         <p className="text-sm text-muted-foreground">
-                          Notifications when parents send messages
+                          Notifications when you receive messages
                         </p>
                       </div>
-                      <Switch
-                        id="parent-messages"
-                        checked={notifications?.parentMessages}
-                        onCheckedChange={(checked) => 
-                          handleNotificationChange('parentMessages', checked)
-                        }
-                      />
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-0.5">
-                        <Label htmlFor="system-updates">System Updates</Label>
-                        <p className="text-sm text-muted-foreground">
-                          Important platform updates and maintenance notices
-                        </p>
-                      </div>
-                      <Switch
-                        id="system-updates"
-                        checked={notifications?.systemUpdates}
-                        onCheckedChange={(checked) => 
-                          handleNotificationChange('systemUpdates', checked)
-                        }
-                      />
+                     
                     </div>
                   </div>
                 </div>
@@ -486,7 +536,7 @@ const TeacherSettingsPage: React.FC = () => {
                   <div className="space-y-2">
                     <Label htmlFor="theme">Theme</Label>
                     <Select
-                      value={preferences?.theme}
+                      value={safePreferences.theme}
                       onValueChange={(value: 'light' | 'dark' | 'system') => 
                         handlePreferenceChange('theme', value)
                       }
@@ -505,7 +555,7 @@ const TeacherSettingsPage: React.FC = () => {
                   <div className="space-y-2">
                     <Label htmlFor="language">Language</Label>
                     <Select
-                      value={preferences?.language}
+                      value={safePreferences.language}
                       onValueChange={(value) => handlePreferenceChange('language', value)}
                     >
                       <SelectTrigger>
@@ -522,7 +572,7 @@ const TeacherSettingsPage: React.FC = () => {
                   <div className="space-y-2">
                     <Label htmlFor="timezone">Timezone</Label>
                     <Select
-                      value={preferences?.timezone}
+                      value={safePreferences.timezone}
                       onValueChange={(value) => handlePreferenceChange('timezone', value)}
                     >
                       <SelectTrigger>
@@ -539,7 +589,7 @@ const TeacherSettingsPage: React.FC = () => {
                   <div className="space-y-2">
                     <Label htmlFor="date-format">Date Format</Label>
                     <Select
-                      value={preferences?.dateFormat}
+                      value={safePreferences.dateFormat}
                       onValueChange={(value) => handlePreferenceChange('dateFormat', value)}
                     >
                       <SelectTrigger>
@@ -552,56 +602,18 @@ const TeacherSettingsPage: React.FC = () => {
                       </SelectContent>
                     </Select>
                   </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="default-view">Default View</Label>
-                    <Select
-                      value={preferences?.defaultView}
-                      onValueChange={(value) => handlePreferenceChange('defaultView', value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="dashboard">Dashboard</SelectItem>
-                        <SelectItem value="classes">Classes</SelectItem>
-                        <SelectItem value="assessments">Assessments</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="export-format">Export Format</Label>
-                    <Select
-                      value={preferences?.exportFormat}
-                      onValueChange={(value) => handlePreferenceChange('exportFormat', value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="pdf">PDF</SelectItem>
-                        <SelectItem value="excel">Excel</SelectItem>
-                        <SelectItem value="csv">CSV</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
                 </div>
 
                 <Separator />
 
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
-                    <Label htmlFor="auto-save">Auto Save</Label>
+                    <Label htmlFor="notifications-enabled">Enable Notifications</Label>
                     <p className="text-sm text-muted-foreground">
-                      Automatically save changes as you work
+                      Receive system notifications
                     </p>
                   </div>
-                  <Switch
-                    id="auto-save"
-                    checked={preferences?.autoSave}
-                    onCheckedChange={(checked) => handlePreferenceChange('autoSave', checked)}
-                  />
+                  
                 </div>
               </CardContent>
             </Card>
@@ -716,7 +728,7 @@ const TeacherSettingsPage: React.FC = () => {
                     <div className="space-y-0.5">
                       <Label htmlFor="2fa">Two-Factor Authentication</Label>
                       <p className="text-sm text-muted-foreground">
-                        {security?.twoFactorEnabled 
+                        {safeSecurity.twoFactorEnabled 
                           ? '2FA is currently enabled on your account'
                           : 'Enable 2FA for enhanced security'
                         }
@@ -724,7 +736,7 @@ const TeacherSettingsPage: React.FC = () => {
                     </div>
                     <Switch
                       id="2fa"
-                      checked={security?.twoFactorEnabled}
+                      checked={safeSecurity.twoFactorEnabled}
                       onCheckedChange={(checked) => toast.info('2FA settings would be updated')}
                     />
                   </div>
@@ -741,7 +753,7 @@ const TeacherSettingsPage: React.FC = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {security?.activeSessions.map((session) => (
+                    {safeSecurity.activeSessions?.map((session:any) => (
                       <div key={session.id} className="flex items-center justify-between p-4 border rounded-lg">
                         <div className="space-y-1">
                           <div className="flex items-center space-x-2">

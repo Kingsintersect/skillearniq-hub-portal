@@ -26,20 +26,20 @@ export const useGradeReports = () => {
     });
 
     // Sync React Query state with Zustand store
-    useEffect(() => {
-        setGradeReportsLoading(query.isLoading);
-        setGradeReportsError(query.error ? 'Failed to load grade reports' : null);
-        if (query.data?.data) {
-            setGradeReports(query.data.data);
-        }
-    }, [
-        query.data,
-        query.isLoading,
-        query.error,
-        setGradeReports,
-        setGradeReportsLoading,
-        setGradeReportsError,
-    ]);
+    // useEffect(() => {
+    //     setGradeReportsLoading(query.isLoading);
+    //     setGradeReportsError(query.error ? 'Failed to load grade reports' : null);
+    //     if (query.data?.data) {
+    //         setGradeReports(query.data.data);
+    //     }
+    // }, [
+    //     query.data,
+    //     query.isLoading,
+    //     query.error,
+    //     setGradeReports,
+    //     setGradeReportsLoading,
+    //     setGradeReportsError,
+    // ]);
 
     // Sync selected grade report with selectedStudentId
     useEffect(() => {

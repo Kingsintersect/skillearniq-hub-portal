@@ -71,7 +71,7 @@ export const ResetPasswordForm = () => {
                 <div className="text-center">
                     <Link
                         href="/auth/signin"
-                        className="font-medium text-secondary-600 hover:text-secondary-500"
+                        className="font-medium text-primary-500 hover:text-primary-400 dark:text-primary-300 dark:hover:text-primary-200 transition-colors duration-200"
                     >
                         Back to login
                     </Link>
