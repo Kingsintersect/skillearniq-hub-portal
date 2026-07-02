@@ -15,7 +15,7 @@ export const StateResolver = () => {
                 <VerifyToken />
             </div>
 
-            <div className="min-h-screen col-span-1 flex flex-col justify-center px-10 bg-primary-50">
+            <div className="min-h-screen col-span-1 flex flex-col justify-center px-10 bg-primary-50 text-foreground transition-colors duration-300">
                 <AuthContainerHeader
                     heading='Reset your password'
                     subHeading='Enter your new password below.'

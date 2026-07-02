@@ -26,14 +26,12 @@ export interface TeacherSubjectAssignment {
   };
   teacher: {
     id: number;
-    name: string; // From API
-    email: string; // From API
-    first_name?: string; // Optional for transformation
-    last_name?: string; // Optional for transformation
+    name: string;
+    email: string;
   };
 }
 
-// Store Type (what we want to use internally)
+// Store Type
 export interface TeacherSubject {
   id: number;
   subject: {
@@ -44,8 +42,8 @@ export interface TeacherSubject {
     id: number;
     first_name: string;
     last_name: string;
-    email?: string; // Optional since we might not always have it
-    full_name?: string; // For convenience
+    email?: string;
+    full_name?: string;
   };
 }
 
@@ -53,11 +51,13 @@ interface TeacherStore {
   categories: Category[];
   courses: Course[];
   teacherSubjects: TeacherSubject[];
+  teachers: any[];
 
   // Actions
   setCategories: (categories: Category[]) => void;
   setCourses: (courses: Course[]) => void;
   setTeacherSubjects: (subjects: TeacherSubject[]) => void;
+  setTeachers: (teachers: any[]) => void;
 
   // Transformation method
   transformAndSetTeacherSubjects: (
@@ -104,10 +104,12 @@ export const useTeacherStore = create<TeacherStore>()(
       categories: [],
       courses: [],
       teacherSubjects: [],
+      teachers: [],
 
       setCategories: (categories) => set({ categories }),
       setCourses: (courses) => set({ courses }),
       setTeacherSubjects: (teacherSubjects) => set({ teacherSubjects }),
+      setTeachers: (teachers) => set({ teachers }),
 
       transformAndSetTeacherSubjects: (
         assignments: TeacherSubjectAssignment[],
@@ -118,6 +120,9 @@ export const useTeacherStore = create<TeacherStore>()(
 
       getTopLevelCategories: () => {
         const { categories } = get();
+        // Ensure categories is an array
+        if (!Array.isArray(categories)) return [];
+        
         return categories.filter(
           (cat) =>
             !categories.some((parent) =>
@@ -126,27 +131,20 @@ export const useTeacherStore = create<TeacherStore>()(
         );
       },
 
-      getCategoriesByParentId: (parentId: number) => {
-        const { categories } = get();
-        const parent = categories.find((cat) => cat.id === parentId);
-        if (!parent) return [];
-
-        const allCategories: Category[] = [parent];
-        if (parent.children) {
-          allCategories.push(...parent.children);
-        }
-        return allCategories;
-      },
       getFlattenedCategories: () => {
         const { categories } = get();
+        // Ensure categories is an array
+        if (!Array.isArray(categories)) return [];
+        
         const flattened: Category[] = [];
 
-        const flatten = (cats: unknown) => {
+        const flatten = (cats: Category[]) => {
+          // Ensure cats is an array
           if (!Array.isArray(cats)) return;
-
+          
           cats.forEach((cat) => {
             flattened.push(cat);
-            if (Array.isArray(cat.children)) {
+            if (cat.children && Array.isArray(cat.children)) {
               flatten(cat.children);
             }
           });
@@ -158,11 +156,15 @@ export const useTeacherStore = create<TeacherStore>()(
 
       getCoursesByCategoryId: (categoryId: number) => {
         const { courses } = get();
+        // Ensure courses is an array
+        if (!Array.isArray(courses)) return [];
         return courses.filter((course) => course.category === categoryId);
       },
 
       getTeacherAssignedSubjects: (teacherId: number) => {
         const { teacherSubjects } = get();
+        // Ensure teacherSubjects is an array
+        if (!Array.isArray(teacherSubjects)) return [];
         return teacherSubjects.filter(
           (subject) => subject.teacher.id === teacherId,
         );
@@ -170,11 +172,16 @@ export const useTeacherStore = create<TeacherStore>()(
 
       findCategoryById: (id: number) => {
         const { categories } = get();
+        // Ensure categories is an array
+        if (!Array.isArray(categories)) return undefined;
 
         const findRecursive = (cats: Category[]): Category | undefined => {
+          // Ensure cats is an array
+          if (!Array.isArray(cats)) return undefined;
+          
           for (const cat of cats) {
             if (cat.id === id) return cat;
-            if (cat.children) {
+            if (cat.children && Array.isArray(cat.children)) {
               const found = findRecursive(cat.children);
               if (found) return found;
             }
@@ -187,6 +194,8 @@ export const useTeacherStore = create<TeacherStore>()(
 
       findCourseById: (id: number) => {
         const { courses } = get();
+        // Ensure courses is an array
+        if (!Array.isArray(courses)) return undefined;
         return courses.find((course) => course.id === id);
       },
     }),
@@ -196,6 +205,7 @@ export const useTeacherStore = create<TeacherStore>()(
         categories: state.categories,
         courses: state.courses,
         teacherSubjects: state.teacherSubjects,
+        teachers: state.teachers,
       }),
     },
   ),

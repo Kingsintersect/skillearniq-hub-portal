@@ -1,6 +1,6 @@
 // hooks/useStudentQueries.ts - Complete Updated Version
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { studentService, GamificationData } from '@/lib/services/studentService';
+import { studentService, GamificationData, UpdateMessagePayload } from '@/lib/services/studentService';
 import { toast } from 'sonner';
 
 export const useStudentQueries = () => {
@@ -162,6 +162,80 @@ export const useStudentQueries = () => {
     });
   };
 
+ const useSentMessages = () => {
+  return useQuery({
+    queryKey: ['student','messages','sent'],
+    queryFn: studentService.getSentMessages,
+  });
+};
+
+const useReceivedMessages = () => {
+  return useQuery({
+    queryKey: ['student','messages','received'],
+    queryFn: studentService.getReceivedMessages,
+  });
+};
+
+const useSendMessage = () => {
+  return useMutation({
+    mutationFn: studentService.sendMessage,
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey:['student','messages']
+      });
+
+      toast.success('Message sent');
+    }
+  });
+};
+
+const useUpdateMessage = () => {
+  return useMutation({
+    mutationFn: ({
+      id,
+      payload
+    }: {
+      id:number;
+      payload:UpdateMessagePayload;
+    }) => studentService.updateMessage(id,payload),
+
+    onSuccess:()=>{
+      queryClient.invalidateQueries({
+        queryKey:['student','messages']
+      });
+
+      toast.success('Message updated');
+    }
+  });
+};
+
+
+const useDeleteMessage = () => {
+  return useMutation({
+    mutationFn: studentService.deleteMessage,
+
+    onSuccess:()=>{
+      queryClient.invalidateQueries({
+        queryKey:['student','messages']
+      });
+
+      toast.success('Message deleted');
+    }
+  });
+};
+
+const useTeachers = () => {
+  return useQuery({
+    queryKey:['student','teachers'],
+    queryFn: studentService.getTeachers,
+    staleTime: 1000 * 60 * 10, // cache 10 mins
+  });
+};
+
+
+
+
   // Mutations
   const useUpdateProfile = () => {
     return useMutation({
@@ -222,5 +296,11 @@ export const useStudentQueries = () => {
     useChangePassword,
     useExportData,
     useExportResults,
+     useSentMessages,
+  useReceivedMessages,
+  useSendMessage,
+  useUpdateMessage,
+  useDeleteMessage,
+  useTeachers
   };
 };

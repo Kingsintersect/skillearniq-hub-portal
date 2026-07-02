@@ -82,6 +82,44 @@ export interface StudentGrade {
   activities: StudentActivity[];
 }
 
+export interface StudentMessage {
+  id: number;
+  sender_id: number;
+  message: string;
+  recipient_ids: number[] | null;
+  created_at: string;
+  updated_at: string;
+  recipients?: any[];
+  sender?: {
+    first_name: string;
+    last_name: string;
+    role: string;
+  };
+}
+
+export type Message = StudentMessage;
+
+export interface SendMessagePayload {
+  recipient_type: "student_to_teacher"; // ✅ REQUIRED
+  recipient_ids: number[];
+  message: string;
+
+  subject?: string;
+  attachments?: any[];
+}
+
+export interface MessageResponse {
+  message?: string;
+  data?: Message | Message[] | null;
+}
+
+export interface UpdateMessagePayload {
+  message?: string;
+  subject?: string;
+  recipient_ids?: number[] | null;
+}
+
+
 /**
  * Domain types
  */
@@ -390,6 +428,35 @@ export const studentService = {
     const res = await apiClient.get('/student/courses');
     return normalize<MoodleCourse[]>(res);
   },
+
+  
+
+getTeachers: async (): Promise<ApiResponse<any[]>> => {
+
+  const res = await apiClient.get<any>('/student/my-teachers');
+
+  const teachers =
+    res.data?.studentTeachers?.data
+    ?? res.data?.data
+    ?? [];
+
+  // ✅ normalize shape
+  const normalized = teachers.map((t:any) => ({
+    id: t.id,
+    name: t.name ?? `${t.firstName} ${t.lastName}`,
+    email: t.email,
+    avatar: t.avatar,
+    courses: t.courses ?? []
+  }));
+
+  return {
+    status: 200,
+    message: 'Teachers fetched',
+    data: normalized,
+  };
+},
+
+
 
   /** Get student course data with progress */
   getStudentCourses: async (): Promise<ApiResponse<StudentCoursesResponse>> => {
@@ -760,6 +827,74 @@ getEnrolledCourses: async (): Promise<ApiResponse<MoodleCourse[]>> => {
     );
     return normalize<{ success: boolean; message: string }>(res);
   },
+
+  /** ===============================
+ * STUDENT MESSAGING
+================================= */
+
+/* =====================================================
+   STUDENT MESSAGING
+===================================================== */
+
+getSentMessages: async (): Promise<ApiResponse<Message[]>> => {
+
+  const res = await apiClient.get<any>('/student/messages');
+
+  console.log("SENT RAW ->", res); // <-- add this once
+
+  return {
+    status: res.status,
+    message: res.message,
+    data: res.data?.messages ?? [],
+  };
+},
+
+
+
+getReceivedMessages: async (): Promise<ApiResponse<Message[]>> => {
+
+  const res = await apiClient.get<any>('/student/messages/received');
+
+  return {
+    status: 200,
+    message: 'Received messages fetched',
+    data: res.data?.messages ?? [],
+  };
+},
+
+
+sendMessage: async (
+  payload: SendMessagePayload
+): Promise<ApiResponse<Message>> => {
+
+  const res = await apiClient.post<MessageResponse>(
+    '/student/messages',
+    payload
+  );
+
+  return {
+    status: 200,
+    message: res.message,
+    data: (res.data?.data ?? res.data) as Message,
+  };
+},
+
+updateMessage: async (
+  id: number,
+  payload: UpdateMessagePayload
+): Promise<ApiResponse<void>> => {
+
+  const res = await apiClient.put(
+    `/student/messages/${id}`,
+    payload
+  );
+
+  return normalize<void>(res);
+},
+
+deleteMessage: async (id: number): Promise<ApiResponse<void>> => {
+  return apiClient.delete(`/student/messages/${id}`);
+},
 
   /** Export results */
   exportResults: async (format: 'csv' | 'excel' | 'pdf' = 'csv'): Promise<ApiResponse<{ downloadUrl: string }>> => {

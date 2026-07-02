@@ -1,5 +1,4 @@
-// src/hooks/useTeachersPage.ts
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useTeacherStore } from '@/store/teacherStore';
 import { useTeacherData } from './useTeacherData';
 import { useCategoryHierarchy } from './useCategoryHierarchy';
@@ -19,19 +18,26 @@ export const useTeachersPage = () => {
     const { allDataQuery, isLoading, isError, error } = useTeacherData();
     const store = useTeacherStore();
 
+    // Debug: log when hook is used
+    useEffect(() => {
+        console.log('useTeachersPage hook used');
+        console.log('Store:', store);
+        console.log('AllDataQuery:', allDataQuery);
+    }, [store, allDataQuery]);
+
     // Use useMemo for stable references
-    const categories = useMemo(() => store.categories, [store.categories]);
-    const courses = useMemo(() => store.courses, [store.courses]);
-    const teacherSubjects = useMemo(() => store.teacherSubjects, [store.teacherSubjects]);
+    const categories = useMemo(() => store.categories || [], [store.categories]);
+    const courses = useMemo(() => store.courses || [], [store.courses]);
+    const teacherSubjects = useMemo(() => store.teacherSubjects || [], [store.teacherSubjects]);
     const flattenedCategories = useMemo(
-        () => store.getFlattenedCategories(),
-        [store.categories] // Only depend on categories, not the entire store
+        () => store.getFlattenedCategories ? store.getFlattenedCategories() : [],
+        [store.categories, store.getFlattenedCategories]
     );
 
     // Use stable callbacks
     const getCoursesForCategory = useCallback(
         (categoryId: number) => {
-            const category = store.findCategoryById(categoryId);
+            const category = store.findCategoryById ? store.findCategoryById(categoryId) : null;
             if (!category) return [];
 
             const allCategoryIds: number[] = [categoryId];
@@ -47,7 +53,7 @@ export const useTeachersPage = () => {
 
             collectChildIds(category);
 
-            return store.courses.filter(course =>
+            return store.courses.filter((course: any) =>
                 allCategoryIds.includes(course.category)
             );
         },
@@ -56,7 +62,12 @@ export const useTeachersPage = () => {
 
     const getTeacherAssignedSubjects = useCallback(
         (teacherId: number) => {
-            return store.getTeacherAssignedSubjects(teacherId);
+            if (store.getTeacherAssignedSubjects) {
+                return store.getTeacherAssignedSubjects(teacherId);
+            }
+            return store.teacherSubjects.filter((subject: any) => 
+                subject.teacher && subject.teacher.id === teacherId
+            );
         },
         [store.teacherSubjects, store.getTeacherAssignedSubjects]
     );
@@ -78,12 +89,12 @@ export const useTeachersPage = () => {
         flattenedCategories,
 
         // Category hierarchy
-        topLevelCategories: categoryHierarchy.topLevelCategories,
-        getSubcategories: categoryHierarchy.getSubcategories,
-        getAllCategoryIds: categoryHierarchy.getAllCategoryIds,
-        findCategoryById: categoryHierarchy.findCategoryById,
-        isParentCategory: categoryHierarchy.isParentCategory,
-        getParentCategory: categoryHierarchy.getParentCategory,
+        topLevelCategories: categoryHierarchy.topLevelCategories || [],
+        getSubcategories: categoryHierarchy.getSubcategories || (() => []),
+        getAllCategoryIds: categoryHierarchy.getAllCategoryIds || (() => []),
+        findCategoryById: categoryHierarchy.findCategoryById || (() => null),
+        isParentCategory: categoryHierarchy.isParentCategory || (() => false),
+        getParentCategory: categoryHierarchy.getParentCategory || (() => null),
 
         // Store methods
         store,
@@ -96,7 +107,7 @@ export const useTeachersPage = () => {
         isLoading,
         isError,
         error,
-        refetch: allDataQuery.refetch,
+        refetch: allDataQuery.refetch || (() => {}),
     }), [
         searchTerm,
         filters,

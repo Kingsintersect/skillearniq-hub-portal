@@ -16,67 +16,67 @@ export const useTeacherQueries = () => {
   };
 
   const useTeacherCourseGrades = (courseId: number | null) => {
-  const getCurrentTeacherId = (): number => {
-    if (typeof window !== 'undefined') {
-      const userData = localStorage.getItem('user');
-      if (userData) {
-        try {
-          const user = JSON.parse(userData);
-          return user.id || 22;
-        } catch (e) {
-          console.error('Error parsing user data:', e);
+    const getCurrentTeacherId = (): number => {
+      if (typeof window !== 'undefined') {
+        const userData = localStorage.getItem('user');
+        if (userData) {
+          try {
+            const user = JSON.parse(userData);
+            return user.id || 22;
+          } catch (e) {
+            console.error('Error parsing user data:', e);
+          }
         }
       }
-    }
-    return 22;
+      return 22;
+    };
+
+    const teacherId = getCurrentTeacherId();
+
+    return useQuery({
+      queryKey: ['teacher', 'course-grades', teacherId, courseId],
+      queryFn: () => {
+        if (!courseId) return Promise.resolve({
+          status: 400,
+          message: 'Course ID is required',
+          data: {
+            course_id: 0,
+            course_code: '',
+            course_name: '',
+            course_image_url: '',
+            instructors: [],
+            students: []
+          }
+        });
+        return teacherService.getCourseGrades(courseId);
+      },
+      enabled: !!courseId,
+      staleTime: 5 * 60 * 1000,
+    });
   };
 
-  const teacherId = getCurrentTeacherId();
-
-  return useQuery({
-    queryKey: ['teacher', 'course-grades', teacherId, courseId],
-    queryFn: () => {
-      if (!courseId) return Promise.resolve({
-        status: 400,
-        message: 'Course ID is required',
-        data: {
-          course_id: 0,
-          course_code: '',
-          course_name: '',
-          course_image_url: '',
-          instructors: [],
-          students: []
-        }
-      });
-      return teacherService.getCourseGrades(courseId);
-    },
-    enabled: !!courseId,
-    staleTime: 5 * 60 * 1000,
-  });
-};
-
   // ==================== ATTENDANCE (General) ====================
- // In your useTeacherQueries hook
-const useAttendance = (
-  teacherId?: number, // Make teacherId optional
-  filters?: {
-    term?: string;
-    classId?: number;
-  }
-) => {
-  return useQuery({
-    queryKey: ['teacher', 'attendance', teacherId, filters],
-    queryFn: () => {
-      if (!teacherId) {
-        throw new Error('Teacher ID is required');
-      }
-      return teacherService.getAttendance(teacherId, filters);
-    },
-    staleTime: 5 * 60 * 1000,
-    retry: 2,
-    enabled: !!teacherId, // Only enable when teacherId is truthy
-  });
-};
+  // In your useTeacherQueries hook
+  const useAttendance = (
+    teacherId?: number, // Make teacherId optional
+    filters?: {
+      term?: string;
+      classId?: number;
+    }
+  ) => {
+    return useQuery({
+      queryKey: ['teacher', 'attendance', teacherId, filters],
+      queryFn: () => {
+        if (!teacherId) {
+          throw new Error('Teacher ID is required');
+        }
+        return teacherService.getAttendance(teacherId, filters);
+      },
+      staleTime: 5 * 60 * 1000,
+      retry: 2,
+      enabled: !!teacherId, // Only enable when teacherId is truthy
+    });
+  };
 
   // ==================== STUDENTS ====================
   const useStudents = (teacherId: number, filters?: {
@@ -128,7 +128,7 @@ const useAttendance = (
           console.log('No classId provided, skipping assessments fetch');
           return null;
         }
-        
+
         try {
           const data = await teacherService.getAssessments(teacherId, filters);
           return data;
@@ -188,6 +188,75 @@ const useAttendance = (
       retry: 2,
     });
   };
+
+  /* =============================
+   TEACHER MESSAGES
+============================= */
+
+const useSentMessages = () => {
+return useQuery({
+queryKey:['teacher','messages','sent'],
+queryFn:teacherService.getSentMessages,
+});
+};
+
+const useReceivedMessages = () => {
+return useQuery({
+queryKey:['teacher','messages','received'],
+queryFn:teacherService.getReceivedMessages,
+});
+};
+
+const useSendMessage = () => {
+return useMutation({
+mutationFn:teacherService.sendMessage,
+
+onSuccess:()=>{
+queryClient.invalidateQueries({
+queryKey:['teacher','messages']
+});
+
+toast.success('Message sent');
+}
+});
+};
+
+const useUpdateMessage = () => {
+return useMutation({
+
+mutationFn:({
+id,
+payload
+}:{
+id:number;
+payload:{message:string}
+})=>teacherService.updateMessage(id,payload),
+
+onSuccess:()=>{
+queryClient.invalidateQueries({
+queryKey:['teacher','messages']
+});
+
+toast.success('Message updated');
+}
+});
+};
+
+const useDeleteMessage = () => {
+return useMutation({
+
+mutationFn:teacherService.deleteMessage,
+
+onSuccess:()=>{
+queryClient.invalidateQueries({
+queryKey:['teacher','messages']
+});
+
+toast.success('Message deleted');
+}
+});
+};
+
 
   // ==================== MUTATIONS ====================
 
@@ -363,5 +432,11 @@ const useAttendance = (
     useUpdateNotificationSettings,
     useUpdatePreferences,
     useChangePassword,
+    useSentMessages,
+useReceivedMessages,
+useSendMessage,
+useUpdateMessage,
+useDeleteMessage,
+
   };
 };

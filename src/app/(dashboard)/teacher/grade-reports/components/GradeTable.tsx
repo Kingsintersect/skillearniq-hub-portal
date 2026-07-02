@@ -1,6 +1,6 @@
-// app/(admin)/grade-reports/components/GradeTable.tsx
 'use client';
 
+import { motion } from "framer-motion";
 import {
     Table,
     TableBody,
@@ -11,75 +11,91 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table as TableIcon, Users, Info } from "lucide-react";
-import { useGradeStore } from "@/store/gradeStore";
+import { Table as TableIcon, Users, Info, TrendingUp, Award } from "lucide-react";
+import { useTeacherGradeStore } from "@/store/teacher-grade-store";
 
 const getGradeBadgeClass = (grade: string) => {
     switch (grade) {
-        case 'A': return 'bg-green-100 text-green-800 border-green-300 dark:bg-green-900 dark:text-green-300';
-        case 'B': return 'bg-blue-100 text-blue-800 border-blue-300 dark:bg-blue-900 dark:text-blue-300';
-        case 'C': return 'bg-yellow-100 text-yellow-800 border-yellow-300 dark:bg-yellow-900 dark:text-yellow-300';
-        case 'D': return 'bg-orange-100 text-orange-800 border-orange-300 dark:bg-orange-900 dark:text-orange-300';
-        case 'F': return 'bg-red-100 text-red-800 border-red-300 dark:bg-red-900 dark:text-red-300';
-        default: return 'bg-gray-100 text-gray-800 border-gray-300 dark:bg-gray-900 dark:text-gray-300';
+        case 'A': return 'bg-emerald-100 text-emerald-800 border-emerald-300 dark:bg-emerald-900/30 dark:text-emerald-300';
+        case 'B': return 'bg-blue-100 text-blue-800 border-blue-300 dark:bg-blue-900/30 dark:text-blue-300';
+        case 'C': return 'bg-yellow-100 text-yellow-800 border-yellow-300 dark:bg-yellow-900/30 dark:text-yellow-300';
+        case 'D': return 'bg-orange-100 text-orange-800 border-orange-300 dark:bg-orange-900/30 dark:text-orange-300';
+        case 'F': return 'bg-red-100 text-red-800 border-red-300 dark:bg-red-900/30 dark:text-red-300';
+        default: return 'bg-gray-100 text-gray-800 border-gray-300 dark:bg-gray-900/30 dark:text-gray-300';
     }
 };
 
 export default function GradeTable() {
-    const { gradeData, courseInfo } = useGradeStore();
+    const { gradeData, courseInfo } = useTeacherGradeStore();
 
     if (gradeData.length === 0) return null;
 
-    // Calculate statistics
     const averageGrade = gradeData.reduce((sum, student) => sum + student.total, 0) / gradeData.length;
     const passingStudents = gradeData.filter(student => student.grade !== 'F').length;
     const passingRate = (passingStudents / gradeData.length) * 100;
 
     return (
-        <>
+        <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.28, delay: 0.05 }}
+            className="space-y-6"
+        >
             {/* Statistics Summary */}
-            <Card className="bg-card border-border mb-6">
-                <CardContent className="pt-6">
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                        <div className="bg-primary/5 p-4 rounded-lg border border-primary/10">
-                            <div className="flex items-center gap-2 mb-2">
-                                <Users className="h-4 w-4 text-primary" />
-                                <span className="text-sm font-medium text-foreground">Total Students</span>
-                            </div>
-                            <p className="text-2xl font-bold text-foreground">{gradeData.length}</p>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="rounded-2xl border border-border/70 bg-background/60 p-4">
+                    <div className="flex items-center gap-3">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500/10 text-blue-500">
+                            <Users className="h-5 w-5" />
                         </div>
-                        
-                        <div className="bg-blue-500/5 p-4 rounded-lg border border-blue-500/10">
-                            <div className="flex items-center gap-2 mb-2">
-                                <Info className="h-4 w-4 text-blue-500" />
-                                <span className="text-sm font-medium text-foreground">Average Grade</span>
-                            </div>
-                            <p className="text-2xl font-bold text-foreground">{averageGrade.toFixed(1)}%</p>
-                        </div>
-                        
-                        <div className="bg-green-500/5 p-4 rounded-lg border border-green-500/10">
-                            <div className="flex items-center gap-2 mb-2">
-                                <Info className="h-4 w-4 text-green-500" />
-                                <span className="text-sm font-medium text-foreground">Passing Students</span>
-                            </div>
-                            <p className="text-2xl font-bold text-foreground">
-                                {passingStudents} <span className="text-sm font-normal">({passingRate.toFixed(1)}%)</span>
-                            </p>
-                        </div>
-                        
-                        <div className="bg-purple-500/5 p-4 rounded-lg border border-purple-500/10">
-                            <div className="flex items-center gap-2 mb-2">
-                                <Info className="h-4 w-4 text-purple-500" />
-                                <span className="text-sm font-medium text-foreground">Course Code</span>
-                            </div>
-                            <p className="text-2xl font-bold text-foreground">{courseInfo?.course_code || 'N/A'}</p>
+                        <div>
+                            <p className="text-xs text-muted-foreground">Total Students</p>
+                            <p className="text-xl font-bold text-foreground">{gradeData.length}</p>
                         </div>
                     </div>
-                </CardContent>
-            </Card>
+                </div>
+                
+                <div className="rounded-2xl border border-border/70 bg-background/60 p-4">
+                    <div className="flex items-center gap-3">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-500/10 text-green-500">
+                            <TrendingUp className="h-5 w-5" />
+                        </div>
+                        <div>
+                            <p className="text-xs text-muted-foreground">Average Grade</p>
+                            <p className="text-xl font-bold text-foreground">{averageGrade.toFixed(1)}%</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div className="rounded-2xl border border-border/70 bg-background/60 p-4">
+                    <div className="flex items-center gap-3">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-500">
+                            <Award className="h-5 w-5" />
+                        </div>
+                        <div>
+                            <p className="text-xs text-muted-foreground">Passing Students</p>
+                            <p className="text-xl font-bold text-foreground">
+                                {passingStudents} <span className="text-sm font-normal text-muted-foreground">({passingRate.toFixed(1)}%)</span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div className="rounded-2xl border border-border/70 bg-background/60 p-4">
+                    <div className="flex items-center gap-3">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-500/10 text-purple-500">
+                            <Info className="h-5 w-5" />
+                        </div>
+                        <div>
+                            <p className="text-xs text-muted-foreground">Course Code</p>
+                            <p className="text-xl font-bold text-foreground">{courseInfo?.course_code || 'N/A'}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             {/* Main Grade Table */}
-            <Card className="bg-card border-border">
+            <Card className="bg-card border-border/70 rounded-3xl shadow-sm backdrop-blur-sm">
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-card-foreground">
                         <TableIcon className="h-5 w-5 text-primary" />
@@ -95,10 +111,10 @@ export default function GradeTable() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <div className="rounded-lg border border-border overflow-hidden shadow-sm">
+                    <div className="overflow-x-auto rounded-2xl border border-border/50">
                         <Table>
                             <TableHeader className="bg-muted/30">
-                                <TableRow className="border-b border-border hover:bg-transparent">
+                                <TableRow className="border-b border-border/50 hover:bg-transparent">
                                     <TableHead className="py-4 px-6 text-foreground font-semibold">#</TableHead>
                                     <TableHead className="py-4 px-6 text-foreground font-semibold">Student</TableHead>
                                     <TableHead className="py-4 px-6 text-foreground font-semibold">Assignment</TableHead>
@@ -110,9 +126,12 @@ export default function GradeTable() {
                             </TableHeader>
                             <TableBody>
                                 {gradeData.map((student, index) => (
-                                    <TableRow
+                                    <motion.tr
                                         key={student.id}
-                                        className="border-b border-border/50 hover:bg-accent/30 transition-colors"
+                                        initial={{ opacity: 0, y: 5 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ duration: 0.2, delay: index * 0.02 }}
+                                        className="border-b border-border/30 hover:bg-accent/30 transition-colors"
                                     >
                                         <TableCell className="px-6 font-medium text-foreground">
                                             {index + 1}
@@ -151,11 +170,11 @@ export default function GradeTable() {
                                         <TableCell className="px-6">
                                             <div className="flex items-center justify-center">
                                                 <span className={`font-semibold px-3 py-1.5 rounded-lg min-w-[60px] text-center ${
-                                                    student.total >= 90 ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' :
-                                                    student.total >= 80 ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300' :
-                                                    student.total >= 70 ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300' :
-                                                    student.total >= 60 ? 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300' :
-                                                    'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'
+                                                    student.total >= 90 ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300' :
+                                                    student.total >= 80 ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300' :
+                                                    student.total >= 70 ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300' :
+                                                    student.total >= 60 ? 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300' :
+                                                    'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
                                                 }`}>
                                                     {student.total}%
                                                 </span>
@@ -163,18 +182,18 @@ export default function GradeTable() {
                                         </TableCell>
                                         <TableCell className="px-6">
                                             <div className="flex justify-center">
-                                                <div className={`flex items-center justify-center rounded-full px-4 py-2 text-sm font-medium shadow-sm ${getGradeBadgeClass(student.grade)}`}>
+                                                <Badge className={`${getGradeBadgeClass(student.grade)} border px-4 py-1.5 text-sm font-medium`}>
                                                     {student.grade}
-                                                </div>
+                                                </Badge>
                                             </div>
                                         </TableCell>
-                                    </TableRow>
+                                    </motion.tr>
                                 ))}
                             </TableBody>
                         </Table>
                     </div>
                 </CardContent>
             </Card>
-        </>
+        </motion.div>
     );
 }

@@ -11,6 +11,12 @@ import {
   Course
 } from '@/lib/services/admin/teacherService';
 
+import {
+  messageService,
+  SendMessagePayload
+} from '@/lib/services/admin/messageService';
+
+
 import { 
   gradeService,
   CourseCategory,
@@ -61,6 +67,68 @@ export const useAdminQueries = () => {
       staleTime: 5 * 60 * 1000,
     });
   };
+
+
+  const useSendMessage = () => {
+  return useMutation({
+    mutationFn: messageService.sendMessage,
+
+    onSuccess: (res: any) => {
+      queryClient.invalidateQueries({ queryKey: ['sent-messages'] });
+
+      toast.success(
+        res?.message || 'Message sent successfully!'
+      );
+    },
+
+    onError: (err: any) => {
+      toast.error(err?.message || 'Failed to send message');
+    },
+  });
+};
+
+
+const useSentMessages = () => {
+  return useQuery({
+    queryKey: ['sent-messages'],
+    queryFn: messageService.getSentMessages,
+    staleTime: 1000 * 60 * 2,
+  });
+};
+
+
+const useReceivedMessages = () => {
+  return useQuery({
+    queryKey: ['received-messages'],
+    queryFn: messageService.getReceivedMessages,
+  });
+};
+
+
+const useUpdateMessage = () => {
+  return useMutation({
+    mutationFn: ({ id, message }: { id: number; message: string }) =>
+      messageService.updateMessage(id, message),
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['sent-messages'] });
+      toast.success('Message updated!');
+    },
+  });
+};
+
+
+const useDeleteMessage = () => {
+  return useMutation({
+    mutationFn: messageService.deleteMessage,
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['sent-messages'] });
+      toast.success('Message deleted!');
+    },
+  });
+};
+
 
  // Grade Reports Queries
   const useCourseCategories = () => {
@@ -418,6 +486,13 @@ const useTeacherSubjects = () => {
     // Payments
     usePayments,
     usePaymentDetails,
+
+    useSendMessage,
+useSentMessages,
+useReceivedMessages,
+useUpdateMessage,
+useDeleteMessage,
+
 
      // Grade Reports
      useCourseCategories,

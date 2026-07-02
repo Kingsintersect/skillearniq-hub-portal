@@ -6,6 +6,7 @@ export interface Category {
   name: string;
   parent: number;
   sortorder: number;
+  children?: Category[]; // Add children for hierarchy
 }
 
 export interface Course {
@@ -48,32 +49,6 @@ export interface Teacher {
   };
 }
 
-// export interface TeacherSubjectAssignment {
-//   id: number;
-//   term: string | null;
-//   start_date: string;
-//   end_date: string;
-//   timetable_color: string | null;
-//   meta: {
-//     semester: string;
-//     room: string | null;
-//   };
-//   teacher: {
-//     id: number;
-//     name: string;
-//     email: string;
-//   };
-//   subject: {
-//     id: number;
-//     name: string;
-//     shortname: string;
-//   };
-//   class_group: {
-//     id: number;
-//     name: string;
-//     idnumber: string;
-//   };
-// }
 export interface TeacherSubjectAssignment {
   id: number;
   subject: {
@@ -130,27 +105,66 @@ export interface TeacherFilterParams extends PaginationParams {
 }
 
 export const teacherService = {
-  // Get all categories with pagination
+  // Get all categories with pagination - FIXED
   getCategories: async (params?: PaginationParams): Promise<ApiResponse<Category[]>> => {
     try {
       const queryParams = new URLSearchParams();
       if (params?.page) queryParams.set('page', params.page.toString());
       if (params?.perPage) queryParams.set('per_page', params.perPage.toString());
 
-      // const url = `/odl/categories${queryParams.toString() ? `?${queryParams}` : ''}`;
-      const url = `/odl/our-programs`;
+      const url = `/odl/our-programs${queryParams.toString() ? `?${queryParams}` : ''}`;
       const response = await apiClient.get<any>(url);
-      console.log('URL:', url);
-      console.log('Categories response:', response);
-
+      
+      console.log('📡 Categories API URL:', url);
+      console.log('📡 Categories Raw Response:', response);
+      console.log('📡 Categories Response Data:', response.data);
+      
+      // Handle different response structures
+      let categoriesData: Category[] = [];
+      
+      // Case 1: response.data is an array directly
+      if (Array.isArray(response.data)) {
+        categoriesData = response.data;
+      } 
+      // Case 2: response.data has a data property that is an array
+      else if (response.data && Array.isArray(response.data.data)) {
+        categoriesData = response.data.data;
+      } 
+      // Case 3: response.data has a data property that is an object with categories
+      else if (response.data?.data?.categories && Array.isArray(response.data.data.categories)) {
+        categoriesData = response.data.data.categories;
+      }
+      // Case 4: response.data is an object with categories property
+      else if (response.data?.categories && Array.isArray(response.data.categories)) {
+        categoriesData = response.data.categories;
+      }
+      // Case 5: Try to extract from response.data if it's an object but not in expected format
+      else if (response.data && typeof response.data === 'object') {
+        // Try to find any array property that might contain categories
+        for (const key in response.data) {
+          if (Array.isArray(response.data[key]) && response.data[key].length > 0) {
+            // Check if the first item has id and name properties (likely a category)
+            if (response.data[key][0]?.id && response.data[key][0]?.name) {
+              categoriesData = response.data[key];
+              console.log(`📡 Found categories in property "${key}":`, categoriesData);
+              break;
+            }
+          }
+        }
+      }
+      
+      console.log('✅ Processed categories:', categoriesData);
+      console.log('✅ Is categories an array?', Array.isArray(categoriesData));
+      console.log('✅ Categories count:', categoriesData.length);
+      
       return {
-        data: response as unknown as Category[] || [],
+        data: categoriesData,
         message: 'Success',
         status: 200,
         meta: response.meta
       };
     } catch (error) {
-      console.error('Failed to fetch categories:', error);
+      console.error('❌ Failed to fetch categories:', error);
       throw error as ApiError;
     }
   },
@@ -164,9 +178,23 @@ export const teacherService = {
 
       const url = `/odl/courses${queryParams.toString() ? `?${queryParams}` : ''}`;
       const response = await apiClient.get<any>(url);
+      
+      console.log('📡 Courses API Response:', response);
+      
+      let coursesData: Course[] = [];
+      
+      if (Array.isArray(response.data)) {
+        coursesData = response.data;
+      } else if (response.data && Array.isArray(response.data.data)) {
+        coursesData = response.data.data;
+      } else if (response.data?.data) {
+        coursesData = [response.data.data];
+      }
+      
+      console.log('✅ Processed courses:', coursesData);
 
       return {
-        data: response.data || [],
+        data: coursesData,
         message: 'Success',
         status: 200,
         meta: response.meta
@@ -181,6 +209,7 @@ export const teacherService = {
   getAllTeachers: async (): Promise<Teacher[]> => {
     try {
       const response = await apiClient.get<any>('/account/allteachers');
+      console.log('📡 Teachers API Response:', response);
       return response.data || [];
     } catch (error) {
       console.error('Failed to fetch all teachers:', error);
@@ -235,17 +264,30 @@ export const teacherService = {
   getTeacherSubjects: async (): Promise<ApiResponse<TeacherSubjectAssignment[]>> => {
     try {
       const response = await apiClient.get<any>('/admin/teacher/subjects');
+      console.log('📡 Teacher Subjects API Response:', response);
+      
+      let subjectsData: TeacherSubjectAssignment[] = [];
+      
+      if (Array.isArray(response.data)) {
+        subjectsData = response.data;
+      } else if (response.data && Array.isArray(response.data.data)) {
+        subjectsData = response.data.data;
+      } else if (response.data?.data) {
+        subjectsData = [response.data.data];
+      }
+      
       return {
-        data: response.data || [],
+        data: subjectsData,
         message: response.message || 'Success',
         status: 200,
-        meta: { count: response.data.count }
+        meta: { count: subjectsData.length }
       };
     } catch (error) {
       console.error('Failed to fetch teacher subjects:', error);
       throw error as ApiError;
     }
   },
+  
   // Create a new teacher
   createTeacher: async (payload: CreateTeacherPayload): Promise<ApiResponse<Teacher>> => {
     try {
@@ -267,8 +309,6 @@ export const teacherService = {
       throw error as ApiError;
     }
   },
-
-
 
   // Assign teacher to course
   assignTeacher: async (payload: AssignTeacherPayload): Promise<ApiResponse<any>> => {

@@ -1,691 +1,622 @@
-'use client'
-import React, { useState } from 'react';
+'use client';
 
-// Shadcn components
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { toast } from 'sonner';
+import React, { useMemo, useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import { useTeacherQueries } from "@/hooks/useTeacherQueries";
+
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+
 import {
-  Bell,
-  BellOff,
-  FileText,
-  MessageSquare,
-  AlertTriangle,
-  CheckCircle,
-  Info,
-  Settings,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "@/components/ui/alert-dialog";
+
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
+
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+import {
+  Eye,
   Trash2,
-  Archive,
+  Pencil,
   Send,
+  ChevronLeft,
+  ChevronRight,
   Mail,
-  Phone,
-  User,
+  Inbox,
   Users,
-  Shield
-} from 'lucide-react';
+  MessageSquare,
+  Loader2,
+  AlertCircle,
+  User,
+  CheckCircle,
+  XCircle
+} from "lucide-react";
 
-export const NotificationsPage: React.FC = () => {
-  const [view, setView] = useState<'all' | 'unread' | 'sent' | 'archived'>('all');
-  const [composeDialogOpen, setComposeDialogOpen] = useState(false);
+import { formatDistanceToNow } from "date-fns";
 
-  const [notifications, setNotifications] = useState([
-    {
-      id: 1,
-      title: 'New Assignment Posted',
-      message: 'Mathematics assignment for JSS 1A has been posted. Due date: 2024-02-01',
-      type: 'assignment',
-      sender: 'system',
-      timestamp: '2024-01-25T10:30:00Z',
-      read: false,
-      archived: false
-    },
-    {
-      id: 2,
-      title: 'Parent Message - John Doe',
-      message: 'Hello, I would like to discuss my son\'s progress in mathematics',
-      type: 'parent-message',
-      sender: 'parent',
-      timestamp: '2024-01-24T14:20:00Z',
-      read: true,
-      archived: false
-    },
-    {
-      id: 3,
-      title: 'Attendance Alert',
-      message: 'Low attendance detected for student Jane Smith in JSS 1A',
-      type: 'attendance',
-      sender: 'system',
-      timestamp: '2024-01-23T09:15:00Z',
-      read: true,
-      archived: false
-    },
-    {
-      id: 4,
-      title: 'Message to Admin - System Issue',
-      message: 'Reporting issue with grade submission system',
-      type: 'teacher-message',
-      sender: 'teacher',
-      timestamp: '2024-01-22T16:45:00Z',
-      read: true,
-      archived: false
-    }
-  ]);
+// Dashboard Card Component
+interface DashboardCardProps {
+  title: string;
+  subtitle?: string;
+  icon: React.ReactNode;
+  children: React.ReactNode;
+  action?: React.ReactNode;
+  className?: string;
+}
 
-  const [sentMessages, setSentMessages] = useState([
-    {
-      id: 101,
-      title: 'To Parents - JSS 1A',
-      message: 'Reminder: Parent-teacher meeting scheduled for next week',
-      recipients: 'All JSS 1A Parents',
-      method: 'in-app',
-      timestamp: '2024-01-25T09:00:00Z',
-      status: 'delivered'
-    }
-  ]);
-
-  const [settings, setSettings] = useState({
-    emailNotifications: true,
-    smsNotifications: false,
-    pushNotifications: true,
-    assignmentAlerts: true,
-    attendanceAlerts: true,
-    parentMessages: true,
-    adminMessages: true
-  });
-
-  const unreadCount = notifications.filter(n => !n.read && !n.archived).length;
-
-  const markAsRead = (id: number) => {
-    setNotifications(notifications.map(n =>
-      n.id === id ? { ...n, read: true } : n
-    ));
-    toast.success('Notification marked as read');
-  };
-
-  const markAllAsRead = () => {
-    setNotifications(notifications.map(n => ({ ...n, read: true })));
-    toast.success('All notifications marked as read');
-  };
-
-  const archiveNotification = (id: number) => {
-    setNotifications(notifications.map(n =>
-      n.id === id ? { ...n, archived: true } : n
-    ));
-    toast.success('Notification archived');
-  };
-
-  const deleteNotification = (id: number) => {
-    setNotifications(notifications.filter(n => n.id !== id));
-    toast.success('Notification deleted');
-  };
-
-  const handleSendMessage = (messageData: any) => {
-    const newMessage = {
-      id: Date.now(),
-      ...messageData,
-      timestamp: new Date().toISOString(),
-      status: 'sent'
-    };
-    setSentMessages(prev => [newMessage, ...prev]);
-    toast.success('Message sent successfully');
-    setComposeDialogOpen(false);
-  };
-
-  const filteredNotifications = notifications.filter(n => {
-    if (view === 'unread') return !n.read && !n.archived;
-    if (view === 'sent') return false; // Handled separately
-    if (view === 'archived') return n.archived;
-    return !n.archived;
-  });
-
-  const getIcon = (type: string): React.ReactElement => {
-    switch (type) {
-      case 'assignment': return <FileText className="h-5 w-5 text-blue-500" />;
-      case 'attendance': return <AlertTriangle className="h-5 w-5 text-orange-500" />;
-      case 'parent-message': return <User className="h-5 w-5 text-green-500" />;
-      case 'teacher-message': return <Shield className="h-5 w-5 text-purple-500" />;
-      case 'reminder': return <CheckCircle className="h-5 w-5 text-green-500" />;
-      case 'meeting': return <MessageSquare className="h-5 w-5 text-purple-500" />;
-      default: return <Info className="h-5 w-5 text-gray-500" />;
-    }
-  };
-
+function DashboardCard({ title, subtitle, icon, action, children, className = '' }: DashboardCardProps) {
   return (
-    <div className="min-h-screen p-6">
-      <div className="max-w-8xl mx-auto">
-        {/* Header */}
-        <div className="mb-8 text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-primary rounded-2xl mb-4">
-            <Bell className="h-8 w-8 text-primary-foreground" />
-          </div>
-          <h1 className="text-4xl font-bold text-foreground mb-2">Notifications & Messages</h1>
-          <p className="text-muted-foreground text-lg">Communicate with parents, teachers, and administrators</p>
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.28 }}
+      className={`rounded-3xl border border-border/70 bg-card/95 p-5 shadow-sm backdrop-blur-sm ${className}`}
+    >
+      <div className="mb-4 flex items-start justify-between gap-3">
+        <div>
+          <p className="text-sm font-semibold text-card-foreground">{title}</p>
+          {subtitle && <p className="mt-1 text-xs text-muted-foreground">{subtitle}</p>}
         </div>
-
-        {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Total Messages</p>
-                  <p className="text-2xl font-bold text-foreground">{notifications.length + sentMessages.length}</p>
-                </div>
-                <div className="w-12 h-12 bg-blue-500/10 rounded-lg flex items-center justify-center">
-                  <MessageSquare className="h-6 w-6 text-blue-500" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Unread</p>
-                  <p className="text-2xl font-bold text-foreground">{unreadCount}</p>
-                </div>
-                <div className="w-12 h-12 bg-orange-500/10 rounded-lg flex items-center justify-center">
-                  <BellOff className="h-6 w-6 text-orange-500" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">From Parents</p>
-                  <p className="text-2xl font-bold text-foreground">
-                    {notifications.filter(n => n.sender === 'parent').length}
-                  </p>
-                </div>
-                <div className="w-12 h-12 bg-green-500/10 rounded-lg flex items-center justify-center">
-                  <User className="h-6 w-6 text-green-500" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Sent Messages</p>
-                  <p className="text-2xl font-bold text-foreground">{sentMessages.length}</p>
-                </div>
-                <div className="w-12 h-12 bg-purple-500/10 rounded-lg flex items-center justify-center">
-                  <Send className="h-6 w-6 text-purple-500" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+          {icon}
         </div>
-
-        {/* Actions */}
-        <Card className="mb-6">
-          <CardContent className="p-4">
-            <div className="flex justify-between items-center">
-              <div className="flex space-x-2">
-                <Button variant="outline" onClick={markAllAsRead}>
-                  Mark All as Read
-                </Button>
-                <Button variant="outline">
-                  <Archive className="h-4 w-4 mr-2" />
-                  Archive All Read
-                </Button>
-              </div>
-              <div className="flex space-x-2">
-                <Dialog open={composeDialogOpen} onOpenChange={setComposeDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button>
-                      <Send className="h-4 w-4 mr-2" />
-                      Compose Message
-                    </Button>
-                  </DialogTrigger>
-                  <ComposeMessageDialog onSendMessage={handleSendMessage} />
-                </Dialog>
-                <Button variant="outline">
-                  <Settings className="h-4 w-4 mr-2" />
-                  Settings
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Main Content */}
-        <Tabs value={view} onValueChange={(value: any) => setView(value)} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="all">All Messages</TabsTrigger>
-            <TabsTrigger value="unread">
-              Unread {unreadCount > 0 && `(${unreadCount})`}
-            </TabsTrigger>
-            <TabsTrigger value="sent">Sent Messages</TabsTrigger>
-            <TabsTrigger value="archived">Archived</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="all" className="space-y-6">
-            <MessageListView
-              messages={filteredNotifications}
-              type="incoming"
-              onMarkAsRead={markAsRead}
-              onArchive={archiveNotification}
-              onDelete={deleteNotification}
-              getIcon={getIcon}
-            />
-          </TabsContent>
-
-          <TabsContent value="unread">
-            <MessageListView
-              messages={filteredNotifications.filter(m => !m.read)}
-              type="incoming"
-              onMarkAsRead={markAsRead}
-              onArchive={archiveNotification}
-              onDelete={deleteNotification}
-              getIcon={getIcon}
-            />
-          </TabsContent>
-
-          <TabsContent value="sent">
-            <MessageListView
-              messages={sentMessages}
-              type="sent"
-              onMarkAsRead={markAsRead}
-              onArchive={archiveNotification}
-              onDelete={deleteNotification}
-              getIcon={getIcon}
-            />
-          </TabsContent>
-
-          <TabsContent value="archived">
-            <MessageListView
-              messages={notifications.filter(n => n.archived)}
-              type="incoming"
-              onMarkAsRead={markAsRead}
-              onArchive={archiveNotification}
-              onDelete={deleteNotification}
-              getIcon={getIcon}
-            />
-          </TabsContent>
-        </Tabs>
       </div>
+      {children}
+      {action && <div className="mt-4">{action}</div>}
+    </motion.div>
+  );
+}
+
+function StatPill({ label, value }: { label: string; value: string | number }) {
+  return (
+    <div className="rounded-2xl border border-border/70 bg-background/60 px-3 py-2">
+      <p className="text-[11px] text-muted-foreground">{label}</p>
+      <p className="mt-1 text-sm font-semibold text-foreground">{value}</p>
     </div>
   );
-};
+}
 
-// Compose Message Dialog Component
-const ComposeMessageDialog: React.FC<{
-  onSendMessage: (messageData: any) => void;
-}> = ({ onSendMessage }) => {
-  const [formData, setFormData] = useState({
-    recipientType: 'parents',
-    specificRecipient: '',
-    method: 'in-app',
-    subject: '',
-    message: '',
-    urgency: 'normal'
-  });
+const PAGE_SIZE = 10;
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSendMessage(formData);
-  };
+export default function TeacherMessagesPage() {
+  const {
+    useSentMessages,
+    useReceivedMessages,
+    useSendMessage,
+    useDeleteMessage,
+    useUpdateMessage,
+    useStudents,
+  } = useTeacherQueries();
 
-  return (
-    <DialogContent className="max-w-2xl max-h-[95vh] flex flex-col">
-      <DialogHeader>
-        <DialogTitle>Compose New Message</DialogTitle>
-        <DialogDescription>
-          Send messages to parents, teachers, or administrators via multiple channels.
-        </DialogDescription>
-      </DialogHeader>
+  const teacherId =
+    typeof window !== "undefined"
+      ? JSON.parse(localStorage.getItem("user") || "{}")?.id
+      : undefined;
 
-      <ScrollArea className=" h-[400px] pr-4">
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Recipient Selection */}
-          <div className="space-y-2">
-            <Label htmlFor="recipientType">Send To</Label>
-            <Select
-              value={formData.recipientType}
-              onValueChange={(value) => setFormData(prev => ({ ...prev, recipientType: value }))}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="parents">All Parents</SelectItem>
-                <SelectItem value="teachers">All Teachers</SelectItem>
-                <SelectItem value="admins">Administrators</SelectItem>
-                <SelectItem value="specific">Specific Recipient</SelectItem>
-                <SelectItem value="class">Entire Class</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+  const sentQuery = useSentMessages();
+  const receivedQuery = useReceivedMessages();
+  const studentsQuery = useStudents?.(teacherId);
 
-          {formData.recipientType === 'specific' && (
-            <div className="space-y-2">
-              <Label htmlFor="specificRecipient">Specific Recipient</Label>
-              <Input
-                id="specificRecipient"
-                value={formData.specificRecipient}
-                onChange={(e) => setFormData(prev => ({ ...prev, specificRecipient: e.target.value }))}
-                placeholder="Enter recipient name or email"
-              />
-            </div>
-          )}
+  const sendMutation = useSendMessage();
+  const deleteMutation = useDeleteMessage();
+  const updateMutation = useUpdateMessage();
 
-          {/* Delivery Method */}
-          <div className="space-y-2">
-            <Label htmlFor="method">Delivery Method</Label>
-            <div className="grid grid-cols-3 gap-2">
-              <Button
-                type="button"
-                variant={formData.method === 'sms' ? 'default' : 'outline'}
-                onClick={() => setFormData(prev => ({ ...prev, method: 'sms' }))}
-                className="flex flex-col h-auto p-3"
-              >
-                <Phone className="h-4 w-4 mb-1" />
-                <span className="text-xs">SMS</span>
-              </Button>
-              <Button
-                type="button"
-                variant={formData.method === 'email' ? 'default' : 'outline'}
-                onClick={() => setFormData(prev => ({ ...prev, method: 'email' }))}
-                className="flex flex-col h-auto p-3"
-              >
-                <Mail className="h-4 w-4 mb-1" />
-                <span className="text-xs">Email</span>
-              </Button>
-              <Button
-                type="button"
-                variant={formData.method === 'in-app' ? 'default' : 'outline'}
-                onClick={() => setFormData(prev => ({ ...prev, method: 'in-app' }))}
-                className="flex flex-col h-auto p-3"
-              >
-                <MessageSquare className="h-4 w-4 mb-1" />
-                <span className="text-xs">In-App</span>
-              </Button>
-            </div>
-          </div>
+  const [tab, setTab] = useState<"sent" | "received">("sent");
+  const [page, setPage] = useState(1);
 
-          {/* Urgency */}
-          <div className="space-y-2">
-            <Label htmlFor="urgency">Urgency Level</Label>
-            <Select
-              value={formData.urgency}
-              onValueChange={(value) => setFormData(prev => ({ ...prev, urgency: value }))}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="low">Low Priority</SelectItem>
-                <SelectItem value="normal">Normal Priority</SelectItem>
-                <SelectItem value="high">High Priority</SelectItem>
-                <SelectItem value="urgent">Urgent</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+  const [open, setOpen] = useState(false);
+  const [viewing, setViewing] = useState<any>(null);
+  const [editing, setEditing] = useState<any>(null);
+  const [deleting, setDeleting] = useState<any>(null);
 
-          {/* Subject */}
-          <div className="space-y-2">
-            <Label htmlFor="subject">Subject</Label>
-            <Input
-              id="subject"
-              value={formData.subject}
-              onChange={(e) => setFormData(prev => ({ ...prev, subject: e.target.value }))}
-              placeholder="Enter message subject"
-              required
-            />
-          </div>
+  const [message, setMessage] = useState("");
+  const [recipientType, setRecipientType] = useState<"course" | "specific">("course");
+  const [courseId, setCourseId] = useState<number>();
+  const [selectedStudents, setSelectedStudents] = useState<number[]>([]);
 
-          {/* Message */}
-          <div className="space-y-2">
-            <Label htmlFor="message">Message</Label>
-            <Textarea
-              id="message"
-              value={formData.message}
-              onChange={(e) => setFormData(prev => ({ ...prev, message: e.target.value }))}
-              placeholder="Type your message here..."
-              rows={6}
-              required
-            />
-          </div>
+  useEffect(() => {
+    if (!open && !editing) {
+      setMessage("");
+    }
+  }, [open, editing]);
 
-          <div className="flex justify-end space-x-2 pt-4">
-            <Button type="button" variant="outline" onClick={() => { }}>
-              Save Draft
-            </Button>
-            <Button type="submit">
-              <Send className="h-4 w-4 mr-2" />
-              Send Message
-            </Button>
-          </div>
-        </form>
-      </ScrollArea>
-    </DialogContent>
-  );
-};
+  const messages = useMemo(() => {
+    const raw = tab === "sent" ? sentQuery.data?.data : receivedQuery.data?.data;
+    return Array.isArray(raw) ? raw : [];
+  }, [tab, sentQuery.data, receivedQuery.data]);
 
-// Message List View Component
-const MessageListView: React.FC<{
-  messages: any[];
-  type: 'incoming' | 'sent';
-  onMarkAsRead: (id: number) => void;
-  onArchive: (id: number) => void;
-  onDelete: (id: number) => void;
-  getIcon: (type: string) => React.ReactElement;
-}> = ({ messages, type, onMarkAsRead, onArchive, onDelete, getIcon }) => {
-  if (messages.length === 0) {
-    return (
-      <Card>
-        <CardContent className="text-center py-12">
-          <MessageSquare className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-foreground mb-2">No messages</h3>
-          <p className="text-muted-foreground">
-            {type === 'sent' ? 'No sent messages yet' : 'No messages available'}
-          </p>
-        </CardContent>
-      </Card>
+  const paginated = useMemo(() => {
+    const start = (page - 1) * PAGE_SIZE;
+    return messages.slice(start, start + PAGE_SIZE);
+  }, [messages, page]);
+
+  const totalPages = Math.ceil(messages.length / PAGE_SIZE);
+
+  const toggleStudent = (id: number) => {
+    setSelectedStudents((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
     );
-  }
-
-  return (
-    <Card>
-      <ScrollArea className="h-[600px]">
-        <div className="divide-y">
-          {messages.map((message) => (
-            <MessageItem
-              key={message.id}
-              message={message}
-              type={type}
-              onMarkAsRead={onMarkAsRead}
-              onArchive={onArchive}
-              onDelete={onDelete}
-              getIcon={getIcon}
-            />
-          ))}
-        </div>
-      </ScrollArea>
-    </Card>
-  );
-};
-
-// Message Item Component
-const MessageItem: React.FC<{
-  message: any;
-  type: 'incoming' | 'sent';
-  onMarkAsRead: (id: number) => void;
-  onArchive: (id: number) => void;
-  onDelete: (id: number) => void;
-  getIcon: (type: string) => React.ReactElement;
-}> = ({ message, type, onMarkAsRead, onArchive, onDelete, getIcon }) => {
-  const getUrgencyBadge = (urgency: string) => {
-    const variants = {
-      low: { label: 'Low', variant: 'outline' as const },
-      normal: { label: 'Normal', variant: 'secondary' as const },
-      high: { label: 'High', variant: 'default' as const },
-      urgent: { label: 'Urgent', variant: 'destructive' as const }
-    };
-    return <Badge variant={variants[urgency as keyof typeof variants]?.variant || 'outline'}>
-      {variants[urgency as keyof typeof variants]?.label || urgency}
-    </Badge>;
   };
 
+  const formatDate = (d: string) =>
+    formatDistanceToNow(new Date(d), { addSuffix: true });
+
+  const send = () => {
+    if (!message.trim()) return;
+
+    if (recipientType === "course" && !courseId) {
+      alert("Select a course");
+      return;
+    }
+
+    if (recipientType === "specific" && selectedStudents.length === 0) {
+      alert("Select students");
+      return;
+    }
+
+    const payload =
+      recipientType === "course"
+        ? {
+            recipient_type: "teacher_course_students",
+            course_id: courseId,
+            message,
+          }
+        : {
+            recipient_type: "specific_student",
+            recipient_ids: selectedStudents,
+            message,
+          };
+
+    sendMutation.mutate(payload, {
+      onSuccess: () => {
+        setOpen(false);
+        setMessage("");
+        setSelectedStudents([]);
+      },
+    });
+  };
+
+  const update = () => {
+    updateMutation.mutate(
+      { id: editing.id, payload: { message } },
+      {
+        onSuccess: () => {
+          setEditing(null);
+          setMessage("");
+        },
+      }
+    );
+  };
+
+  const confirmDelete = () => {
+    deleteMutation.mutate(deleting.id, {
+      onSuccess: () => setDeleting(null),
+    });
+  };
+
+  const loading = sentQuery.isLoading || receivedQuery.isLoading;
+  
+  const sentCount = sentQuery.data?.data?.length || 0;
+  const receivedCount = receivedQuery.data?.data?.length || 0;
+  const students = studentsQuery?.data?.data || [];
+
   return (
-    <div className={`p-4 hover:bg-muted/50 transition-colors ${type === 'incoming' && !message.read ? 'bg-blue-50 dark:bg-blue-950/20' : ''
-      }`}>
-      <div className="flex items-start space-x-3">
-        <div className="flex-shrink-0 mt-1">
-          {type === 'sent' ? <Send className="h-5 w-5 text-green-500" /> : getIcon(message.type)}
+    <div className="space-y-6 p-4 md:p-6">
+      {/* Hero Section */}
+      <motion.section
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35 }}
+        className="overflow-hidden rounded-3xl border border-primary/20 bg-linear-to-br from-primary/15 via-background to-sky-500/10 p-6"
+      >
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Communication Hub</p>
+            <h1 className="mt-2 text-2xl font-bold text-foreground sm:text-3xl">Messages</h1>
+            <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+              Send and receive messages with students. Communicate with individuals or entire classes.
+            </p>
+          </div>
+          <Button onClick={() => setOpen(true)} className="gap-2">
+            <Send size={16} />
+            New Message
+          </Button>
         </div>
 
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center justify-between mb-1">
-            <h4 className="font-medium text-foreground truncate">
-              {type === 'sent' ? `To: ${message.recipients}` : message.title}
-            </h4>
-            <div className="flex items-center space-x-2">
-              {type === 'sent' && getUrgencyBadge(message.urgency)}
-              {type === 'incoming' && !message.read && (
-                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-              )}
+        {/* Stats Cards */}
+        <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <div className="rounded-2xl border border-border/70 bg-background/60 p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs text-muted-foreground">Sent Messages</p>
+                <p className="mt-1 text-2xl font-bold text-foreground">{sentCount}</p>
+              </div>
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                <Mail size={18} />
+              </div>
             </div>
           </div>
 
-          <p className="text-sm text-muted-foreground mb-2">{message.message}</p>
+          <div className="rounded-2xl border border-border/70 bg-background/60 p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs text-muted-foreground">Received Messages</p>
+                <p className="mt-1 text-2xl font-bold text-foreground">{receivedCount}</p>
+              </div>
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                <Inbox size={18} />
+              </div>
+            </div>
+          </div>
 
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-muted-foreground">
-              {new Date(message.timestamp).toLocaleDateString()} at{' '}
-              {new Date(message.timestamp).toLocaleTimeString()}
-              {type === 'sent' && ` • ${message.method.toUpperCase()}`}
-            </span>
+          <div className="rounded-2xl border border-border/70 bg-background/60 p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs text-muted-foreground">Students Available</p>
+                <p className="mt-1 text-2xl font-bold text-foreground">{students.length}</p>
+              </div>
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                <Users size={18} />
+              </div>
+            </div>
+          </div>
+        </div>
+      </motion.section>
 
-            {type === 'incoming' && (
-              <div className="flex space-x-1">
-                {!message.read && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => onMarkAsRead(message.id)}
-                    className="h-8 px-2"
+      {/* Tabs */}
+      <div className="rounded-3xl border border-border/70 bg-card/95 p-5 shadow-sm backdrop-blur-sm">
+        <Tabs value={tab} onValueChange={(value: any) => { setTab(value); setPage(1); }} className="w-full">
+          <TabsList className="bg-muted/50">
+            <TabsTrigger value="sent" className="gap-2">
+              <Mail size={14} />
+              Sent
+              {sentCount > 0 && (
+                <Badge variant="secondary" className="ml-1 px-1.5 py-0.5 text-xs">
+                  {sentCount}
+                </Badge>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="received" className="gap-2">
+              <Inbox size={14} />
+              Received
+              {receivedCount > 0 && (
+                <Badge variant="secondary" className="ml-1 px-1.5 py-0.5 text-xs">
+                  {receivedCount}
+                </Badge>
+              )}
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+      </div>
+
+      {/* Messages List */}
+      <div className="rounded-3xl border border-border/70 bg-card overflow-hidden shadow-sm backdrop-blur-sm">
+        {loading ? (
+          <div className="flex items-center justify-center py-16">
+            <div className="text-center">
+              <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto mb-4" />
+              <div className="text-muted-foreground">Loading messages...</div>
+            </div>
+          </div>
+        ) : paginated.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 text-center">
+            <MessageSquare className="h-12 w-12 text-muted-foreground mb-4 opacity-50" />
+            <p className="text-base font-medium text-foreground">No messages yet</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {tab === "sent" ? "You haven't sent any messages yet." : "No messages received yet."}
+            </p>
+            {tab === "sent" && (
+              <Button onClick={() => setOpen(true)} variant="outline" className="mt-4 gap-2">
+                <Send size={14} />
+                Send your first message
+              </Button>
+            )}
+          </div>
+        ) : (
+          <>
+            <div className="divide-y divide-border">
+              {paginated.map((msg: any, idx: number) => {
+                const isSpecific = Array.isArray(msg.recipient_ids) && msg.recipient_ids.length > 0;
+                const initials = msg.sender?.name?.charAt(0) || 'T';
+                
+                return (
+                  <motion.div
+                    key={msg.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.2, delay: idx * 0.03 }}
+                    className="p-4 hover:bg-muted/30 transition-colors"
                   >
-                    Mark Read
-                  </Button>
-                )}
+                    <div className="flex items-start gap-4">
+                      <Avatar className="h-10 w-10 border border-border/50 flex-shrink-0">
+                        <AvatarFallback className="bg-primary/10 text-primary text-sm font-semibold">
+                          {tab === "sent" ? 'T' : initials}
+                        </AvatarFallback>
+                      </Avatar>
+                      
+                      <div className="flex-1 min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="font-medium text-foreground">
+                            {tab === "sent" ? "You" : msg.sender?.name || "Teacher"}
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            {formatDate(msg.created_at)}
+                          </span>
+                          {tab === "sent" && (
+                            isSpecific ? (
+                              <Badge variant="secondary" className="text-xs">
+                                To {msg.recipient_ids.length} Student{msg.recipient_ids.length > 1 ? 's' : ''}
+                              </Badge>
+                            ) : (
+                              <Badge variant="secondary" className="text-xs">Course Students</Badge>
+                            )
+                          )}
+                          {tab === "received" && (
+                            <Badge variant={msg.sender?.role === "ADMIN" ? "default" : "secondary"} className="text-xs">
+                              {msg.sender?.role || "ADMIN"}
+                            </Badge>
+                          )}
+                        </div>
+                        <p className="mt-1 text-sm text-foreground line-clamp-2">
+                          {msg.message}
+                        </p>
+                      </div>
+                      
+                      <div className="flex items-center gap-1 flex-shrink-0">
+                        <Button size="icon" variant="ghost" onClick={() => setViewing(msg)} className="h-8 w-8">
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        {tab === "sent" && (
+                          <Button size="icon" variant="ghost" onClick={() => { setEditing(msg); setMessage(msg.message); }} className="h-8 w-8">
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                        )}
+                        <Button size="icon" variant="ghost" onClick={() => setDeleting(msg)} className="h-8 w-8 text-destructive hover:text-destructive">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+
+            {/* Pagination */}
+            {messages.length > PAGE_SIZE && (
+              <div className="flex items-center justify-between border-t border-border px-4 py-4">
                 <Button
-                  variant="ghost"
+                  variant="outline"
                   size="sm"
-                  onClick={() => onArchive(message.id)}
-                  className="h-8 px-2"
+                  disabled={page === 1}
+                  onClick={() => setPage((p) => p - 1)}
+                  className="gap-1"
                 >
-                  <Archive className="h-3 w-3" />
+                  <ChevronLeft className="h-4 w-4" />
+                  Previous
                 </Button>
+                <span className="text-sm text-muted-foreground">
+                  Page {page} of {totalPages}
+                </span>
                 <Button
-                  variant="ghost"
+                  variant="outline"
                   size="sm"
-                  onClick={() => onDelete(message.id)}
-                  className="h-8 px-2"
+                  disabled={page === totalPages}
+                  onClick={() => setPage((p) => p + 1)}
+                  className="gap-1"
                 >
-                  <Trash2 className="h-3 w-3" />
+                  Next
+                  <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
             )}
-          </div>
-        </div>
+          </>
+        )}
       </div>
+
+      {/* Compose Dialog */}
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="max-w-2xl rounded-3xl max-h-[90vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold">New Message</DialogTitle>
+          </DialogHeader>
+          
+          <div className="flex-1 overflow-y-auto pr-2 -mr-2 space-y-4">
+            {/* Recipient Type */}
+            <div>
+              <label className="text-sm font-medium text-foreground mb-2 block">Recipient Type</label>
+              <Select value={recipientType} onValueChange={(v: any) => setRecipientType(v)}>
+                <SelectTrigger className="rounded-xl">
+                  <SelectValue placeholder="Select recipient type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="course">Course Students</SelectItem>
+                  <SelectItem value="specific">Specific Students</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Course Selection */}
+            {recipientType === "course" && (
+              <div>
+                <label className="text-sm font-medium text-foreground mb-2 block">Select Course</label>
+                <Select onValueChange={(v) => setCourseId(Number(v))}>
+                  <SelectTrigger className="rounded-xl">
+                    <SelectValue placeholder="Select a course" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">Computer Science 101</SelectItem>
+                    <SelectItem value="2">Mathematics 201</SelectItem>
+                    <SelectItem value="3">Physics 301</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {/* Student Selection */}
+            {recipientType === "specific" && (
+              <div>
+                <label className="text-sm font-medium text-foreground mb-2 block">
+                  Select Students ({selectedStudents.length} selected)
+                </label>
+                <div className="rounded-2xl border border-border/70 bg-background/60 p-3 max-h-60 overflow-y-auto">
+                  {studentsQuery?.isLoading ? (
+                    <div className="flex items-center justify-center py-4">
+                      <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                    </div>
+                  ) : students.length === 0 ? (
+                    <p className="text-center text-sm text-muted-foreground py-4">No students found</p>
+                  ) : (
+                    <div className="space-y-1">
+                      {students.map((s: any) => (
+                        <label
+                          key={s.id}
+                          className="flex items-center gap-3 p-2 rounded-xl cursor-pointer hover:bg-accent/40 transition-colors"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={selectedStudents.includes(s.id)}
+                            onChange={() => toggleStudent(s.id)}
+                            className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
+                          />
+                          <Avatar className="h-8 w-8">
+                            <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                              {s.name?.charAt(0) || 'S'}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-foreground">{s.name}</p>
+                            {s.email && <p className="text-xs text-muted-foreground">{s.email}</p>}
+                          </div>
+                          {selectedStudents.includes(s.id) && (
+                            <CheckCircle className="h-4 w-4 text-primary" />
+                          )}
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                {selectedStudents.length > 0 && (
+                  <p className="text-xs text-muted-foreground mt-2">
+                    {selectedStudents.length} student{selectedStudents.length !== 1 ? 's' : ''} selected
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* Message */}
+            <div>
+              <label className="text-sm font-medium text-foreground mb-2 block">Message</label>
+              <Textarea
+                rows={6}
+                placeholder="Write your message here..."
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                className="resize-none rounded-xl"
+              />
+              <div className="flex justify-end mt-1">
+                <span className="text-xs text-muted-foreground/50">
+                  {message.length} characters
+                </span>
+              </div>
+            </div>
+
+            {/* Send Button */}
+            <Button
+              disabled={sendMutation.isPending || !message.trim() || (recipientType === 'course' && !courseId) || (recipientType === 'specific' && selectedStudents.length === 0)}
+              onClick={send}
+              className="w-full gap-2"
+            >
+              <Send className="h-4 w-4" />
+              {sendMutation.isPending ? "Sending..." : "Send Message"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* View Dialog */}
+      <Dialog open={!!viewing} onOpenChange={() => setViewing(null)}>
+        <DialogContent className="max-w-lg rounded-3xl">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold">Message Details</DialogTitle>
+          </DialogHeader>
+          <div className="rounded-2xl bg-muted/30 p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <Badge variant="outline">
+                {tab === "sent" ? "Sent by you" : `From ${viewing?.sender?.name || "Teacher"}`}
+              </Badge>
+              <span className="text-xs text-muted-foreground">
+                {viewing && formatDate(viewing.created_at)}
+              </span>
+            </div>
+            <p className="whitespace-pre-wrap text-foreground">{viewing?.message}</p>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Dialog */}
+      <Dialog open={!!editing} onOpenChange={() => setEditing(null)}>
+        <DialogContent className="max-w-lg rounded-3xl">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold">Edit Message</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Textarea
+              rows={5}
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              className="rounded-xl"
+            />
+            <Button 
+              disabled={updateMutation.isPending} 
+              onClick={update} 
+              className="w-full gap-2"
+            >
+              <Pencil className="h-4 w-4" />
+              Save Changes
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation */}
+      <AlertDialog open={!!deleting} onOpenChange={() => setDeleting(null)}>
+        <AlertDialogContent className="rounded-3xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-xl font-bold">Delete Message</AlertDialogTitle>
+          </AlertDialogHeader>
+          <p className="text-muted-foreground">
+            Are you sure you want to delete this message? This action cannot be undone.
+          </p>
+          <AlertDialogFooter className="mt-4">
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
-};
-
-// Notification Settings Component (same as before)
-const NotificationSettings: React.FC<{
-  settings: any;
-  onSettingsChange: (settings: any) => void;
-}> = ({ settings, onSettingsChange }) => {
-  const handleSettingChange = (key: string, value: boolean) => {
-    onSettingsChange({ ...settings, [key]: value });
-  };
-
-  return (
-    <Card className="sticky top-6">
-      <CardHeader>
-        <CardTitle className="flex items-center space-x-2">
-          <Settings className="h-5 w-5" />
-          <span>Notification Settings</span>
-        </CardTitle>
-        <CardDescription>Manage your notification preferences</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="flex items-center justify-between">
-          <Label htmlFor="email-notifications" className="flex-1">
-            <div className="font-medium">Email Notifications</div>
-            <div className="text-sm text-muted-foreground">Receive notifications via email</div>
-          </Label>
-          <Switch
-            id="email-notifications"
-            checked={settings.emailNotifications}
-            onCheckedChange={(checked) => handleSettingChange('emailNotifications', checked)}
-          />
-        </div>
-
-        <Separator />
-
-        <div className="flex items-center justify-between">
-          <Label htmlFor="sms-notifications" className="flex-1">
-            <div className="font-medium">SMS Notifications</div>
-            <div className="text-sm text-muted-foreground">Receive SMS alerts</div>
-          </Label>
-          <Switch
-            id="sms-notifications"
-            checked={settings.smsNotifications}
-            onCheckedChange={(checked) => handleSettingChange('smsNotifications', checked)}
-          />
-        </div>
-
-        <Separator />
-
-        <div className="space-y-3">
-          <h4 className="font-medium">Message Types</h4>
-
-          <div className="flex items-center justify-between">
-            <Label htmlFor="parent-messages" className="flex-1">
-              <div className="text-sm">Parent Messages</div>
-            </Label>
-            <Switch
-              id="parent-messages"
-              checked={settings.parentMessages}
-              onCheckedChange={(checked) => handleSettingChange('parentMessages', checked)}
-            />
-          </div>
-
-          <div className="flex items-center justify-between">
-            <Label htmlFor="admin-messages" className="flex-1">
-              <div className="text-sm">Admin Messages</div>
-            </Label>
-            <Switch
-              id="admin-messages"
-              checked={settings.adminMessages}
-              onCheckedChange={(checked) => handleSettingChange('adminMessages', checked)}
-            />
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
-
-export default NotificationsPage;
+}

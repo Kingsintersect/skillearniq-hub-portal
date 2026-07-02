@@ -83,9 +83,19 @@ class ApiClient {
                 const responseData = response.data;
                 
                 // If it's already in ApiResponse format, return as is
-                if (responseData && typeof responseData === 'object' && 'status' in responseData) {
-                    return response;
-                }
+                // if (responseData && typeof responseData === 'object' && 'status' in responseData) {
+                //     return response;
+                // }
+
+                if (
+  responseData &&
+  typeof responseData === 'object' &&
+  'status' in responseData &&
+  'data' in responseData
+) {
+  return response;
+}
+
                 
                 // If response is an array (like categories data from /odl/categories)
                 if (Array.isArray(responseData)) {

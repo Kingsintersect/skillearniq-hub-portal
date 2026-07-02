@@ -40,16 +40,26 @@ export interface ParentFilterParams extends PaginationParams {
 export const parentService = {
   // Get all parents
   getAllParents: async (): Promise<Parent[]> => {
-    try {
-      // const response = await apiClient.get<any>('/account/allparents'); ///parents/get-all-parents
-      // console.log('response', response)
-      // return response.data || [];
-      return dummyParentsData
-    } catch (error) {
-      console.error('Failed to fetch all parents:', error);
-      return [];
-    }
-  },
+  try {
+    const res: any = await apiClient.get('/admin/parent');
+
+    console.log('ALL PARENTS RESPONSE:', res);
+
+    /**
+     * Handle BOTH axios patterns:
+     * 1️⃣ res.data.data
+     * 2️⃣ res.data
+     */
+
+    const parents = res?.data?.data ?? res?.data ?? [];
+
+    return parents;
+
+  } catch (error) {
+    console.error('Failed to fetch all parents:', error);
+    return [];
+  }
+},
 
   // Get parents with filtering and pagination
   getParents: async (params?: ParentFilterParams): Promise<ApiResponse<Parent[]>> => {
