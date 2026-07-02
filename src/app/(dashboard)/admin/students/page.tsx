@@ -1,6 +1,7 @@
-// app/admin/students/page.tsx
-'use client'
+'use client';
+
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,12 +11,77 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Plus, Search, Download, Upload, Ban, Trash2, Mail, Phone, Sheet, FileDown, FileText, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import {
+  Plus,
+  Search,
+  Download,
+  Upload,
+  Ban,
+  Trash2,
+  Mail,
+  Phone,
+  Sheet,
+  FileDown,
+  FileText,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+  Users,
+  UserCheck,
+  UserX,
+  Loader2,
+  AlertCircle,
+  RefreshCw
+} from 'lucide-react';
 import { useAdminQueries } from '@/hooks/useAdminQueries';
 import { toast } from 'sonner';
 import { CreateStudentPayload } from '@/lib/services/admin/studentService';
 
-// Add Pagination Component
+// Dashboard Card Component
+interface DashboardCardProps {
+  title: string;
+  subtitle?: string;
+  icon: React.ReactNode;
+  children: React.ReactNode;
+  action?: React.ReactNode;
+  className?: string;
+}
+
+function DashboardCard({ title, subtitle, icon, action, children, className = '' }: DashboardCardProps) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.28 }}
+      className={`rounded-3xl border border-border/70 bg-card/95 p-5 shadow-sm backdrop-blur-sm ${className}`}
+    >
+      <div className="mb-4 flex items-start justify-between gap-3">
+        <div>
+          <p className="text-sm font-semibold text-card-foreground">{title}</p>
+          {subtitle && <p className="mt-1 text-xs text-muted-foreground">{subtitle}</p>}
+        </div>
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+          {icon}
+        </div>
+      </div>
+      {children}
+      {action && <div className="mt-4">{action}</div>}
+    </motion.div>
+  );
+}
+
+function StatPill({ label, value }: { label: string; value: string | number }) {
+  return (
+    <div className="rounded-2xl border border-border/70 bg-background/60 px-3 py-2">
+      <p className="text-[11px] text-muted-foreground">{label}</p>
+      <p className="mt-1 text-sm font-semibold text-foreground">{value}</p>
+    </div>
+  );
+}
+
+// Pagination Component
 const Pagination = ({
   currentPage,
   totalPages,
@@ -63,17 +129,19 @@ const Pagination = ({
   const endItem = Math.min(currentPage * itemsPerPage, totalItems);
 
   return (
-    <div className="flex items-center justify-between px-2 py-4">
-      <div className="flex-1 text-sm text-muted-foreground">
-        Showing {startItem} to {endItem} of {totalItems} entries
+    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-2 py-4 border-t border-border/50 mt-4">
+      <div className="text-sm text-muted-foreground">
+        Showing <span className="font-medium text-foreground">{startItem}</span> to{' '}
+        <span className="font-medium text-foreground">{endItem}</span> of{' '}
+        <span className="font-medium text-foreground">{totalItems}</span> entries
       </div>
-      <div className="flex items-center space-x-2">
+      <div className="flex items-center gap-1">
         <Button
           variant="outline"
           size="sm"
           onClick={() => onPageChange(1)}
           disabled={currentPage === 1}
-          className="hidden sm:flex border-border"
+          className="h-8 w-8 p-0 border-border/50"
         >
           <ChevronsLeft className="h-4 w-4" />
         </Button>
@@ -82,12 +150,12 @@ const Pagination = ({
           size="sm"
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1}
-          className="border-border"
+          className="h-8 w-8 p-0 border-border/50"
         >
           <ChevronLeft className="h-4 w-4" />
         </Button>
 
-        <div className="flex items-center space-x-1">
+        <div className="flex items-center gap-1">
           {getPageNumbers().map((page, index) =>
             page === "..." ? (
               <span key={index} className="px-2 py-1 text-sm text-muted-foreground">
@@ -99,7 +167,7 @@ const Pagination = ({
                 variant={currentPage === page ? "default" : "outline"}
                 size="sm"
                 onClick={() => onPageChange(page as number)}
-                className="h-8 w-8 p-0 border-border"
+                className={`h-8 w-8 p-0 ${currentPage === page ? '' : 'border-border/50'}`}
               >
                 {page}
               </Button>
@@ -112,7 +180,7 @@ const Pagination = ({
           size="sm"
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
-          className="border-border"
+          className="h-8 w-8 p-0 border-border/50"
         >
           <ChevronRight className="h-4 w-4" />
         </Button>
@@ -121,7 +189,7 @@ const Pagination = ({
           size="sm"
           onClick={() => onPageChange(totalPages)}
           disabled={currentPage === totalPages}
-          className="hidden sm:flex border-border"
+          className="h-8 w-8 p-0 border-border/50"
         >
           <ChevronsRight className="h-4 w-4" />
         </Button>
@@ -284,7 +352,6 @@ const useDebounce = <T,>(value: T, delay: number): T => {
 
 export default function StudentsPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [isBulkUploadDialogOpen, setIsBulkUploadDialogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState({ status: 'all' });
   const [pagination, setPagination] = useState({
@@ -297,16 +364,14 @@ export default function StudentsPage() {
     useCreateStudent,
     useUpdateStudentStatus,
     useDeleteStudent,
-    useBulkUploadStudents
   } = useAdminQueries();
 
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
-  const { data: allStudentsResponse, isLoading } = useAllStudents();
+  const { data: allStudentsResponse, isLoading, error, refetch } = useAllStudents();
   const createStudentMutation = useCreateStudent();
   const updateStudentStatusMutation = useUpdateStudentStatus();
   const deleteStudentMutation = useDeleteStudent();
-  const bulkUploadMutation = useBulkUploadStudents();
 
   const { exportToCSV, exportToExcel, exportToPDF } = useExportStudents();
 
@@ -361,6 +426,12 @@ export default function StudentsPage() {
   const paginatedStudents = filteredStudents.slice(startIndex, endIndex);
   const totalPages = Math.ceil(filteredStudents.length / pagination.itemsPerPage);
 
+  // Calculate stats
+  const totalStudents = students.length;
+  const activeStudents = students.filter(s => s.is_active === 1).length;
+  const inactiveStudents = students.filter(s => s.is_active === 0).length;
+  const verifiedStudents = students.filter(s => s.email_verified === 1).length;
+
   const handleCreateStudent = () => {
     const payload: CreateStudentPayload = {
       first_name: newStudent.first_name,
@@ -411,11 +482,16 @@ export default function StudentsPage() {
   };
 
   const handleDeleteStudent = (studentId: number) => {
-    deleteStudentMutation.mutate(studentId, {
-      onError: (error: any) => {
-        toast.error(error.message || 'Failed to delete student');
-      }
-    });
+    if (window.confirm('Are you sure you want to delete this student? This action cannot be undone.')) {
+      deleteStudentMutation.mutate(studentId, {
+        onSuccess: () => {
+          toast.success('Student deleted successfully!');
+        },
+        onError: (error: any) => {
+          toast.error(error.message || 'Failed to delete student');
+        }
+      });
+    }
   };
 
   const handleExport = (format: ExportFormat) => {
@@ -450,298 +526,419 @@ export default function StudentsPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen p-6 flex items-center justify-center bg-background">
-        <div className="text-center text-foreground">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          Loading students...
+      <div className="space-y-6 p-4 md:p-6">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto mb-4" />
+            <div className="text-lg text-muted-foreground">Loading students...</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6 p-4 md:p-6">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center max-w-md">
+            <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+            <div className="text-lg text-foreground">Error loading students</div>
+            <p className="text-sm text-muted-foreground mt-2">Please try again later</p>
+            <Button onClick={() => refetch()} variant="outline" className="mt-4 gap-2">
+              <RefreshCw size={16} />
+              Retry
+            </Button>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen p-6 bg-background">
-      <div className="max-w-7xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
+    <div className="space-y-6 p-4 md:p-6">
+      {/* Hero Section */}
+      <motion.section
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35 }}
+        className="overflow-hidden rounded-3xl border border-primary/20 bg-linear-to-br from-primary/15 via-background to-blue-500/10 p-6"
+      >
+        <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Students Management</h1>
-            <p className="text-muted-foreground">Manage all students and their information</p>
+            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">User Management</p>
+            <h1 className="mt-2 text-2xl font-bold text-foreground sm:text-3xl">Students</h1>
+            <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+              Manage all students and their information. View, add, suspend, and track student records.
+            </p>
           </div>
-          <div className="flex space-x-4">
-            {/* <Button variant="outline" onClick={() => setIsBulkUploadDialogOpen(true)} className="border-border">
-              <Upload className="h-4 w-4 mr-2" />
-              Bulk Upload
-            </Button> */}
+          <div className="flex gap-2">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="border-border">
-                  <Download className="h-4 w-4 mr-2" />
+                <Button variant="outline" className="gap-2 border-border/70">
+                  <Download size={16} />
                   Export
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="bg-background border-border">
-                <DropdownMenuItem onClick={() => handleExport('csv')} className="text-foreground">
-                  <Sheet className="h-4 w-4 mr-2" /> CSV
+              <DropdownMenuContent className="bg-card border-border/70 rounded-2xl">
+                <DropdownMenuItem onClick={() => handleExport('csv')} className="gap-2">
+                  <Sheet className="h-4 w-4" /> CSV
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleExport('excel')} className="text-foreground">
-                  <FileDown className="h-4 w-4 mr-2" /> Excel
+                <DropdownMenuItem onClick={() => handleExport('excel')} className="gap-2">
+                  <FileDown className="h-4 w-4" /> Excel
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleExport('pdf')} className="text-foreground">
-                  <FileText className="h-4 w-4 mr-2" /> PDF
+                <DropdownMenuItem onClick={() => handleExport('pdf')} className="gap-2">
+                  <FileText className="h-4 w-4" /> PDF
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            <Button onClick={() => setIsCreateDialogOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
+            <Button onClick={() => setIsCreateDialogOpen(true)} className="gap-2">
+              <Plus size={16} />
               Add Student
             </Button>
           </div>
         </div>
 
-        {/* Search and Filters */}
-        <Card className="mb-6 bg-card border-border">
-          <CardContent className="p-6">
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="flex-1">
-                <Input
-                  placeholder="Search students by name, email, or phone..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="bg-background border-border"
-                />
+        {/* Stats Cards */}
+        <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div className="rounded-2xl border border-border/70 bg-background/60 p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs text-muted-foreground">Total Students</p>
+                <p className="mt-1 text-2xl font-bold text-foreground">{totalStudents}</p>
               </div>
-              <Select value={filters.status} onValueChange={(value) => setFilters({ status: value })}>
-                <SelectTrigger className="w-full md:w-[200px] bg-background border-border">
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent className="bg-background border-border">
-                  <SelectItem value="all" className="text-foreground">All Status</SelectItem>
-                  <SelectItem value="active" className="text-foreground">Active</SelectItem>
-                  <SelectItem value="inactive" className="text-foreground">Inactive</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select
-                value={pagination.itemsPerPage.toString()}
-                onValueChange={handleItemsPerPageChange}
-              >
-                <SelectTrigger className="w-full md:w-[200px] bg-background border-border">
-                  <SelectValue placeholder="Show per page" />
-                </SelectTrigger>
-                <SelectContent className="bg-background border-border">
-                  <SelectItem value="5" className="text-foreground">5 per page</SelectItem>
-                  <SelectItem value="10" className="text-foreground">10 per page</SelectItem>
-                  <SelectItem value="20" className="text-foreground">20 per page</SelectItem>
-                  <SelectItem value="50" className="text-foreground">50 per page</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-500/10 text-blue-500">
+                <Users size={18} />
+              </div>
             </div>
-            <div className="mt-4 text-sm text-muted-foreground">
-              {filteredStudents.length} students found
-              {debouncedSearchTerm && ` for "${debouncedSearchTerm}"`}
-            </div>
-          </CardContent>
-        </Card>
+          </div>
 
-        {/* Students Table */}
-        <Card className="bg-card border-border">
-          <CardHeader>
-            <CardTitle className="text-foreground">All Students</CardTitle>
-            <CardDescription>
+          <div className="rounded-2xl border border-border/70 bg-background/60 p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs text-muted-foreground">Active</p>
+                <p className="mt-1 text-2xl font-bold text-emerald-600">{activeStudents}</p>
+              </div>
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-500">
+                <UserCheck size={18} />
+              </div>
+            </div>
+            <Progress value={(activeStudents / totalStudents) * 100 || 0} className="h-1 mt-2" />
+          </div>
+
+          <div className="rounded-2xl border border-border/70 bg-background/60 p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs text-muted-foreground">Inactive</p>
+                <p className="mt-1 text-2xl font-bold text-red-600">{inactiveStudents}</p>
+              </div>
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-red-500/10 text-red-500">
+                <UserX size={18} />
+              </div>
+            </div>
+            <Progress value={(inactiveStudents / totalStudents) * 100 || 0} className="h-1 mt-2" />
+          </div>
+
+          <div className="rounded-2xl border border-border/70 bg-background/60 p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs text-muted-foreground">Verified</p>
+                <p className="mt-1 text-2xl font-bold text-foreground">{verifiedStudents}</p>
+              </div>
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-purple-500/10 text-purple-500">
+                <Mail size={18} />
+              </div>
+            </div>
+            <Progress value={(verifiedStudents / totalStudents) * 100 || 0} className="h-1 mt-2" />
+          </div>
+        </div>
+      </motion.section>
+
+      {/* Search and Filters */}
+      <div className="rounded-3xl border border-border/70 bg-card/95 p-5 shadow-sm backdrop-blur-sm">
+        <div className="flex flex-col md:flex-row gap-4">
+          <div className="flex-1">
+            <div className="relative">
+              <Search size={16} className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-muted-foreground" />
+              <input
+                placeholder="Search students by name, email, or phone..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="h-10 w-full rounded-xl border border-input bg-background pr-3 pl-9 text-sm text-foreground outline-none transition-shadow focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+              />
+            </div>
+          </div>
+          <Select value={filters.status} onValueChange={(value) => setFilters({ status: value })}>
+            <SelectTrigger className="w-full md:w-[180px] rounded-xl bg-background border-input">
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent className="bg-card border-border/70 rounded-xl">
+              <SelectItem value="all">All Status</SelectItem>
+              <SelectItem value="active">Active</SelectItem>
+              <SelectItem value="inactive">Inactive</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={pagination.itemsPerPage.toString()} onValueChange={handleItemsPerPageChange}>
+            <SelectTrigger className="w-full md:w-[160px] rounded-xl bg-background border-input">
+              <SelectValue placeholder="Show per page" />
+            </SelectTrigger>
+            <SelectContent className="bg-card border-border/70 rounded-xl">
+              <SelectItem value="5">5 per page</SelectItem>
+              <SelectItem value="10">10 per page</SelectItem>
+              <SelectItem value="20">20 per page</SelectItem>
+              <SelectItem value="50">50 per page</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="mt-3 text-sm text-muted-foreground">
+          {filteredStudents.length} students found
+          {debouncedSearchTerm && ` for "${debouncedSearchTerm}"`}
+        </div>
+      </div>
+
+      {/* Students Table */}
+      <div className="rounded-3xl border border-border/70 bg-card/95 overflow-hidden shadow-sm backdrop-blur-sm">
+        <div className="p-5 border-b border-border/50">
+          <div>
+            <p className="text-sm font-semibold text-card-foreground">All Students</p>
+            <p className="text-xs text-muted-foreground mt-1">
               {filteredStudents.length} students in the system
               {debouncedSearchTerm && ` matching "${debouncedSearchTerm}"`}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="text-foreground">Name</TableHead>
-                  <TableHead className="text-foreground">Contact</TableHead>
-                  <TableHead className="text-foreground">Status</TableHead>
-                  <TableHead className="text-foreground">Verification</TableHead>
-                  <TableHead className="text-foreground">Last Login</TableHead>
-                  <TableHead className="text-foreground">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {paginatedStudents.map((student) => (
-                  <TableRow key={student.id} className="hover:bg-muted/50">
-                    <TableCell>
-                      <div>
-                        <div className="font-medium text-foreground">{student.first_name} {student.last_name}</div>
-                        <div className="text-sm text-muted-foreground">{student.username || 'No username'}</div>
+            </p>
+          </div>
+        </div>
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-muted/30 hover:bg-muted/30">
+                <TableHead className="text-foreground font-semibold">Name</TableHead>
+                <TableHead className="text-foreground font-semibold">Contact</TableHead>
+                <TableHead className="text-foreground font-semibold">Status</TableHead>
+                <TableHead className="text-foreground font-semibold hidden md:table-cell">Verification</TableHead>
+                <TableHead className="text-foreground font-semibold hidden lg:table-cell">Last Login</TableHead>
+                <TableHead className="text-foreground font-semibold text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {paginatedStudents.map((student, index) => (
+                <motion.tr
+                  key={student.id}
+                  initial={{ opacity: 0, y: 5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.2, delay: index * 0.02 }}
+                  className="border-b border-border/30 hover:bg-muted/30 transition-colors"
+                >
+                  <TableCell>
+                    <div>
+                      <div className="font-medium text-foreground">{student.first_name} {student.last_name}</div>
+                      <div className="text-xs text-muted-foreground">{student.username || 'No username'}</div>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <Mail className="h-3 w-3 text-muted-foreground" />
+                        <span className="text-sm text-foreground">{student.email}</span>
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="space-y-1">
-                        <div className="flex items-center space-x-2">
-                          <Mail className="h-3 w-3 text-muted-foreground" />
-                          <span className="text-sm text-foreground">{student.email}</span>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Phone className="h-3 w-3 text-muted-foreground" />
-                          <span className="text-sm text-foreground">{student.phone}</span>
-                        </div>
+                      <div className="flex items-center gap-2">
+                        <Phone className="h-3 w-3 text-muted-foreground" />
+                        <span className="text-sm text-foreground">{student.phone}</span>
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={student.is_active ? 'default' : 'secondary'}>
-                        {student.is_active ? 'Active' : 'Inactive'}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={student.is_active ? 'default' : 'secondary'} className={student.is_active ? 'bg-emerald-100 text-emerald-700 border-emerald-200' : ''}>
+                      {student.is_active ? 'Active' : 'Inactive'}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="hidden md:table-cell">
+                    <div className="flex flex-wrap gap-1">
+                      <Badge variant={student.email_verified ? 'default' : 'outline'} className={`text-xs ${student.email_verified ? 'bg-emerald-100 text-emerald-700 border-emerald-200' : ''}`}>
+                        Email
                       </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-wrap gap-1">
-                        <Badge variant={student.email_verified ? 'default' : 'outline'} className="text-xs">
-                          Email: {student.email_verified ? 'Yes' : 'No'}
-                        </Badge>
-                        <Badge variant={student.phone_verified ? 'default' : 'outline'} className="text-xs">
-                          Phone: {student.phone_verified ? 'Yes' : 'No'}
-                        </Badge>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm text-muted-foreground">
-                        {formatDate(student.last_login_at)}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex space-x-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleSuspendStudent(student.id, student.is_active)}
-                          className="border-border hover:bg-yellow-500/10 hover:text-yellow-600"
-                        >
-                          <Ban className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleDeleteStudent(student.id)}
-                          className="border-border hover:bg-destructive/10 hover:text-destructive"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                      <Badge variant={student.phone_verified ? 'default' : 'outline'} className={`text-xs ${student.phone_verified ? 'bg-emerald-100 text-emerald-700 border-emerald-200' : ''}`}>
+                        Phone
+                      </Badge>
+                    </div>
+                  </TableCell>
+                  <TableCell className="hidden lg:table-cell">
+                    <div className="text-sm text-muted-foreground">
+                      {formatDate(student.last_login_at)}
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex items-center justify-end gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleSuspendStudent(student.id, student.is_active)}
+                        className="h-8 w-8 p-0 text-amber-500 hover:text-amber-600 hover:bg-amber-500/10"
+                        title={student.is_active ? 'Suspend' : 'Activate'}
+                      >
+                        <Ban className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDeleteStudent(student.id)}
+                        className="h-8 w-8 p-0 text-red-500 hover:text-red-600 hover:bg-red-500/10"
+                        title="Delete"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </motion.tr>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
 
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <Pagination
-                currentPage={pagination.currentPage}
-                totalPages={totalPages}
-                onPageChange={handlePageChange}
-                totalItems={filteredStudents.length}
-                itemsPerPage={pagination.itemsPerPage}
-              />
-            )}
-          </CardContent>
-        </Card>
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <Pagination
+            currentPage={pagination.currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+            totalItems={filteredStudents.length}
+            itemsPerPage={pagination.itemsPerPage}
+          />
+        )}
 
-        {/* Create Student Dialog */}
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-          <DialogContent className="max-w-2xl bg-background border-border">
-            <DialogHeader>
-              <DialogTitle className="text-foreground">Add New Student</DialogTitle>
-            </DialogHeader>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="text-foreground">First Name</Label>
-                <Input
-                  value={newStudent.first_name}
-                  onChange={(e) => setNewStudent({ ...newStudent, first_name: e.target.value })}
-                  className="bg-background border-border"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-foreground">Last Name</Label>
-                <Input
-                  value={newStudent.last_name}
-                  onChange={(e) => setNewStudent({ ...newStudent, last_name: e.target.value })}
-                  className="bg-background border-border"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-foreground">Email</Label>
-                <Input
-                  type="email"
-                  value={newStudent.email}
-                  onChange={(e) => setNewStudent({ ...newStudent, email: e.target.value })}
-                  className="bg-background border-border"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-foreground">Username</Label>
-                <Input
-                  value={newStudent.username}
-                  onChange={(e) => setNewStudent({ ...newStudent, username: e.target.value })}
-                  className="bg-background border-border"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-foreground">Phone</Label>
-                <Input
-                  value={newStudent.phone}
-                  onChange={(e) => setNewStudent({ ...newStudent, phone: e.target.value })}
-                  className="bg-background border-border"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-foreground">Password</Label>
-                <Input
-                  type="password"
-                  value={newStudent.password}
-                  onChange={(e) => setNewStudent({ ...newStudent, password: e.target.value })}
-                  className="bg-background border-border"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-foreground">Parent First Name</Label>
-                <Input
-                  value={newStudent.parent_first_name}
-                  onChange={(e) => setNewStudent({ ...newStudent, parent_first_name: e.target.value })}
-                  className="bg-background border-border"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-foreground">Parent Last Name</Label>
-                <Input
-                  value={newStudent.parent_last_name}
-                  onChange={(e) => setNewStudent({ ...newStudent, parent_last_name: e.target.value })}
-                  className="bg-background border-border"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-foreground">Parent Email</Label>
-                <Input
-                  type="email"
-                  value={newStudent.parent_email}
-                  onChange={(e) => setNewStudent({ ...newStudent, parent_email: e.target.value })}
-                  className="bg-background border-border"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-foreground">Parent Phone</Label>
-                <Input
-                  value={newStudent.parent_phone_number}
-                  onChange={(e) => setNewStudent({ ...newStudent, parent_phone_number: e.target.value })}
-                  className="bg-background border-border"
-                />
-              </div>
-            </div>
-            <div className="flex justify-end space-x-4 mt-6">
-              <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)} className="border-border">
-                Cancel
+        {/* Empty State */}
+        {filteredStudents.length === 0 && (
+          <div className="text-center py-12">
+            <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-50" />
+            <p className="text-base font-medium text-foreground">No students found</p>
+            <p className="text-sm text-muted-foreground mt-1">
+              {debouncedSearchTerm ? 'Try adjusting your search or filters' : 'Add your first student to get started'}
+            </p>
+            {!debouncedSearchTerm && (
+              <Button onClick={() => setIsCreateDialogOpen(true)} className="mt-4 gap-2">
+                <Plus size={16} />
+                Add Student
               </Button>
-              <Button onClick={handleCreateStudent}>Add Student</Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+            )}
+          </div>
+        )}
       </div>
+
+      {/* Create Student Dialog */}
+      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+        <DialogContent className="max-w-2xl rounded-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold">Add New Student</DialogTitle>
+            <DialogDescription>
+              Fill in the student details and parent information below.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label className="text-foreground">First Name *</Label>
+              <Input
+                value={newStudent.first_name}
+                onChange={(e) => setNewStudent({ ...newStudent, first_name: e.target.value })}
+                className="rounded-xl"
+                placeholder="John"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-foreground">Last Name *</Label>
+              <Input
+                value={newStudent.last_name}
+                onChange={(e) => setNewStudent({ ...newStudent, last_name: e.target.value })}
+                className="rounded-xl"
+                placeholder="Doe"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-foreground">Email *</Label>
+              <Input
+                type="email"
+                value={newStudent.email}
+                onChange={(e) => setNewStudent({ ...newStudent, email: e.target.value })}
+                className="rounded-xl"
+                placeholder="john.doe@example.com"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-foreground">Username *</Label>
+              <Input
+                value={newStudent.username}
+                onChange={(e) => setNewStudent({ ...newStudent, username: e.target.value })}
+                className="rounded-xl"
+                placeholder="johndoe"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-foreground">Phone *</Label>
+              <Input
+                value={newStudent.phone}
+                onChange={(e) => setNewStudent({ ...newStudent, phone: e.target.value })}
+                className="rounded-xl"
+                placeholder="+234 800 000 0000"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-foreground">Password</Label>
+              <Input
+                type="password"
+                value={newStudent.password}
+                onChange={(e) => setNewStudent({ ...newStudent, password: e.target.value })}
+                className="rounded-xl"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-foreground">Parent First Name *</Label>
+              <Input
+                value={newStudent.parent_first_name}
+                onChange={(e) => setNewStudent({ ...newStudent, parent_first_name: e.target.value })}
+                className="rounded-xl"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-foreground">Parent Last Name *</Label>
+              <Input
+                value={newStudent.parent_last_name}
+                onChange={(e) => setNewStudent({ ...newStudent, parent_last_name: e.target.value })}
+                className="rounded-xl"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-foreground">Parent Email *</Label>
+              <Input
+                type="email"
+                value={newStudent.parent_email}
+                onChange={(e) => setNewStudent({ ...newStudent, parent_email: e.target.value })}
+                className="rounded-xl"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-foreground">Parent Phone *</Label>
+              <Input
+                value={newStudent.parent_phone_number}
+                onChange={(e) => setNewStudent({ ...newStudent, parent_phone_number: e.target.value })}
+                className="rounded-xl"
+              />
+            </div>
+          </div>
+          <div className="flex justify-end gap-3 pt-4 border-t border-border/50">
+            <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)} className="rounded-xl">
+              Cancel
+            </Button>
+            <Button onClick={handleCreateStudent} disabled={createStudentMutation.isPending} className="rounded-xl gap-2">
+              {createStudentMutation.isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Creating...
+                </>
+              ) : (
+                'Add Student'
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

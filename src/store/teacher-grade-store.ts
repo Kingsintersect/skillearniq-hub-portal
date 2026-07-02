@@ -1,6 +1,5 @@
-// store/teacher-grade-store.ts
 import { create } from 'zustand';
-import { TeacherGradeStore, StudentGradeData, Grade } from '@/types/teacher-grades';
+import { TeacherGradeStore, StudentGradeData, Grade, TeacherCourse } from '@/types/teacher-grades';
 import { teacherService } from '@/lib/services/teacherService';
 import { toast } from 'sonner';
 
@@ -20,8 +19,11 @@ export const useTeacherGradeStore = create<TeacherGradeStore>((set, get) => ({
   error: null,
   courseInfo: null,
 
-  // Fetch teacher's assigned courses using existing getClasses method
+  // Fetch teacher's assigned courses
   fetchCourses: async () => {
+    // Prevent duplicate calls while loading
+    if (get().isLoading) return;
+    
     set({ isLoading: true, error: null });
     
     const getCurrentTeacherId = (): number => {
@@ -42,30 +44,17 @@ export const useTeacherGradeStore = create<TeacherGradeStore>((set, get) => ({
 
     try {
       const teacherId = getCurrentTeacherId();
-      
-      // Use the existing getClasses method that works in AssessmentsPage
       const classesData = await teacherService.getClasses(teacherId);
       
       console.log('Teacher Courses Raw Response:', classesData);
       
-      // teacherService.getClasses returns the data directly (not wrapped in ApiResponse)
       if (Array.isArray(classesData)) {
-        const courses = classesData.map((course: any) => ({
+        const courses: TeacherCourse[] = classesData.map((course: any) => ({
           id: course.id.toString(),
           name: course.name,
-          course_code: course.shortName || course.code,
-          shortname: course.shortName,
-          category: course.category?.toString() || '0',
-          studentCount: course.studentCount,
-          term: course.term,
-          academicYear: course.academicYear,
-          progress: course.progress,
-          averageGrade: course.averageGrade,
-          room: course.room,
-          schedule: course.schedule,
-          subject: course.subject,
-          level: course.level,
-          arm: course.arm
+          course_code: course.shortName || course.code || '',
+          shortname: course.shortName || '',
+          category: course.category?.toString() || '0'
         }));
         
         console.log('Processed teacher courses:', courses);
@@ -73,9 +62,10 @@ export const useTeacherGradeStore = create<TeacherGradeStore>((set, get) => ({
         set({ 
           courses: courses, 
           isLoading: false,
-          error: null 
+          error: null
         });
         
+        // Only show toast once when courses are loaded
         if (courses.length > 0) {
           toast.success(`Loaded ${courses.length} assigned courses`);
         } else {
@@ -131,6 +121,9 @@ export const useTeacherGradeStore = create<TeacherGradeStore>((set, get) => ({
       toast.error(errorMsg);
       return;
     }
+
+    // Prevent duplicate calls while loading
+    if (get().isLoading) return;
 
     set({ 
       isLoading: true, 
@@ -196,9 +189,15 @@ export const useTeacherGradeStore = create<TeacherGradeStore>((set, get) => ({
         set({ 
           gradeData: students, 
           isLoading: false,
-          error: null 
+          error: null
         });
-        toast.success(`Loaded ${students.length} student records`);
+        
+        // Only show toast if there are students
+        if (students.length > 0) {
+          toast.success(`Loaded ${students.length} student records`);
+        } else {
+          toast.info('No student data available for this course');
+        }
       } else {
         const errorMsg = response.message || 'Failed to fetch grade data';
         set({ 

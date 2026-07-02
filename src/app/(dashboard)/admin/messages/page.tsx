@@ -1,367 +1,406 @@
-'use client'
-import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { Send, Users, User, UserCheck } from 'lucide-react';
-import { toast } from 'sonner';
 
-export default function MessagesPage() {
-  const [message, setMessage] = useState({
-    recipientType: 'all',
-    specificRecipients: [],
-    subject: '',
-    content: ''
-  });
 
-  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
 
-  const users = {
-    students: [
-      { id: 1, name: 'Alex Johnson', class: 'JSS 2A' },
-      { id: 2, name: 'Sarah Johnson', class: 'JSS 1B' },
-      { id: 3, name: 'Michael Smith', class: 'JSS 2A' }
-    ],
-    teachers: [
-      { id: 1, name: 'Mr. Smith', subject: 'Mathematics' },
-      { id: 2, name: 'Mrs. Johnson', subject: 'English' },
-      { id: 3, name: 'Mr. Brown', subject: 'Science' }
-    ],
-    parents: [
-      { id: 1, name: 'Mr. & Mrs. Johnson', children: ['Alex', 'Sarah'] },
-      { id: 2, name: 'Mr. & Mrs. Smith', children: ['Michael'] }
-    ]
-  };
 
-  const handleSendMessage = () => {
-    if (!message.subject || !message.content) {
-      toast.error('Please fill in both subject and content');
-      return;
-    }
+"use client";
 
-    let recipientCount = 0;
-    let recipientText = '';
+import React, { useMemo, useState, useEffect } from "react";
+import { useAdminQueries } from "@/hooks/useAdminQueries";
 
-    switch (message.recipientType) {
-      case 'all':
-        recipientCount = users.students.length + users.teachers.length + users.parents.length;
-        recipientText = 'all users';
-        break;
-      case 'students':
-        recipientCount = users.students.length;
-        recipientText = 'all students';
-        break;
-      case 'teachers':
-        recipientCount = users.teachers.length;
-        recipientText = 'all teachers';
-        break;
-      case 'parents':
-        recipientCount = users.parents.length;
-        recipientText = 'all parents';
-        break;
-      case 'specific':
-        recipientCount = selectedUsers.length;
-        recipientText = 'selected users';
-        break;
-    }
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
 
-    toast.success(`Message sent to ${recipientCount} ${recipientText}`);
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
-    // Reset form
-    setMessage({
-      recipientType: 'all',
-      specificRecipients: [],
-      subject: '',
-      content: ''
-    });
-    setSelectedUsers([]);
-  };
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "@/components/ui/alert-dialog";
 
-  const toggleUserSelection = (userId: string, userType: string) => {
-    const userKey = `${userType}-${userId}`;
-    setSelectedUsers(prev =>
-      prev.includes(userKey)
-        ? prev.filter(u => u !== userKey)
-        : [...prev, userKey]
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
+
+import {
+  Eye,
+  Trash2,
+  Pencil,
+  Send,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
+
+import { formatDistanceToNow } from "date-fns";
+
+const PAGE_SIZE = 10;
+
+export default function AdminMessagesPage() {
+  const {
+    useSendMessage,
+    useSentMessages,
+    useReceivedMessages,
+    useUpdateMessage,
+    useDeleteMessage,
+    useAllTeachers,
+    useAllStudents,
+    useAllParents,
+  } = useAdminQueries();
+
+  const sentQuery = useSentMessages();
+  const receivedQuery = useReceivedMessages();
+
+  const teachersQuery = useAllTeachers();
+  const studentsQuery = useAllStudents();
+  const parentsQuery = useAllParents();
+
+  const sendMutation = useSendMessage();
+  const updateMutation = useUpdateMessage();
+  const deleteMutation = useDeleteMessage();
+
+  const [tab, setTab] = useState<"sent" | "received">("sent");
+  const [page, setPage] = useState(1);
+
+  const [open, setOpen] = useState(false);
+  const [viewing, setViewing] = useState<any>(null);
+  const [editing, setEditing] = useState<any>(null);
+  const [deleting, setDeleting] = useState<any>(null);
+
+  const [message, setMessage] = useState("");
+
+  const [recipientType, setRecipientType] = useState<any>("all_teachers");
+
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+
+  useEffect(() => {
+    if (!open && !editing) setMessage("");
+  }, [open, editing]);
+
+  /* normalize messages */
+
+  const messages = useMemo(() => {
+    const raw = tab === "sent" ? sentQuery.data : receivedQuery.data;
+    return Array.isArray(raw) ? raw : [];
+  }, [tab, sentQuery.data, receivedQuery.data]);
+
+  const paginated = useMemo(() => {
+    const start = (page - 1) * PAGE_SIZE;
+    return messages.slice(start, start + PAGE_SIZE);
+  }, [messages, page]);
+
+  const totalPages = Math.ceil(messages.length / PAGE_SIZE);
+
+  /* ✅ Normalize selectable users */
+
+  const selectableUsers = useMemo(() => {
+    let data: any[] = [];
+
+    if (recipientType === "specific_teacher")
+      data = teachersQuery.data ?? [];
+
+    if (recipientType === "specific_student")
+      data = studentsQuery.data ?? [];
+
+    if (recipientType === "specific_parent")
+      data = parentsQuery.data ?? [];
+
+    return data.map((u) => ({
+      id:
+        u.id ??
+        u.user_id ??
+        u.parent_id ??
+        u.teacher_id ??
+        u.student_id,
+
+      label: u.fullname ?? u.name ?? u.email,
+    }));
+  }, [recipientType, teachersQuery.data, studentsQuery.data, parentsQuery.data]);
+
+  const toggleId = (id: number) => {
+    setSelectedIds((prev) =>
+      prev.includes(id)
+        ? prev.filter((x) => x !== id)
+        : [...prev, id]
     );
   };
 
-  const getRecipientIcon = () => {
-    switch (message.recipientType) {
-      case 'all': return <Users className="h-4 w-4" />;
-      case 'students': return <User className="h-4 w-4" />;
-      case 'teachers': return <UserCheck className="h-4 w-4" />;
-      case 'parents': return <Users className="h-4 w-4" />;
-      default: return <Users className="h-4 w-4" />;
+  const formatDate = (d: string) =>
+    formatDistanceToNow(new Date(d), { addSuffix: true });
+
+  /* ✅ SENT TAG FIX */
+
+  const renderSentTag = (msg: any) => {
+    const type = msg?.recipients?.[0]?.recipient_type;
+
+    if (type === "teachers") return <Badge>Teachers</Badge>;
+    if (type === "students") return <Badge>Students</Badge>;
+    if (type === "parents") return <Badge>Parents</Badge>;
+
+    if (recipientType === "specific_teacher")
+      return <Badge variant="secondary">Specific Teachers</Badge>;
+
+    if (recipientType === "specific_student")
+      return <Badge variant="secondary">Specific Students</Badge>;
+
+    if (recipientType === "specific_parent")
+      return <Badge variant="secondary">Specific Parents</Badge>;
+
+    return <Badge variant="secondary">Recipients</Badge>;
+  };
+
+  /* ✅ RECEIVED TAG FIX */
+
+  const renderReceivedTag = (msg: any) => {
+    const role =
+      msg.sender?.role ??
+      msg.sender_role ??
+      msg.sender_type ??
+      "ADMIN";
+
+    return <Badge>{role}</Badge>;
+  };
+
+  /* actions */
+
+  const send = () => {
+    if (!message.trim()) return;
+
+    const payload: any = {
+      recipient_type: recipientType,
+      message,
+    };
+
+    if (recipientType.startsWith("specific")) {
+      if (selectedIds.length === 0) {
+        alert("Select at least one recipient");
+        return;
+      }
+
+      payload.recipient_ids = selectedIds;
     }
+
+    sendMutation.mutate(payload, {
+      onSuccess: () => {
+        setOpen(false);
+        setMessage("");
+        setSelectedIds([]);
+      },
+    });
+  };
+
+  const update = () => {
+    updateMutation.mutate(
+      { id: editing.id, message },
+      { onSuccess: () => setEditing(null) }
+    );
+  };
+
+  const confirmDelete = () => {
+    deleteMutation.mutate(deleting.id, {
+      onSuccess: () => setDeleting(null),
+    });
   };
 
   return (
-    <div className="min-h-screen p-6 bg-background">
-      <div className="max-w-8xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground">Send Messages</h1>
-          <p className="text-muted-foreground">Communicate with students, teachers, and parents</p>
-        </div>
+    <div className="p-8 max-w-6xl mx-auto space-y-6">
+      <h1 className="text-3xl font-bold">Admin Messaging</h1>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Compose Message */}
-          <div className="lg:col-span-2">
-            <Card className="bg-card border-border">
-              <CardHeader>
-                <CardTitle className="text-foreground">Compose Message</CardTitle>
-                <CardDescription>Send announcements, updates, or individual messages</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label className="text-foreground">Send To</Label>
-                    <Select
-                      value={message.recipientType}
-                      onValueChange={(value) => setMessage({ ...message, recipientType: value })}
-                    >
-                      <SelectTrigger className="bg-background border-border">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="bg-background border-border">
-                        <SelectItem value="all">
-                          <div className="flex items-center text-foreground">
-                            <Users className="h-4 w-4 mr-2" />
-                            All Users
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="students">
-                          <div className="flex items-center text-foreground">
-                            <User className="h-4 w-4 mr-2" />
-                            All Students
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="teachers">
-                          <div className="flex items-center text-foreground">
-                            <UserCheck className="h-4 w-4 mr-2" />
-                            All Teachers
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="parents">
-                          <div className="flex items-center text-foreground">
-                            <Users className="h-4 w-4 mr-2" />
-                            All Parents
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="specific">
-                          <div className="flex items-center text-foreground">
-                            <User className="h-4 w-4 mr-2" />
-                            Specific Users
-                          </div>
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+      <div className="flex gap-2">
+        <Button
+          variant={tab === "sent" ? "default" : "outline"}
+          onClick={() => {
+            setTab("sent");
+            setPage(1);
+          }}
+        >
+          Sent
+        </Button>
 
-                  {message.recipientType === 'specific' && (
-                    <div className="space-y-2">
-                      <Label className="text-foreground">Selected Users</Label>
-                      <div className="text-sm border border-border rounded-lg p-3 min-h-[42px] bg-background">
-                        {selectedUsers.length === 0 ? (
-                          <span className="text-muted-foreground">No users selected</span>
-                        ) : (
-                          <div className="flex flex-wrap gap-1">
-                            {selectedUsers.map(userKey => (
-                              <Badge key={userKey} variant="secondary" className="text-xs bg-secondary text-secondary-foreground">
-                                {userKey.split('-')[1]}
-                              </Badge>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
+        <Button
+          variant={tab === "received" ? "default" : "outline"}
+          onClick={() => {
+            setTab("received");
+            setPage(1);
+          }}
+        >
+          Received
+        </Button>
 
-                <div className="space-y-2">
-                  <Label className="text-foreground">Subject</Label>
-                  <Input
-                    placeholder="Enter message subject"
-                    value={message.subject}
-                    onChange={(e) => setMessage({ ...message, subject: e.target.value })}
-                    className="bg-background border-border"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-foreground">Message Content</Label>
-                  <Textarea
-                    placeholder="Type your message here..."
-                    rows={8}
-                    value={message.content}
-                    onChange={(e) => setMessage({ ...message, content: e.target.value })}
-                    className="bg-background border-border resize-none"
-                  />
-                </div>
-
-                <div className="flex justify-end">
-                  <Button onClick={handleSendMessage} size="lg">
-                    <Send className="h-4 w-4 mr-2" />
-                    Send Message
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* User Selection & Recent Messages */}
-          <div className="space-y-6">
-            {message.recipientType === 'specific' && (
-              <Card className="bg-card border-border">
-                <CardHeader>
-                  <CardTitle className="text-foreground">Select Users</CardTitle>
-                  <CardDescription>Choose specific recipients</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4 max-h-[400px] overflow-y-auto">
-                    {/* Students */}
-                    <div>
-                      <h4 className="font-semibold mb-2 flex items-center text-foreground">
-                        <User className="h-4 w-4 mr-2" />
-                        Students
-                      </h4>
-                      <div className="space-y-1">
-                        {users.students.map(student => (
-                          <div
-                            key={student.id}
-                            className="flex items-center space-x-2 p-2 hover:bg-muted rounded-lg transition-colors"
-                          >
-                            <input
-                              type="checkbox"
-                              checked={selectedUsers.includes(`student-${student.id}`)}
-                              onChange={() => toggleUserSelection(student.id.toString(), 'student')}
-                              className="h-4 w-4 text-primary bg-background border-border rounded"
-                            />
-                            <div>
-                              <div className="text-sm font-medium text-foreground">{student.name}</div>
-                              <div className="text-xs text-muted-foreground">{student.class}</div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Teachers */}
-                    <div>
-                      <h4 className="font-semibold mb-2 flex items-center text-foreground">
-                        <UserCheck className="h-4 w-4 mr-2" />
-                        Teachers
-                      </h4>
-                      <div className="space-y-1">
-                        {users.teachers.map(teacher => (
-                          <div
-                            key={teacher.id}
-                            className="flex items-center space-x-2 p-2 hover:bg-muted rounded-lg transition-colors"
-                          >
-                            <input
-                              type="checkbox"
-                              checked={selectedUsers.includes(`teacher-${teacher.id}`)}
-                              onChange={() => toggleUserSelection(teacher.id.toString(), 'teacher')}
-                              className="h-4 w-4 text-primary bg-background border-border rounded"
-                            />
-                            <div>
-                              <div className="text-sm font-medium text-foreground">{teacher.name}</div>
-                              <div className="text-xs text-muted-foreground">{teacher.subject}</div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Parents */}
-                    <div>
-                      <h4 className="font-semibold mb-2 flex items-center text-foreground">
-                        <Users className="h-4 w-4 mr-2" />
-                        Parents
-                      </h4>
-                      <div className="space-y-1">
-                        {users.parents.map(parent => (
-                          <div
-                            key={parent.id}
-                            className="flex items-center space-x-2 p-2 hover:bg-muted rounded-lg transition-colors"
-                          >
-                            <input
-                              type="checkbox"
-                              checked={selectedUsers.includes(`parent-${parent.id}`)}
-                              onChange={() => toggleUserSelection(parent.id.toString(), 'parent')}
-                              className="h-4 w-4 text-primary bg-background border-border rounded"
-                            />
-                            <div>
-                              <div className="text-sm font-medium text-foreground">{parent.name}</div>
-                              <div className="text-xs text-muted-foreground">
-                                Children: {parent.children.join(', ')}
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Recent Messages */}
-            <Card className="bg-card border-border">
-              <CardHeader>
-                <CardTitle className="text-foreground">Recent Messages</CardTitle>
-                <CardDescription>Your recently sent communications</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="p-3 border border-border rounded-lg bg-background/50 hover:bg-muted/50 transition-colors">
-                    <div className="flex justify-between items-start mb-2">
-                      <div>
-                        <div className="font-semibold text-sm text-foreground">Term 1 Progress Reports</div>
-                        <div className="text-xs text-muted-foreground">To: All Parents</div>
-                      </div>
-                      <Badge variant="outline" className="text-xs bg-secondary text-secondary-foreground">
-                        2 days ago
-                      </Badge>
-                    </div>
-                    <p className="text-xs text-muted-foreground">Progress reports for Term 1 are now available...</p>
-                  </div>
-
-                  <div className="p-3 border border-border rounded-lg bg-background/50 hover:bg-muted/50 transition-colors">
-                    <div className="flex justify-between items-start mb-2">
-                      <div>
-                        <div className="font-semibold text-sm text-foreground">Staff Meeting Reminder</div>
-                        <div className="text-xs text-muted-foreground">To: All Teachers</div>
-                      </div>
-                      <Badge variant="outline" className="text-xs bg-secondary text-secondary-foreground">
-                        1 week ago
-                      </Badge>
-                    </div>
-                    <p className="text-xs text-muted-foreground">Reminder about the staff meeting this Friday...</p>
-                  </div>
-
-                  <div className="p-3 border border-border rounded-lg bg-background/50 hover:bg-muted/50 transition-colors">
-                    <div className="flex justify-between items-start mb-2">
-                      <div>
-                        <div className="font-semibold text-sm text-foreground">Science Fair Update</div>
-                        <div className="text-xs text-muted-foreground">To: JSS 2A Students</div>
-                      </div>
-                      <Badge variant="outline" className="text-xs bg-secondary text-secondary-foreground">
-                        3 days ago
-                      </Badge>
-                    </div>
-                    <p className="text-xs text-muted-foreground">Science fair projects due next Monday...</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+        <Button className="ml-auto" onClick={() => setOpen(true)}>
+          New Message
+        </Button>
       </div>
+
+      {/* LIST */}
+
+      <div className="border rounded-lg overflow-hidden">
+        {paginated.map((msg: any) => (
+          <div
+            key={msg.id}
+            className="grid grid-cols-5 items-center p-4 border-b"
+          >
+            {tab === "sent"
+              ? renderSentTag(msg)
+              : renderReceivedTag(msg)}
+
+            <span className="truncate">{msg.message}</span>
+
+            <span className="text-sm text-muted-foreground">
+              {formatDate(msg.created_at)}
+            </span>
+
+            <Button size="icon" variant="ghost" onClick={() => setViewing(msg)}>
+              <Eye className="h-4 w-4" />
+            </Button>
+
+            {/* ✅ DELETE FOR BOTH */}
+            <div className="flex gap-2 justify-end">
+              {tab === "sent" && (
+                <Button
+                  size="icon"
+                  variant="outline"
+                  onClick={() => {
+                    setEditing(msg);
+                    setMessage(msg.message);
+                  }}
+                >
+                  <Pencil className="h-4 w-4" />
+                </Button>
+              )}
+
+              <Button
+                size="icon"
+                variant="destructive"
+                onClick={() => setDeleting(msg)}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* COMPOSE */}
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>New Message</DialogTitle>
+          </DialogHeader>
+
+          <Select
+            value={recipientType}
+            onValueChange={(v: any) => {
+              setRecipientType(v);
+              setSelectedIds([]);
+            }}
+          >
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+
+            <SelectContent>
+              <SelectItem value="all_teachers">All Teachers</SelectItem>
+              <SelectItem value="all_students">All Students</SelectItem>
+              <SelectItem value="all_parents">All Parents</SelectItem>
+              <SelectItem value="specific_teacher">Specific Teachers</SelectItem>
+              <SelectItem value="specific_student">Specific Students</SelectItem>
+              <SelectItem value="specific_parent">Specific Parents</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {recipientType.startsWith("specific") && (
+            <div className="border rounded-md max-h-60 overflow-y-auto p-2">
+              {selectableUsers.map((u) => (
+                <label key={u.id} className="flex gap-2 items-center p-1">
+                  <input
+                    type="checkbox"
+                    checked={selectedIds.includes(u.id)}
+                    onChange={() => toggleId(u.id)}
+                  />
+                  {u.label}
+                </label>
+              ))}
+            </div>
+          )}
+
+          <Textarea
+            rows={5}
+            placeholder="Write message..."
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+          />
+
+          <Button onClick={send}>
+            <Send className="mr-2 h-4 w-4" />
+            Send Message
+          </Button>
+        </DialogContent>
+      </Dialog>
+
+     {/* VIEW */}
+
+      <Dialog open={!!viewing} onOpenChange={() => setViewing(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Message</DialogTitle>
+          </DialogHeader>
+          <p className="whitespace-pre-wrap">{viewing?.message}</p>
+        </DialogContent>
+      </Dialog>
+
+      {/* EDIT */}
+
+      <Dialog open={!!editing} onOpenChange={() => setEditing(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Message</DialogTitle>
+          </DialogHeader>
+
+          <Textarea
+            rows={5}
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+          />
+
+          <Button onClick={update}>Save Changes</Button>
+        </DialogContent>
+      </Dialog>
+
+      {/* DELETE */}
+
+      <AlertDialog open={!!deleting} onOpenChange={() => setDeleting(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this message?</AlertDialogTitle>
+          </AlertDialogHeader>
+
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-white"
+              onClick={confirmDelete}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
     </div>
   );
 }

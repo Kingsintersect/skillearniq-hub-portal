@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
     Dialog,
     DialogContent,
@@ -36,7 +36,7 @@ export const AssignTeacherDialog: React.FC<AssignTeacherDialogProps> = ({
 }) => {
     const { useAssignTeacher } = useAdminQueries();
     const assignTeacherMutation = useAssignTeacher();
-    const { categories, courses, getCoursesForCategory } = useTeachersPageContext();
+    const { categories = [], courses = [], getCoursesForCategory } = useTeachersPageContext();
 
     const [assignment, setAssignment] = useState({
         class_group_id: 0,
@@ -54,12 +54,19 @@ export const AssignTeacherDialog: React.FC<AssignTeacherDialogProps> = ({
     const [selectedCategory, setSelectedCategory] = useState<string>('');
     const [filteredCourses, setFilteredCourses] = useState<any[]>([]);
 
-    // Filter top-level categories (main categories)
-    const topLevelCategories = categories.filter(cat =>
-        !categories.some(parent =>
-            parent.children?.some((child: any) => child.id === cat.id)
-        )
-    );
+    // Filter top-level categories (main categories) - safely
+    const topLevelCategories = useMemo(() => {
+        // Ensure categories is an array
+        if (!Array.isArray(categories) || categories.length === 0) {
+            return [];
+        }
+
+        return categories.filter((cat: any) =>
+            !categories.some((parent: any) =>
+                parent.children?.some((child: any) => child.id === cat.id)
+            )
+        );
+    }, [categories]);
 
     useEffect(() => {
         if (teacher) {
@@ -74,9 +81,11 @@ export const AssignTeacherDialog: React.FC<AssignTeacherDialogProps> = ({
     useEffect(() => {
         if (selectedCategory) {
             const categoryId = parseInt(selectedCategory);
-            const selectedCat = categories.find(cat => cat.id === categoryId);
+            const selectedCat = Array.isArray(categories) 
+                ? categories.find((cat: any) => cat.id === categoryId)
+                : undefined;
 
-            if (selectedCat?.children) {
+            if (selectedCat?.children && Array.isArray(selectedCat.children)) {
                 setAvailableSubcategories(selectedCat.children);
             } else {
                 setAvailableSubcategories([]);
@@ -90,9 +99,9 @@ export const AssignTeacherDialog: React.FC<AssignTeacherDialogProps> = ({
 
     // When class_group_id changes, update filtered courses
     useEffect(() => {
-        if (assignment.class_group_id > 0) {
+        if (assignment.class_group_id > 0 && getCoursesForCategory) {
             const coursesForCategory = getCoursesForCategory(assignment.class_group_id);
-            setFilteredCourses(coursesForCategory);
+            setFilteredCourses(Array.isArray(coursesForCategory) ? coursesForCategory : []);
             // Reset subject selection when category changes
             setAssignment(prev => ({ ...prev, subject_id: 0 }));
         } else {
@@ -160,11 +169,42 @@ export const AssignTeacherDialog: React.FC<AssignTeacherDialogProps> = ({
         }
     }, [open]);
 
+    // Show loading or empty state if no categories
+    if (!Array.isArray(categories) || categories.length === 0) {
+        return (
+            <Dialog open={open} onOpenChange={onOpenChange}>
+                <DialogContent className="max-w-2xl rounded-3xl max-h-[90vh] overflow-y-auto bg-card border-border/70">
+                    <DialogHeader>
+                        <DialogTitle className="text-xl font-bold text-foreground">
+                            Assign Teacher to Course
+                        </DialogTitle>
+                        <DialogDescription>
+                            {teacher?.first_name} {teacher?.last_name}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="text-center py-8 text-muted-foreground">
+                        <p>No categories available to assign this teacher.</p>
+                        <p className="text-sm mt-2">Please create categories first.</p>
+                    </div>
+                    <div className="flex justify-end gap-3 pt-4 border-t border-border/50">
+                        <Button
+                            variant="outline"
+                            onClick={() => onOpenChange(false)}
+                            className="rounded-xl"
+                        >
+                            Close
+                        </Button>
+                    </div>
+                </DialogContent>
+            </Dialog>
+        );
+    }
+
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-md bg-background border-border">
+            <DialogContent className="max-w-2xl rounded-3xl max-h-[90vh] overflow-y-auto bg-card border-border/70">
                 <DialogHeader>
-                    <DialogTitle className="text-foreground">
+                    <DialogTitle className="text-xl font-bold text-foreground">
                         Assign Teacher to Course
                     </DialogTitle>
                     <DialogDescription>
@@ -180,10 +220,10 @@ export const AssignTeacherDialog: React.FC<AssignTeacherDialogProps> = ({
                             value={selectedCategory}
                             onValueChange={setSelectedCategory}
                         >
-                            <SelectTrigger className="w-full bg-background border-border">
+                            <SelectTrigger className="w-full rounded-xl bg-background border-input">
                                 <SelectValue placeholder="Select category" />
                             </SelectTrigger>
-                            <SelectContent className="bg-background border-border">
+                            <SelectContent className="bg-card border-border/70 rounded-xl">
                                 {topLevelCategories.map((category: any) => (
                                     <SelectItem
                                         key={category.id}
@@ -205,10 +245,10 @@ export const AssignTeacherDialog: React.FC<AssignTeacherDialogProps> = ({
                                 value={assignment.class_group_id.toString()}
                                 onValueChange={handleSubcategoryChange}
                             >
-                                <SelectTrigger className="w-full bg-background border-border">
+                                <SelectTrigger className="w-full rounded-xl bg-background border-input">
                                     <SelectValue placeholder="Select subcategory" />
                                 </SelectTrigger>
-                                <SelectContent className="bg-background border-border">
+                                <SelectContent className="bg-card border-border/70 rounded-xl">
                                     {availableSubcategories.map((subcategory: any) => (
                                         <SelectItem
                                             key={subcategory.id}
@@ -236,10 +276,10 @@ export const AssignTeacherDialog: React.FC<AssignTeacherDialogProps> = ({
                             }
                             disabled={assignment.class_group_id === 0}
                         >
-                            <SelectTrigger className="w-full bg-background border-border">
+                            <SelectTrigger className="w-full rounded-xl bg-background border-input">
                                 <SelectValue placeholder="Select course" />
                             </SelectTrigger>
-                            <SelectContent className="bg-background border-border">
+                            <SelectContent className="bg-card border-border/70 rounded-xl">
                                 {filteredCourses.map((course: any) => (
                                     <SelectItem
                                         key={course.id}
@@ -271,7 +311,7 @@ export const AssignTeacherDialog: React.FC<AssignTeacherDialogProps> = ({
                                         start_date: e.target.value,
                                     })
                                 }
-                                className="bg-background border-border"
+                                className="rounded-xl bg-background border-input"
                             />
                         </div>
                         <div className="space-y-2">
@@ -282,7 +322,7 @@ export const AssignTeacherDialog: React.FC<AssignTeacherDialogProps> = ({
                                 onChange={(e) =>
                                     setAssignment({ ...assignment, end_date: e.target.value })
                                 }
-                                className="bg-background border-border"
+                                className="rounded-xl bg-background border-input"
                             />
                         </div>
                     </div>
@@ -300,10 +340,10 @@ export const AssignTeacherDialog: React.FC<AssignTeacherDialogProps> = ({
                                     })
                                 }
                             >
-                                <SelectTrigger className="bg-background border-border">
+                                <SelectTrigger className="rounded-xl bg-background border-input">
                                     <SelectValue />
                                 </SelectTrigger>
-                                <SelectContent className="bg-background border-border">
+                                <SelectContent className="bg-card border-border/70 rounded-xl">
                                     <SelectItem value="First" className="text-foreground">
                                         First Semester
                                     </SelectItem>
@@ -327,17 +367,17 @@ export const AssignTeacherDialog: React.FC<AssignTeacherDialogProps> = ({
                                     })
                                 }
                                 placeholder="Room number"
-                                className="bg-background border-border"
+                                className="rounded-xl bg-background border-input"
                             />
                         </div>
                     </div>
                 </div>
 
-                <div className="flex justify-end space-x-4 mt-6">
+                <div className="flex justify-end gap-3 pt-4 border-t border-border/50 mt-6">
                     <Button
                         variant="outline"
                         onClick={() => onOpenChange(false)}
-                        className="border-border"
+                        className="rounded-xl"
                     >
                         Cancel
                     </Button>
@@ -350,8 +390,16 @@ export const AssignTeacherDialog: React.FC<AssignTeacherDialogProps> = ({
                             !assignment.start_date ||
                             !assignment.end_date
                         }
+                        className="rounded-xl gap-2"
                     >
-                        {assignTeacherMutation.isPending ? 'Assigning...' : 'Assign Teacher'}
+                        {assignTeacherMutation.isPending ? (
+                            <>
+                                <span className="animate-spin">⏳</span>
+                                Assigning...
+                            </>
+                        ) : (
+                            'Assign Teacher'
+                        )}
                     </Button>
                 </div>
             </DialogContent>

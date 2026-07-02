@@ -1,8 +1,8 @@
+// admin/teachers/hooks/useTeacherData.ts
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { teacherService } from '@/lib/services/admin/teacherService';
-import { useTeacherStore } from '@/store/teacherStore';
-import type { TeacherSubjectAssignment } from '@/store/teacherStore';
+import { useTeacherStore, type TeacherSubjectAssignment } from '@/store/teacherStore';
 
 export const teacherQueryKeys = {
     all: ['teachers'] as const,
@@ -17,27 +17,34 @@ export const useTeacherData = () => {
         setCategories,
         setCourses,
         transformAndSetTeacherSubjects,
-        setTeacherSubjects
+        setTeachers,
     } = useTeacherStore();
     const queryClient = useQueryClient();
 
     // Fetch all necessary data on mount
     const fetchAllData = async () => {
         try {
-            const [categoriesResponse, coursesResponse, subjectsResponse] = await Promise.all([
+            console.log('🔄 Fetching all teacher data...');
+            
+            const [categoriesResponse, coursesResponse, subjectsResponse, teachersResponse] = await Promise.all([
                 teacherService.getCategories({ page: 1, perPage: 50 }),
                 teacherService.getCourses({ page: 1, perPage: 50 }),
                 teacherService.getTeacherSubjects(),
+                teacherService.getAllTeachers(),
             ]);
-            console.log("categoriesResponse", categoriesResponse)
-
+            
+            console.log('📊 Categories Response:', categoriesResponse);
+            console.log('📊 Categories data:', categoriesResponse?.data);
+            console.log('📊 Is categories data an array?', Array.isArray(categoriesResponse?.data));
+            
             return {
-                categories: categoriesResponse.data || [],
-                courses: coursesResponse.data || [],
-                teacherSubjects: subjectsResponse.data || [],
+                categories: categoriesResponse?.data || [],
+                courses: coursesResponse?.data || [],
+                teacherSubjects: subjectsResponse?.data || [],
+                teachers: teachersResponse || [],
             };
         } catch (error) {
-            console.error('Failed to fetch teacher data:', error);
+            console.error('❌ Failed to fetch teacher data:', error);
             throw error;
         }
     };
@@ -46,7 +53,8 @@ export const useTeacherData = () => {
     const allDataQuery = useQuery({
         queryKey: teacherQueryKeys.all,
         queryFn: fetchAllData,
-        staleTime: 5 * 60 * 1000, // 5 minutes
+        staleTime: 5 * 60 * 1000,
+        retry: 1,
     });
 
     // Individual queries for specific needs
@@ -55,6 +63,7 @@ export const useTeacherData = () => {
         queryFn: () => teacherService.getCategories({ page: 1, perPage: 50 }),
         enabled: !allDataQuery.data,
         staleTime: 5 * 60 * 1000,
+        retry: 1,
     });
 
     const coursesQuery = useQuery({
@@ -62,6 +71,7 @@ export const useTeacherData = () => {
         queryFn: () => teacherService.getCourses({ page: 1, perPage: 50 }),
         enabled: !allDataQuery.data,
         staleTime: 5 * 60 * 1000,
+        retry: 1,
     });
 
     const teacherSubjectsQuery = useQuery({
@@ -69,26 +79,31 @@ export const useTeacherData = () => {
         queryFn: () => teacherService.getTeacherSubjects(),
         enabled: !allDataQuery.data,
         staleTime: 5 * 60 * 1000,
+        retry: 1,
     });
 
-    // Use useEffect to handle side effects when data changes
+    // Store data when loaded
     useEffect(() => {
         if (allDataQuery.data) {
-            const { categories, courses, teacherSubjects } = allDataQuery.data;
+            const { categories, courses, teacherSubjects, teachers } = allDataQuery.data;
+            
+            console.log('💾 Storing categories:', categories);
+            console.log('💾 Is categories an array?', Array.isArray(categories));
+            
             setCategories(categories);
             setCourses(courses);
-            // Use the transformation method for teacher subjects
-            transformAndSetTeacherSubjects(teacherSubjects as TeacherSubjectAssignment[]);
+            setTeachers(teachers || []);
+            
+            if (teacherSubjects && teacherSubjects.length > 0) {
+                transformAndSetTeacherSubjects(teacherSubjects as TeacherSubjectAssignment[]);
+            }
         }
-    }, [
-        allDataQuery.data,
-        setCategories,
-        setCourses,
-        transformAndSetTeacherSubjects
-    ]);
+    }, [allDataQuery.data, setCategories, setCourses, setTeachers, transformAndSetTeacherSubjects]);
 
+    // Fallback: Store data from individual queries
     useEffect(() => {
         if (categoriesQuery.data?.data && !allDataQuery.data) {
+            console.log('💾 Storing categories from individual query:', categoriesQuery.data.data);
             setCategories(categoriesQuery.data.data);
         }
     }, [categoriesQuery.data, allDataQuery.data, setCategories]);
@@ -101,48 +116,23 @@ export const useTeacherData = () => {
 
     useEffect(() => {
         if (teacherSubjectsQuery.data?.data && !allDataQuery.data) {
-            // Use the transformation method for teacher subjects
-            transformAndSetTeacherSubjects(
-                teacherSubjectsQuery.data.data as TeacherSubjectAssignment[]
-            );
+            if (teacherSubjectsQuery.data.data.length > 0) {
+                transformAndSetTeacherSubjects(
+                    teacherSubjectsQuery.data.data as TeacherSubjectAssignment[]
+                );
+            }
         }
-    }, [
-        teacherSubjectsQuery.data,
-        allDataQuery.data,
-        transformAndSetTeacherSubjects
-    ]);
-
-    // Invalidate queries
-    const invalidateAll = () => {
-        queryClient.invalidateQueries({ queryKey: teacherQueryKeys.all });
-    };
-
-    const invalidateCategories = () => {
-        queryClient.invalidateQueries({ queryKey: teacherQueryKeys.categories() });
-    };
-
-    const invalidateCourses = () => {
-        queryClient.invalidateQueries({ queryKey: teacherQueryKeys.courses() });
-    };
-
-    const invalidateTeacherSubjects = () => {
-        queryClient.invalidateQueries({ queryKey: teacherQueryKeys.teacherSubjects() });
-    };
+    }, [teacherSubjectsQuery.data, allDataQuery.data, transformAndSetTeacherSubjects]);
 
     return {
-        // Queries
         allDataQuery,
         categoriesQuery,
         coursesQuery,
         teacherSubjectsQuery,
-
-        // Invalidation methods
-        invalidateAll,
-        invalidateCategories,
-        invalidateCourses,
-        invalidateTeacherSubjects,
-
-        // Loading states
+        invalidateAll: () => queryClient.invalidateQueries({ queryKey: teacherQueryKeys.all }),
+        invalidateCategories: () => queryClient.invalidateQueries({ queryKey: teacherQueryKeys.categories() }),
+        invalidateCourses: () => queryClient.invalidateQueries({ queryKey: teacherQueryKeys.courses() }),
+        invalidateTeacherSubjects: () => queryClient.invalidateQueries({ queryKey: teacherQueryKeys.teacherSubjects() }),
         isLoading: allDataQuery.isLoading || categoriesQuery.isLoading ||
             coursesQuery.isLoading || teacherSubjectsQuery.isLoading,
         isError: allDataQuery.isError || categoriesQuery.isError ||

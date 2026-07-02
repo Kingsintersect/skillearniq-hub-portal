@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from "react";
-import { FileText, Award, BarChart3, Calendar, TrendingUp, AlertCircle, Loader2 } from "lucide-react";
+import { Download, FileText, Award, BarChart3, Calendar, TrendingUp, AlertCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
    Select,
@@ -10,12 +10,13 @@ import {
    SelectTrigger,
    SelectValue,
 } from "@/components/ui/select";
-import { useStudentGradeStore } from "@/store/student-grade-store";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useStudentTranscript } from "@/hooks/use-grades-data";
+import { useStudentStore } from "@/store/studentStore";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useStudentStore } from "@/store/studentStore";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 // Types
 interface ReportCourse {
@@ -27,6 +28,9 @@ interface ReportCourse {
    grade: string;
    gradePoint: number;
    qualityPoints: number;
+   semesterName: string;
+   academicYear: string;
+   status: string;
 }
 
 interface ReportStudentInfo {
@@ -64,24 +68,14 @@ interface ReportSummary {
 // Utility functions
 const GRADE_META = [
    { grade: "A", label: "Excellent (70-100%)", colorClass: "bg-emerald-500", textClass: "text-emerald-600" },
-   { grade: "B", label: "Good (60-69%)", colorClass: "bg-teal-500", textClass: "text-teal-600" },
-   { grade: "C", label: "Average (50-59%)", colorClass: "bg-blue-500", textClass: "text-blue-600" },
-   { grade: "D", label: "Below Average (45-49%)", colorClass: "bg-indigo-500", textClass: "text-indigo-600" },
-   { grade: "E", label: "Pass (40-44%)", colorClass: "bg-violet-500", textClass: "text-violet-600" },
-   { grade: "F", label: "Fail (0-39%)", colorClass: "bg-red-500", textClass: "text-red-600" },
+   { grade: "AB", label: "Very Good (60-69%)", colorClass: "bg-teal-500", textClass: "text-teal-600" },
+   { grade: "B", label: "Good (50-59%)", colorClass: "bg-blue-500", textClass: "text-blue-600" },
+   { grade: "BC", label: "Above Average (45-49%)", colorClass: "bg-indigo-500", textClass: "text-indigo-600" },
+   { grade: "C", label: "Average (40-44%)", colorClass: "bg-violet-500", textClass: "text-violet-600" },
+   { grade: "CD", label: "Below Average (35-39%)", colorClass: "bg-orange-500", textClass: "text-orange-600" },
+   { grade: "D", label: "Pass (30-34%)", colorClass: "bg-amber-500", textClass: "text-amber-600" },
+   { grade: "F", label: "Fail (0-29%)", colorClass: "bg-red-500", textClass: "text-red-600" },
 ];
-
-function getGradePoint(grade: string): number {
-   const gradeMap: Record<string, number> = {
-      'A': 5.0,
-      'B': 4.0,
-      'C': 3.0,
-      'D': 2.0,
-      'E': 1.0,
-      'F': 0.0
-   };
-   return gradeMap[grade] || 0;
-}
 
 function getAcademicStanding(gpa: number) {
    if (gpa >= 4.5) {
@@ -111,18 +105,36 @@ function getDegreeClass(gpa: number) {
    return "Fail";
 }
 
-function calculateReportSummary(gradeData: any[]): ReportSummary {
-   const totalCredits = gradeData.reduce((sum, grade) => sum + (grade.creditUnits || 3), 0);
-   const totalQualityPoints = gradeData.reduce((sum, grade) => {
-      const gradePoint = getGradePoint(grade.grade || 'F');
-      const credits = grade.creditUnits || 3;
-      return sum + (gradePoint * credits);
-   }, 0);
+function formatSemesterLabel(semesterName: string) {
+   return semesterName.endsWith("Semester") ? semesterName : `${semesterName} Semester`;
+}
+
+function toReportCourses(grades: any[]): ReportCourse[] {
+   return [...grades]
+      .sort((a, b) => a.courseCode.localeCompare(b.courseCode))
+      .map((grade) => ({
+         id: String(grade.id),
+         courseCode: grade.courseCode,
+         courseTitle: grade.courseName,
+         creditLoad: grade.creditUnits,
+         score: grade.totalScore ?? 0,
+         grade: grade.gradeLetter ?? "F",
+         gradePoint: grade.gradePoint ?? 0,
+         qualityPoints: (grade.gradePoint ?? 0) * grade.creditUnits,
+         semesterName: grade.semesterName,
+         academicYear: grade.academicYear,
+         status: grade.status,
+      }));
+}
+
+function calculateReportSummary(courses: ReportCourse[]): ReportSummary {
+   const totalCredits = courses.reduce((sum, course) => sum + course.creditLoad, 0);
+   const totalQualityPoints = courses.reduce((sum, course) => sum + course.qualityPoints, 0);
    const gpa = totalCredits > 0 ? Number((totalQualityPoints / totalCredits).toFixed(2)) : 0;
 
    const gradeDistribution = GRADE_META.map((meta) => {
-      const count = gradeData.filter((grade) => grade.grade === meta.grade).length;
-      const percentage = gradeData.length > 0 ? Math.round((count / gradeData.length) * 100) : 0;
+      const count = courses.filter((course) => course.grade.toUpperCase() === meta.grade).length;
+      const percentage = courses.length > 0 ? Math.round((count / courses.length) * 100) : 0;
       return { ...meta, count, percentage };
    });
 
@@ -136,15 +148,15 @@ function calculateReportSummary(gradeData: any[]): ReportSummary {
    };
 }
 
-function buildReportStudentInfo(user: any): ReportStudentInfo {
+function buildReportStudentInfo(transcript: any, user: any): ReportStudentInfo {
    return {
-      fullName: user?.name || user?.fullName || 'Student Name',
-      regNumber: user?.matricNo || user?.admission_no || 'N/A',
-      program: user?.program || user?.department || 'Computer Science',
-      level: user?.level || '400 Level',
-      department: user?.department || 'Computer Science',
-      email: user?.email || 'student@university.edu',
-      avatarUrl: user?.avatar || null,
+      fullName: user?.name ?? transcript.studentName,
+      regNumber: user?.matricNo ?? transcript.studentMatric,
+      program: transcript.programName,
+      level: user?.level ?? transcript.level,
+      department: user?.department ?? transcript.programName,
+      email: user?.email ?? transcript.studentEmail,
+      avatarUrl: user?.avatar ?? null,
    };
 }
 
@@ -169,14 +181,16 @@ function InfoItem({ label, value }: { label: string; value: string }) {
    );
 }
 
-function StudentHeader({ academicYear, summary }: { academicYear: string; summary: ReportSummary }) {
+function StudentHeader({ semester, academicYear, summary }: { semester: string; academicYear: string; summary: ReportSummary }) {
    return (
       <div className="rounded-t-3xl bg-gradient-to-br from-primary/20 via-background to-amber-500/10 p-6">
          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
                <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Official Result Slip</p>
                <h1 className="mt-1 text-2xl font-bold text-foreground">Student Grade Report</h1>
-               <p className="mt-1 text-sm text-muted-foreground">{academicYear} Academic Session</p>
+               <p className="mt-1 text-sm text-muted-foreground">
+                  {formatSemesterLabel(semester)} · {academicYear}
+               </p>
                <p className="text-xs text-muted-foreground">5.00 grading system</p>
             </div>
 
@@ -228,30 +242,7 @@ function StudentInfoSection({ student }: { student: ReportStudentInfo }) {
    );
 }
 
-function CourseTable({ gradeData }: { gradeData: any[] }) {
-   const courses: ReportCourse[] = gradeData.map((grade, index) => ({
-      id: String(index),
-      courseCode: grade.courseCode || `CSC${100 + index}`,
-      courseTitle: grade.courseName || `Course ${index + 1}`,
-      creditLoad: grade.creditUnits || 3,
-      score: grade.total || 0,
-      grade: grade.grade || 'F',
-      gradePoint: getGradePoint(grade.grade || 'F'),
-      qualityPoints: getGradePoint(grade.grade || 'F') * (grade.creditUnits || 3),
-   }));
-
-   if (courses.length === 0) {
-      return (
-         <div className="px-6 py-12 text-center">
-            <Award className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <p className="text-muted-foreground">No course data available</p>
-         </div>
-      );
-   }
-
-   const totalCredits = courses.reduce((sum, c) => sum + c.creditLoad, 0);
-   const totalQualityPoints = courses.reduce((sum, c) => sum + c.qualityPoints, 0);
-
+function CourseTable({ courses }: { courses: ReportCourse[] }) {
    return (
       <div className="px-6 py-6">
          <div className="mb-4 flex items-center gap-2">
@@ -292,15 +283,19 @@ function CourseTable({ gradeData }: { gradeData: any[] }) {
                            <Award className="h-4 w-4" />
                            <span>Totals:</span>
                         </div>
-                       </td>
-                     <td className="px-4 py-4 text-center text-primary">{totalCredits}</td>
+                     </td>
+                     <td className="px-4 py-4 text-center text-primary">
+                        {courses.reduce((sum, course) => sum + course.creditLoad, 0)}
+                     </td>
                      <td className="px-4 py-4 text-center text-muted-foreground">-</td>
                      <td className="px-4 py-4 text-center text-muted-foreground">-</td>
                      <td className="px-4 py-4 text-center text-muted-foreground">-</td>
-                     <td className="px-4 py-4 text-center text-primary">{totalQualityPoints.toFixed(2)}</td>
-                   </tr>
+                     <td className="px-4 py-4 text-center text-primary">
+                        {courses.reduce((sum, course) => sum + course.qualityPoints, 0).toFixed(2)}
+                     </td>
+                  </tr>
                </tbody>
-             </table>
+            </table>
          </div>
 
          <div className="mt-4 rounded-2xl bg-muted/30 p-4 text-sm text-muted-foreground">
@@ -343,6 +338,14 @@ function GradeDistribution({ summary }: { summary: ReportSummary }) {
                      </div>
                   </div>
                ))}
+            </div>
+            <div className="mt-4 border-t border-border pt-4 text-sm text-muted-foreground">
+               <div className="flex justify-between">
+                  <span>Total Courses:</span>
+                  <span className="font-medium text-foreground">
+                     {summary.gradeDistribution.reduce((sum, item) => sum + item.count, 0)}
+                  </span>
+               </div>
             </div>
          </CardContent>
       </Card>
@@ -415,7 +418,7 @@ function AcademicStanding({ summary }: { summary: ReportSummary }) {
    );
 }
 
-function ReportFooter({ academicYear }: { academicYear: string }) {
+function ReportFooter({ semester, academicYear }: { semester: string; academicYear: string; institutionName: string }) {
    return (
       <div className="rounded-b-3xl border-t border-border bg-muted/30 px-6 py-6">
          <div className="mx-auto max-w-4xl">
@@ -426,7 +429,7 @@ function ReportFooter({ academicYear }: { academicYear: string }) {
 
             <div className="space-y-2 text-center">
                <p className="text-sm text-muted-foreground">
-                  This is an official academic transcript for the <strong>{academicYear}</strong> academic session.
+                  This is an official academic transcript for <strong>{formatSemesterLabel(semester)}</strong> of the <strong>{academicYear}</strong> academic session.
                </p>
                <p className="text-sm text-muted-foreground">Computed using the Nigerian University 5.00 Grade Point System.</p>
 
@@ -455,46 +458,91 @@ function ReportFooter({ academicYear }: { academicYear: string }) {
 // Main Page Component
 export default function StudentGradeReportsPage() {
    const user = useStudentStore((state) => state.studentStats);
-   const {
-      courses,
-      selectedCourse,
-      gradeData,
-      isLoading,
-      error,
-      fetchCourses,
-      setSelectedCourse,
-      fetchGradeData
-   } = useStudentGradeStore();
-
+   const { selectedCategory, setSelectedCategory } = useStudentStore();
+   const { transcript, loading } = useStudentTranscript(1);
    const [selectedAcademicYear, setSelectedAcademicYear] = useState("");
+   const [selectedSemesterId, setSelectedSemesterId] = useState("");
    const currentAcademicYear = useMemo(() => getCurrentAcademicYearLabel(), []);
 
-   // Fetch courses on component mount
-   useEffect(() => {
-      fetchCourses();
-   }, [fetchCourses]);
+   const semesterOptions = useMemo(() => {
+      if (!transcript) return [];
 
-   // Fetch grade data when a course is selected
-   useEffect(() => {
-      if (selectedCourse) {
-         fetchGradeData();
+      return Array.from(
+         new Map(
+            transcript.grades.map((grade) => [
+               `${grade.academicYear}::${grade.semesterId}`,
+               {
+                  academicYear: grade.academicYear,
+                  semesterId: grade.semesterId,
+                  semesterName: grade.semesterName,
+               },
+            ])
+         ).values()
+      );
+   }, [transcript]).sort((left, right) => {
+      if (left.academicYear === right.academicYear) {
+         return left.semesterName.localeCompare(right.semesterName);
       }
-   }, [selectedCourse, fetchGradeData]);
+      return right.academicYear.localeCompare(left.academicYear);
+   });
 
    const academicYearOptions = useMemo(() => {
-      return [currentAcademicYear, "2023/2024", "2022/2023"];
-   }, [currentAcademicYear]);
+      return Array.from(new Set([currentAcademicYear, ...semesterOptions.map((option) => option.academicYear)])).sort((left, right) =>
+         right.localeCompare(left)
+      );
+   }, [currentAcademicYear, semesterOptions]);
 
-   const reportSummary = useMemo(() => calculateReportSummary(gradeData), [gradeData]);
-   const studentInfo = useMemo(() => buildReportStudentInfo(user), [user]);
+   const filteredOptions = useMemo(() => {
+      if (!selectedAcademicYear) return semesterOptions;
+      return semesterOptions.filter((option) => option.academicYear === selectedAcademicYear);
+   }, [semesterOptions, selectedAcademicYear]);
 
-   if (isLoading && courses.length === 0) {
+   useEffect(() => {
+      if (!selectedAcademicYear && academicYearOptions.includes(currentAcademicYear)) {
+         setSelectedAcademicYear(currentAcademicYear);
+      }
+   }, [academicYearOptions, currentAcademicYear, selectedAcademicYear]);
+
+   const filteredGrades = useMemo(() => {
+      if (!transcript) return [];
+      return transcript.grades.filter((grade) => {
+         if (grade.status !== "PUBLISHED") return false;
+         const matchesYear = !selectedAcademicYear || grade.academicYear === selectedAcademicYear;
+         const matchesSemester = !selectedSemesterId || grade.semesterId === selectedSemesterId;
+         return matchesYear && matchesSemester;
+      });
+   }, [transcript, selectedAcademicYear, selectedSemesterId]);
+
+   const reportCourses = useMemo(() => toReportCourses(filteredGrades), [filteredGrades]);
+   const reportSummary = useMemo(() => calculateReportSummary(reportCourses), [reportCourses]);
+   const studentInfo = useMemo(() => {
+      if (!transcript) return null;
+      return buildReportStudentInfo(transcript, user);
+   }, [transcript, user]);
+
+   const selectedSemester = filteredOptions.find((option) => option.semesterId === selectedSemesterId) ?? null;
+
+   if (loading) {
       return (
          <div className="space-y-6 p-4 md:p-6">
             <div className="flex items-center justify-center h-64">
                <div className="text-center">
                   <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto mb-4" />
-                  <div className="text-lg text-muted-foreground">Loading your courses...</div>
+                  <div className="text-lg text-muted-foreground">Loading grade reports...</div>
+               </div>
+            </div>
+         </div>
+      );
+   }
+
+   if (!transcript || !studentInfo) {
+      return (
+         <div className="space-y-6 p-4 md:p-6">
+            <div className="flex items-center justify-center h-64">
+               <div className="text-center">
+                  <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <div className="text-lg text-foreground">No grade data available</div>
+                  <p className="text-sm text-muted-foreground mt-2">Your transcript information could not be loaded.</p>
                </div>
             </div>
          </div>
@@ -510,13 +558,13 @@ export default function StudentGradeReportsPage() {
                   <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Result History</p>
                   <h1 className="mt-2 text-2xl font-bold text-foreground sm:text-3xl">Grade Reports</h1>
                   <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-                     Review your published results, breakdown by course, and track your academic performance.
+                     Review your published semester results, breakdown by course, and export your official grade report.
                   </p>
                </div>
             </div>
 
-            {/* Statistics Cards - Only show when grade data is available */}
-            {gradeData.length > 0 && (
+            {/* Statistics Cards */}
+            {selectedAcademicYear && selectedSemester && reportCourses.length > 0 && (
                <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-4">
                   <div className="rounded-2xl border border-border/70 bg-background/60 p-4">
                      <p className="text-xs text-muted-foreground">GPA</p>
@@ -535,19 +583,22 @@ export default function StudentGradeReportsPage() {
                   </div>
                   <div className="rounded-2xl border border-border/70 bg-background/60 p-4">
                      <p className="text-xs text-muted-foreground">Courses Taken</p>
-                     <p className="mt-1 text-2xl font-bold text-foreground">{gradeData.length}</p>
-                     <p className="text-xs text-muted-foreground mt-1">Total Courses</p>
+                     <p className="mt-1 text-2xl font-bold text-foreground">{reportCourses.length}</p>
+                     <p className="text-xs text-muted-foreground mt-1">This Semester</p>
                   </div>
                </div>
             )}
 
-            {/* Filters - Only Academic Year and Course */}
+            {/* Filters */}
             <div className="mt-5 grid gap-4 lg:grid-cols-[220px_1fr]">
                <div>
                   <p className="mb-2 text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">Academic Year</p>
                   <Select
                      value={selectedAcademicYear}
-                     onValueChange={setSelectedAcademicYear}
+                     onValueChange={(value) => {
+                        setSelectedAcademicYear(value);
+                        setSelectedSemesterId("");
+                     }}
                   >
                      <SelectTrigger className="w-full justify-between bg-background/80">
                         <SelectValue placeholder="Select academic year" />
@@ -563,69 +614,66 @@ export default function StudentGradeReportsPage() {
                </div>
 
                <div>
-                  <p className="mb-2 text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">Course</p>
-                  <Select
-                     value={selectedCourse}
-                     onValueChange={setSelectedCourse}
-                  >
-                     <SelectTrigger className="w-full justify-between bg-background/80">
-                        <SelectValue placeholder="Select course" />
-                     </SelectTrigger>
-                     <SelectContent>
-                        {courses.map((course) => (
-                           <SelectItem key={course.id} value={course.id}>
-                              {course.name}
-                           </SelectItem>
-                        ))}
-                     </SelectContent>
-                  </Select>
+                  <p className="mb-2 text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">Semester</p>
+                  <Tabs value={selectedSemesterId} onValueChange={setSelectedSemesterId} className="w-full">
+                     <TabsList className="h-auto w-full flex-wrap justify-start gap-2 rounded-2xl bg-background/70 p-2">
+                        {filteredOptions.length > 0 ? (
+                           filteredOptions.map((option) => (
+                              <TabsTrigger
+                                 key={`${option.academicYear}-${option.semesterId}`}
+                                 value={option.semesterId}
+                                 className="rounded-xl px-4 py-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                              >
+                                 {formatSemesterLabel(option.semesterName)}
+                              </TabsTrigger>
+                           ))
+                        ) : (
+                           <div className="px-3 py-2 text-sm text-muted-foreground">
+                              Select an academic year to see available semesters.
+                           </div>
+                        )}
+                     </TabsList>
+                  </Tabs>
                </div>
             </div>
          </section>
 
-         {/* Error State */}
-         {error && (
-            <div className="rounded-3xl border border-red-200 bg-red-50 p-6 text-red-900 dark:bg-red-950/20 dark:text-red-400 dark:border-red-800">
+         {/* Empty State - No Selection */}
+         {(!selectedAcademicYear || !selectedSemesterId) && (
+            <div className="flex min-h-72 items-center justify-center rounded-3xl border border-dashed border-border bg-card/70 p-8 text-center text-muted-foreground">
+               <div>
+                  <FileText size={34} className="mx-auto mb-3 opacity-50" />
+                  <p className="text-base font-medium text-foreground">Select an academic year and semester</p>
+                  <p className="mt-2 text-sm">Your published results will appear here once both filters are set.</p>
+               </div>
+            </div>
+         )}
+
+         {/* No Results State */}
+         {selectedAcademicYear && selectedSemesterId && reportCourses.length === 0 && (
+            <div className="rounded-3xl border border-amber-200 bg-amber-50 p-6 text-amber-900 dark:bg-amber-950/20 dark:text-amber-400 dark:border-amber-800">
                <div className="flex items-center gap-3">
-                  <AlertCircle className="h-6 w-6" />
+                  <Award className="h-6 w-6" />
                   <div>
-                     <p className="font-semibold">Error Loading Results</p>
-                     <p className="text-sm">{error}</p>
+                     <p className="font-semibold">No Published Results</p>
+                     <p className="text-sm">
+                        No published results were found for {selectedAcademicYear} {selectedSemester ? `(${formatSemesterLabel(selectedSemester.semesterName)})` : ""}.
+                     </p>
                   </div>
                </div>
             </div>
          )}
 
-         {/* Empty State - No Course Selected */}
-         {!selectedCourse && (
-            <div className="flex min-h-72 items-center justify-center rounded-3xl border border-dashed border-border bg-card/70 p-8 text-center text-muted-foreground">
-               <div>
-                  <Award className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p className="text-base font-medium text-foreground">Select a Course</p>
-                  <p className="mt-2 text-sm">Choose a course from the dropdown above to view your grades.</p>
-               </div>
-            </div>
-         )}
-
-         {/* Loading State for Grades */}
-         {selectedCourse && isLoading && (
-            <div className="flex items-center justify-center h-64">
-               <div className="text-center">
-                  <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto mb-4" />
-                  <div className="text-muted-foreground">Loading your grades...</div>
-               </div>
-            </div>
-         )}
-
-         {/* Results Display - Shows ONLY the logged-in student's grades */}
-         {selectedCourse && !isLoading && gradeData.length > 0 && (
+         {/* Results Display */}
+         {selectedAcademicYear && selectedSemester && reportCourses.length > 0 && (
             <div className="overflow-hidden rounded-3xl border border-border/70 bg-card shadow-sm">
                <StudentHeader
-                  academicYear={selectedAcademicYear || currentAcademicYear}
+                  semester={selectedSemester.semesterName}
+                  academicYear={selectedAcademicYear}
                   summary={reportSummary}
                />
                <StudentInfoSection student={studentInfo} />
-               <CourseTable gradeData={gradeData} />
+               <CourseTable courses={reportCourses} />
 
                <div className="bg-muted/30 px-6 py-6">
                   <h3 className="mb-4 text-lg font-semibold text-foreground">Performance Summary</h3>
@@ -635,20 +683,11 @@ export default function StudentGradeReportsPage() {
                   </div>
                </div>
 
-               <ReportFooter academicYear={selectedAcademicYear || currentAcademicYear} />
-            </div>
-         )}
-
-         {/* No Grade Data State */}
-         {selectedCourse && !isLoading && gradeData.length === 0 && !error && (
-            <div className="flex min-h-72 items-center justify-center rounded-3xl border border-amber-200 bg-amber-50 p-8 text-center dark:bg-amber-950/20 dark:border-amber-800">
-               <div>
-                  <Award className="h-12 w-12 text-amber-600 mx-auto mb-4" />
-                  <p className="text-base font-medium text-amber-900 dark:text-amber-400">No Grade Data Available</p>
-                  <p className="mt-2 text-sm text-amber-700 dark:text-amber-500">
-                     No grades have been published for you in this course yet.
-                  </p>
-               </div>
+               <ReportFooter
+                  semester={selectedSemester.semesterName}
+                  academicYear={selectedAcademicYear}
+                  institutionName="University"
+               />
             </div>
          )}
       </div>

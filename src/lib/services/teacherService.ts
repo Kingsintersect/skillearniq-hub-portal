@@ -444,62 +444,68 @@ export const teacherService = {
       console.error('Error fetching students count:', error);
       return 0;
     }
-  },
-
-  getAttendance: async (teacherId: number, filters?: {
-    term?: string;
-    classId?: number;
-  }): Promise<ApiResponse<{
-    daily: AttendanceRecord[];
-    monthly: AttendanceRecord[];
-  }>> => {
-    try {
-      console.log('DEBUG: Starting getAttendance...');
-
-      // Don't use ApiResponse type here since API doesn't return that structure
-      //@ts-ignore
-      const response = await apiClient.instance.get('/teacher/dashboard/attendance', {
-        params: filters
-      });
-
-      console.log('DEBUG: Raw axios response:', response);
-      console.log('DEBUG: Response data:', response.data);
-
-      // The API returns: { attendance: { status, message, data: { daily, monthly } } }
-      if (response.data && response.data.attendance) {
-        const attendanceData = response.data.attendance;
-
-        // Check if we have the expected structure
-        if (attendanceData.data && (attendanceData.data.daily !== undefined || attendanceData.data.monthly !== undefined)) {
-          return {
-            status: attendanceData.status || 200,
-            data: attendanceData.data,
-            message: attendanceData.message || 'Attendance fetched successfully'
-          };
-        }
-      }
-
-      // If structure is unexpected, log it for debugging
-      console.log('DEBUG: Unexpected structure - full response:', response);
-      console.log('DEBUG: response.data keys:', Object.keys(response.data || {}));
-
-      throw new Error('Unexpected API response structure');
-
-    } catch (error: any) {
-      console.error('Error in getAttendance:', error);
-
-      // If it's an Axios error, check the response
-      if (error.response) {
-        console.log('DEBUG: Error response data:', error.response.data);
-
-        if (error.response.data && error.response.data.attendance) {
-          const attendanceData = error.response.data.attendance;
-          return {
-            status: attendanceData.status,
-            data: attendanceData.data || { daily: [], monthly: [] },
-            message: attendanceData.message
-          };
-        }
+    return 0;
+  } catch (error) {
+    console.error('Error fetching students count:', error);
+    return 0;
+  }
+},
+  
+ getAttendance: async (teacherId: number, filters?: {
+  term?: string;
+  classId?: number;
+}): Promise<ApiResponse<{
+  daily: AttendanceRecord[];
+  monthly: AttendanceRecord[];
+}>> => {
+  try {
+    console.log('DEBUG: Starting getAttendance...');
+    console.log('DEBUG: Teacher ID:', teacherId);
+    console.log('DEBUG: Filters:', filters);
+    
+    // Build query params
+    const params = new URLSearchParams();
+    if (filters?.term) params.append('term', filters.term);
+    if (filters?.classId) params.append('classId', filters.classId.toString());
+    
+    const url = `/teacher/dashboard/attendance${params.toString() ? `?${params.toString()}` : ''}`;
+    console.log('DEBUG: Request URL:', url);
+    
+    // Make the API call
+    const response = await apiClient.get<any>(url);
+    
+    console.log('DEBUG: Raw axios response:', response);
+    console.log('DEBUG: Response data:', response.data);
+    console.log('DEBUG: Response data keys:', Object.keys(response.data || {}));
+    console.log('DEBUG: Response status:', response.status);
+    
+    // Check if response is empty or has no data
+    if (!response.data) {
+      console.warn('⚠️ API returned empty response');
+      return {
+        status: 200,
+        data: { daily: [], monthly: [] },
+        message: 'No attendance data available'
+      };
+    }
+    
+    // Try different response structures
+    
+    // Structure 1: { attendance: { status, message, data: { daily, monthly } } }
+    if (response.data.attendance) {
+      const attendanceData = response.data.attendance;
+      console.log('📊 Structure 1: response.data.attendance');
+      console.log('📊 attendanceData:', attendanceData);
+      
+      if (attendanceData.data && (attendanceData.data.daily !== undefined || attendanceData.data.monthly !== undefined)) {
+        return {
+          status: attendanceData.status || 200,
+          data: {
+            daily: attendanceData.data.daily || [],
+            monthly: attendanceData.data.monthly || []
+          },
+          message: attendanceData.message || 'Attendance fetched successfully'
+        };
       }
 
       // Return empty data but don't throw - let the component handle empty state
@@ -509,103 +515,151 @@ export const teacherService = {
         message: error.message || 'Failed to fetch attendance data'
       };
     }
-  },
-  // ==================== ATTENDANCE PER COURSE ====================
-  getAttendancePerCourse: async (teacherId: number, filters?: {
-    term?: string;
-    classId?: number;
-  }): Promise<ApiResponse<{
-    daily: AttendanceRecord[];
-    monthly: AttendanceRecord[];
-    course_details: any;
-  }>> => {
-    try {
-      const courseId = filters?.classId || teacherId;
-
-      console.log('🚀 [getAttendancePerCourse] Starting fetch...');
-      console.log('🚀 Course ID:', courseId);
-      console.log('🚀 Teacher ID:', teacherId);
-      console.log('🚀 Filters:', filters);
-
-      // Construct the URL
-      const url = `/teacher/dashboard/attendance-by-course-id?course_id=${courseId}`;
-      console.log('🚀 Calling URL:', url);
-
-      // Make the API call
-      const response = await apiClient.get<any>(url);
-
-      console.log('✅ [getAttendancePerCourse] Response received');
-      console.log('✅ Response status:', response.status);
-      console.log('✅ Full response object:', response);
-      console.log('✅ Response data:', response.data);
-
-      // If response.data is an empty object {}, handle it gracefully
-      if (!response.data || Object.keys(response.data).length === 0) {
-        console.warn('⚠️ API returned empty object. This might mean:');
-        console.warn('⚠️ 1. The endpoint doesnt exist');
-        console.warn('⚠️ 2. Authentication failed');
-        console.warn('⚠️ 3. The course has no attendance data');
-
-        // Return empty data structure instead of throwing
-        return {
-          status: 200,
-          data: {
-            daily: [],
-            monthly: [],
-            course_details: {
-              id: courseId,
-              fullname: `Class ${courseId}`,
-              shortname: '',
-              idnumber: '',
-              category: 0,
-              categoryName: ''
-            }
-          },
-          message: 'No attendance data found for this course'
-        };
-      }
-
-      // Try to extract data from different possible structures
-      let dailyData: any[] = [];
-      let monthlyData: any[] = [];
-      let courseDetails: any = {
-        id: courseId,
-        fullname: `Class ${courseId}`,
-        shortname: '',
-        idnumber: '',
-        category: 0,
-        categoryName: ''
+    
+    // Structure 2: { data: { daily, monthly } }
+    if (response.data.data && (response.data.data.daily !== undefined || response.data.data.monthly !== undefined)) {
+      console.log('📊 Structure 2: response.data.data');
+      return {
+        status: response.status || 200,
+        data: {
+          daily: response.data.data.daily || [],
+          monthly: response.data.data.monthly || []
+        },
+        message: response.data.message || 'Attendance fetched successfully'
       };
-
-      // Structure 1: Your expected structure (from Postman)
-      if (response.data.data) {
-        console.log('📊 Using structure 1: response.data.data');
-        dailyData = response.data.data.daily || [];
-        monthlyData = response.data.data.monthly || [];
-        courseDetails = response.data.data.course_details || courseDetails;
+    }
+    
+    // Structure 3: { daily, monthly } at root
+    if (response.data.daily !== undefined || response.data.monthly !== undefined) {
+      console.log('📊 Structure 3: response.data has daily/monthly');
+      return {
+        status: response.status || 200,
+        data: {
+          daily: response.data.daily || [],
+          monthly: response.data.monthly || []
+        },
+        message: response.data.message || 'Attendance fetched successfully'
+      };
+    }
+    
+    // Structure 4: Array response
+    if (Array.isArray(response.data)) {
+      console.log('📊 Structure 4: response.data is array');
+      // Try to determine if it's daily or monthly data
+      // Check if first item has 'date' property (daily) or 'month' property (monthly)
+      if (response.data.length > 0) {
+        const firstItem = response.data[0];
+        if (firstItem.date) {
+          return {
+            status: response.status || 200,
+            data: {
+              daily: response.data,
+              monthly: []
+            },
+            message: 'Daily attendance fetched successfully'
+          };
+        } else if (firstItem.month) {
+          return {
+            status: response.status || 200,
+            data: {
+              daily: [],
+              monthly: response.data
+            },
+            message: 'Monthly attendance fetched successfully'
+          };
+        }
       }
-      // Structure 2: Data directly in response
-      else if (response.data.daily || response.data.monthly) {
-        console.log('📊 Using structure 2: data at root level');
-        dailyData = response.data.daily || [];
-        monthlyData = response.data.monthly || [];
-        courseDetails = response.data.course_details || courseDetails;
-      }
-      // Structure 3: Maybe the entire response is the data
-      else if (Array.isArray(response.data.daily) || Array.isArray(response.data.monthly)) {
-        console.log('📊 Using structure 3: arrays at root');
-        dailyData = response.data.daily || [];
-        monthlyData = response.data.monthly || [];
-      }
-      // Structure 4: Completely different structure
-      else {
-        console.warn('⚠️ Unexpected response structure, using empty data');
-        console.warn('⚠️ Response structure:', JSON.stringify(response.data, null, 2));
-      }
-
-      console.log('📊 Extracted - Daily:', dailyData.length, 'Monthly:', monthlyData.length);
-      console.log('📊 Course details:', courseDetails);
-
+    }
+    
+    // Structure 5: response.data is a string or number (unexpected)
+    if (typeof response.data === 'string' || typeof response.data === 'number') {
+      console.warn('⚠️ Unexpected data type:', typeof response.data);
+      return {
+        status: response.status || 200,
+        data: { daily: [], monthly: [] },
+        message: 'Unexpected response format'
+      };
+    }
+    
+    // If we get here, the structure is unexpected
+    console.warn('⚠️ Unexpected API response structure');
+    console.warn('⚠️ Response structure:', JSON.stringify(response.data, null, 2));
+    
+    // Return empty data instead of throwing
+    return {
+      status: 200,
+      data: { daily: [], monthly: [] },
+      message: 'Attendance data not available'
+    };
+    
+  } catch (error: any) {
+    console.error('❌ Error in getAttendance:', error);
+    console.error('❌ Error response:', error.response?.data);
+    console.error('❌ Error status:', error.response?.status);
+    
+    // If it's a 204 No Content or 404, return empty data
+    if (error.response?.status === 204 || error.response?.status === 404) {
+      return {
+        status: error.response.status,
+        data: { daily: [], monthly: [] },
+        message: error.response.data?.message || 'No attendance data found'
+      };
+    }
+    
+    // If it's a network error, return empty data
+    if (error.message === 'Network Error') {
+      return {
+        status: 500,
+        data: { daily: [], monthly: [] },
+        message: 'Network error - please check your connection'
+      };
+    }
+    
+    // For any other error, return empty data with the error message
+    return {
+      status: error.response?.status || 500,
+      data: { daily: [], monthly: [] },
+      message: error.message || 'Failed to fetch attendance data'
+    };
+  }
+},
+ // ==================== ATTENDANCE PER COURSE ====================
+getAttendancePerCourse: async (teacherId: number, filters?: {
+  term?: string;
+  classId?: number;
+}): Promise<ApiResponse<{
+  daily: AttendanceRecord[];
+  monthly: AttendanceRecord[];
+  course_details: any;
+}>> => {
+  try {
+    const courseId = filters?.classId || teacherId;
+    
+    console.log('🚀 [getAttendancePerCourse] Starting fetch...');
+    console.log('🚀 Course ID:', courseId);
+    console.log('🚀 Teacher ID:', teacherId);
+    console.log('🚀 Filters:', filters);
+    
+    // Construct the URL
+    const url = `/teacher/dashboard/attendance-by-course-id?course_id=${courseId}`;
+    console.log('🚀 Calling URL:', url);
+    
+    // Make the API call
+    const response = await apiClient.get<any>(url);
+    
+    console.log('✅ [getAttendancePerCourse] Response received');
+    console.log('✅ Response status:', response.status);
+    console.log('✅ Full response object:', response);
+    console.log('✅ Response data:', response.data);
+    
+    // If response.data is an empty object {}, handle it gracefully
+    if (!response.data || Object.keys(response.data).length === 0) {
+      console.warn('⚠️ API returned empty object. This might mean:');
+      console.warn('⚠️ 1. The endpoint doesnt exist');
+      console.warn('⚠️ 2. Authentication failed');
+      console.warn('⚠️ 3. The course has no attendance data');
+      
+      // Return empty data structure instead of throwing
       return {
         status: response.status || 200,
         data: {
@@ -1016,6 +1070,79 @@ export const teacherService = {
       throw error;
     }
   },
+
+  // ==================== TEACHER MESSAGING ====================
+
+getSentMessages: async (): Promise<ApiResponse<any[]>> => {
+
+  const res = await apiClient.get<any>(
+    '/teacher/teacher/messages'
+  );
+
+  return {
+    status: 200,
+    message: 'Sent messages fetched',
+    data: res.data?.messages ?? [],
+  };
+},
+
+getReceivedMessages: async (): Promise<ApiResponse<any[]>> => {
+
+  const res = await apiClient.get<any>(
+    '/teacher/teacher/messages/received'
+  );
+
+  return {
+    status: 200,
+    message: 'Received messages fetched',
+    data: res.data?.messages ?? [],
+  };
+},
+
+sendMessage: async (
+payload:{
+recipient_type:string;
+course_id?:number;
+recipient_ids?:number[];
+message:string;
+}
+):Promise<ApiResponse<any>>=>{
+
+const res = await apiClient.post<any>(
+'/teacher/teacher/messages',
+payload
+);
+
+return {
+status:200,
+message:res.message,
+data:res.data
+};
+
+},
+
+updateMessage: async (
+id:number,
+payload:{message:string}
+):Promise<ApiResponse<void>>=>{
+
+return apiClient.put(
+`/teacher/teacher/messages/${id}`,
+payload
+);
+
+},
+
+deleteMessage: async (
+id:number
+):Promise<ApiResponse<void>>=>{
+
+return apiClient.delete(
+`/teacher/teacher/messages/${id}`
+);
+
+},
+
 
   getCourseGrades: async (courseId: number): Promise<ApiResponse<CourseGradesResponse>> => {
     try {

@@ -30,6 +30,23 @@ export interface ParentDashboardResponse {
   }>;
 }
 
+export interface ParentMessage {
+  id:number;
+  sender_id:number;
+  message:string;
+  recipient_ids:number[] | null;
+  created_at:string;
+  updated_at:string;
+  recipients?:any[];
+  sender?:{
+    id:number;
+    first_name:string;
+    last_name:string;
+    role:string;
+  }
+}
+
+
 export interface ParentChildrenResponse {
   children: Array<{
     id: number;
@@ -282,6 +299,62 @@ getGradeReports: async (): Promise<StudentGradeReport[]> => {
   return [];
 },
 
+sendMessage: async (payload:{
+recipient_type:'parent_to_admin';
+recipient_ids:number[];
+message:string;
+}) => {
+
+const res = await apiClient.post<any>(
+'/parent/messages',
+payload
+);
+
+return res.data?.data ?? res.data;
+
+},
+
+
+getSentMessages: async ():Promise<ParentMessage[]> => {
+
+const res = await apiClient.get<any>(
+'/parent/messages'
+);
+
+return res.data?.messages ?? [];
+
+},
+
+
+getReceivedMessages: async ():Promise<ParentMessage[]> => {
+
+const res = await apiClient.get<any>(
+'/parent/messages/received'
+);
+
+return res.data?.messages ?? [];
+
+},
+
+
+updateMessage: async (
+id:number,
+payload:{message:string}
+)=>{
+return apiClient.put(
+`/parent/messages/${id}`,
+payload
+);
+},
+
+
+deleteMessage: async (id:number)=>{
+return apiClient.delete(
+`/parent/messages/${id}`
+);
+},
+
+
 getPaymentHistory: async (childId: string): Promise<{ payments: Payment[]; summary: PaymentSummary }> => {
     try {
       console.log('🔄 getPaymentHistory called with childId:', childId);
@@ -391,6 +464,8 @@ getPaymentHistory: async (childId: string): Promise<{ payments: Payment[]; summa
     }
   },
 };
+
+
 
 function getPaymentStatus(status: string): Payment['status'] {
   if (!status) return 'pending';

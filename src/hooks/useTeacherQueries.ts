@@ -189,6 +189,75 @@ export const useTeacherQueries = () => {
     });
   };
 
+  /* =============================
+   TEACHER MESSAGES
+============================= */
+
+const useSentMessages = () => {
+return useQuery({
+queryKey:['teacher','messages','sent'],
+queryFn:teacherService.getSentMessages,
+});
+};
+
+const useReceivedMessages = () => {
+return useQuery({
+queryKey:['teacher','messages','received'],
+queryFn:teacherService.getReceivedMessages,
+});
+};
+
+const useSendMessage = () => {
+return useMutation({
+mutationFn:teacherService.sendMessage,
+
+onSuccess:()=>{
+queryClient.invalidateQueries({
+queryKey:['teacher','messages']
+});
+
+toast.success('Message sent');
+}
+});
+};
+
+const useUpdateMessage = () => {
+return useMutation({
+
+mutationFn:({
+id,
+payload
+}:{
+id:number;
+payload:{message:string}
+})=>teacherService.updateMessage(id,payload),
+
+onSuccess:()=>{
+queryClient.invalidateQueries({
+queryKey:['teacher','messages']
+});
+
+toast.success('Message updated');
+}
+});
+};
+
+const useDeleteMessage = () => {
+return useMutation({
+
+mutationFn:teacherService.deleteMessage,
+
+onSuccess:()=>{
+queryClient.invalidateQueries({
+queryKey:['teacher','messages']
+});
+
+toast.success('Message deleted');
+}
+});
+};
+
+
   // ==================== MUTATIONS ====================
 
   // Create Assessment
@@ -363,5 +432,11 @@ export const useTeacherQueries = () => {
     useUpdateNotificationSettings,
     useUpdatePreferences,
     useChangePassword,
+    useSentMessages,
+useReceivedMessages,
+useSendMessage,
+useUpdateMessage,
+useDeleteMessage,
+
   };
 };
