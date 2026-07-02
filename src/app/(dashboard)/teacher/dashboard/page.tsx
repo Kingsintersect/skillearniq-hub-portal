@@ -1,6 +1,6 @@
 import { auth } from '@/auth'
 import { redirect } from 'next/navigation'
-import { Dashboard } from './components/Dashboard'
+import  Dashboard  from './components/Dashboard'
 
 
 export default async function TeacherDashboard() {

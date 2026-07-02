@@ -329,18 +329,18 @@ export const StudentNavMain: SidebarNavConfig = {
             ],
             display: true,
         },
-        // {
-        //     title: "REPORTS",
-        //     url: "#",
-        //     icon: Flag,
-        //     items: [
-        //         {
-        //             title: "Grade Report",
-        //             url: "/student/grade-report",
-        //         },
-        //     ],
-        //     display: true,
-        // },
+        {
+            title: "MESSAGES",
+            url: "#",
+            icon: MessageSquare,
+            items: [
+                {
+                    title: "Student Messages",
+                    url: "/student/messages",
+                },
+            ],
+            display: true,
+        },
 
         {
             title: "PROFILE",
@@ -437,12 +437,12 @@ export const ParentNavMain: SidebarNavConfig = {
     ],
     flat: [
 
-        // {
-        //     title: "MESSAGES",
-        //     url: "/parent/messages",
-        //     icon: SendHorizonal,
-        //     display: true,
-        // },
+        {
+            title: "MESSAGES",
+            url: "/parent/messages",
+            icon: SendHorizonal,
+            display: true,
+        },
         
 
         {
