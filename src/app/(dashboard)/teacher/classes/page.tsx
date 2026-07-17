@@ -5,12 +5,10 @@ import { motion } from 'framer-motion';
 import { CoursesGridView } from './components/courses/CoursesGridView';
 import { CoursesTableView } from './components/courses/CoursesTableView';
 import { useCategories } from './hooks/use-categories';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Grid3x3, List, BookOpen, Plus, Search, Filter, Users, Clock } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
-import { Input } from '@/components/ui/input';
 import { teacherService } from '@/lib/services/teacherService';
 
 export default function CoursesPage() {
@@ -23,7 +21,7 @@ export default function CoursesPage() {
   useEffect(() => {
     const fetchTotalStudents = async () => {
       if (courses.length === 0) return;
-      
+
       setIsLoadingStats(true);
       try {
         let total = 0;

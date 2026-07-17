@@ -63,6 +63,32 @@ export const emailSchema = (label?: string, optional: boolean = false) => {
         : schema.min(1, `${label} is required`);
 }
 
+export const emailOrPhoneNumberSchema = (
+    label?: string,
+    optional: boolean = false
+) => {
+    const schema = z
+        .string()
+        .min(1, `${label ?? "Email or Phone Number"} is required`)
+        .refine(
+            (value) => {
+                const isEmail = z.email().safeParse(value).success;
+
+                // Adjust this regex to match your phone number format
+                const isPhone = /^\+?[1-9]\d{7,14}$/.test(value);
+
+                return isEmail || isPhone;
+            },
+            {
+                message: "Please enter a valid email address or phone number",
+            }
+        );
+
+    return optional
+        ? z.union([schema, z.literal(""), z.undefined()])
+        : schema;
+};
+
 export const referenceEmailSchcema = z.string()
     .min(1, "Email or reference number is required")
     .refine((value) => {
