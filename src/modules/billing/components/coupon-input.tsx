@@ -9,7 +9,6 @@ import { cn, formatCurrency } from "@/modules/shared";
 import { useValidateCoupon } from "../hooks/use-billing";
 
 export interface CouponInputProps {
-  planId: number;
   onApply: (code: string, discountAmount: number) => void;
   onRemove: () => void;
   appliedCode?: string;
@@ -21,7 +20,6 @@ export interface CouponInputProps {
  * validation but the server remains authoritative at checkout.
  */
 export function CouponInput({
-  planId,
   onApply,
   onRemove,
   appliedCode,
@@ -29,15 +27,14 @@ export function CouponInput({
   const [code, setCode] = React.useState("");
   const [shouldValidate, setShouldValidate] = React.useState(false);
 
-  const { data, isFetching } = useValidateCoupon(code, planId, shouldValidate);
+  const { data, isFetching } = useValidateCoupon(code, shouldValidate);
 
   React.useEffect(() => {
     if (!shouldValidate || !data) return;
-    if (data.valid && data.discount_amount !== undefined) {
-      onApply(data.code, data.discount_amount);
+    if (data.coupon.is_valid) {
+      onApply(data.coupon.code, data.coupon.value);
     }
     setShouldValidate(false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data]);
 
   if (appliedCode) {
@@ -66,7 +63,7 @@ export function CouponInput({
           value={code}
           onChange={(e) => setCode(e.target.value.toUpperCase())}
           className={cn(
-            data && !data.valid && "border-destructive focus-visible:ring-destructive"
+            data && !data.coupon.is_valid && "border-destructive focus-visible:ring-destructive"
           )}
         />
         <Button
@@ -83,7 +80,7 @@ export function CouponInput({
         </Button>
       </div>
       <AnimatePresence>
-        {data && data.valid === false && (
+        {data && data.coupon.is_valid === false && (
           <motion.p
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
@@ -91,16 +88,18 @@ export function CouponInput({
             className="flex items-center gap-1.5 text-xs text-destructive"
           >
             <XCircle className="h-3.5 w-3.5" />
-            {data.reason ?? "This coupon isn't valid"}
+            This coupon isn&apos;t valid
           </motion.p>
         )}
-        {data?.valid && data.discount_amount !== undefined && (
+        {data?.coupon.is_valid && (
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             className="text-xs text-secondary-700"
           >
-            Saves {formatCurrency(data.discount_amount)}
+            {data.coupon.type === "percentage"
+              ? `${data.coupon.value}% off`
+              : `Saves ${formatCurrency(data.coupon.value)}`}
           </motion.p>
         )}
       </AnimatePresence>

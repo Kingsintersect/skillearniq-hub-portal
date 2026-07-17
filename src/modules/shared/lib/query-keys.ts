@@ -25,6 +25,11 @@ export const queryKeys = {
       ["subscription", "invitation", token] as const,
   },
 
+  admin: {
+    plans: ["admin", "plans"] as const,
+    coupons: ["admin", "coupons"] as const,
+  },
+
   billing: {
     coupon: (code: string) => ["billing", "coupon", code] as const,
     paymentHistory: ["billing", "payments"] as const,

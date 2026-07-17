@@ -5,19 +5,20 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 function dashboardPathForRole(role?: string): string {
-  switch (role) {
+  switch (role?.toLowerCase()) {
     case "student":
-      return "/subs/subscription";
+      return "/subscription";
     case "parent":
-      return "/subs/family";
+      return "/subscription";
     case "teacher":
     case "tutor":
       return "/teacher/dashboard";
+    case "admin":
     case "manager":
     case "super_admin":
       return "/admin/dashboard";
     default:
-      return "/subs/subscription";
+      return "/subscription";
   }
 }
 

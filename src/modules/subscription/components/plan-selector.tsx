@@ -18,7 +18,6 @@ export interface PlanSelectorProps {
  */
 export function PlanSelector({ selectedPlanId, onSelect }: PlanSelectorProps) {
   const { data: plans, isLoading } = usePlans();
-
   if (isLoading) return <FullPageLoader label="Loading plans…" />;
   if (!plans || plans.length === 0) return null;
 

@@ -19,7 +19,8 @@ export function GroupDashboard({ currentUserId }: GroupDashboardProps) {
 
   if (isLoading) return <FullPageLoader label="Loading your group…" />;
 
-  if (!group) {
+  // 🛠️ FIX: Catch empty arrays [] or objects missing 'active_members' safely
+  if (!group || Array.isArray(group) || !group.active_members) {
     return (
       <EmptyState
         icon={<Users className="h-6 w-6" />}
@@ -29,9 +30,10 @@ export function GroupDashboard({ currentUserId }: GroupDashboardProps) {
     );
   }
 
-  const isOwner = group.active_members.some(
+  // 🛠️ FIX: Add optional chaining (?.) for absolute runtime safety
+  const isOwner = group.active_members?.some(
     (m) => m.user_id === currentUserId
-  );
+  ) ?? false;
 
   return (
     <motion.div

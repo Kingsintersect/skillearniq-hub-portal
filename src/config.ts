@@ -7,9 +7,9 @@ export const baseApiUrl = (process.env.NEXT_PUBLIC_BASE_URL ?? "") + "/api";
 // In development the browser can't call the external API directly due to CORS.
 // We proxy /api/v1/* through Next.js (server-side rewrite in next.config.ts)
 // so the browser never makes a cross-origin request.
-export const externalApiUrl = "/api/v1";
 export const ROOT_IMAGE_URL = (process.env.NEXT_PUBLIC_EXTERNAL_API_DOMAIN ?? "") + "/storage";
 export const remoteApiHost = getApiHost(process.env.NEXT_PUBLIC_EXTERNAL_API_DOMAIN);
+export const externalApiUrl = process.env.NEXT_PUBLIC_EXTERNAL_API_DOMAIN + "/api/v1";
 export const lmsLoginUrl = process.env.NEXT_PUBLIC_LMS_LOGIN_URL ?? "";
 
 // PAYMENT GATEWAY CONFIG

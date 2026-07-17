@@ -1,18 +1,24 @@
 import { apiClient } from "@/core/client";
 import type {
+  AdminCouponsListData,
+  CouponMutationData,
   CouponValidateData,
+  CreateCouponPayload,
+  CreatePlanPayload,
   ForgotPasswordData,
   ForgotPasswordPayload,
-  GroupData,
   InvitationAcceptData,
   InvitationAcceptPayload,
   InvitationVerifyData,
-  GroupInvitation,
   LoginData,
   LoginPayload,
+  MyGroupData,
   OtpGenerateData,
   OtpGeneratePayload,
   OtpVerifyPayload,
+  PaymentHistoryData,
+  PlanMutationData,
+  PlansData,
   RegisterCompleteData,
   RegisterCompletePayload,
   RegisterInitializeData,
@@ -20,9 +26,14 @@ import type {
   RegisterVerifyOtpData,
   RegisterVerifyOtpPayload,
   ResetPasswordPayload,
+  SendInvitationData,
+  SendInvitationPayload,
+  SubscriptionBillingStatus,
   SubscriptionInitializeData,
   SubscriptionInitializePayload,
   SubscriptionStatusData,
+  UpdateCouponPayload,
+  UpdatePlanPayload,
 } from "./types";
 import {
   isDummyModeEnabled,
@@ -35,6 +46,25 @@ import {
   dummyVerifyOtp,
   dummyForgotPassword,
   dummyResetPassword,
+  dummyValidateCoupon,
+  dummyInitializeSubscription,
+  dummyGetSubscriptionStatus,
+  dummyGetMyGroup,
+  dummyGetPlans,
+  dummyCreatePlan,
+  dummyUpdatePlan,
+  dummyDeletePlan,
+  dummyListAdminCoupons,
+  dummyCreateCoupon,
+  dummyUpdateCoupon,
+  dummyDeleteCoupon,
+  dummySendInvitation,
+  dummyVerifyInvitation,
+  dummyAcceptInvitation,
+  dummyRevokeInvitation,
+  dummyRemoveMember,
+  dummyGetPaymentHistory,
+  dummyGetSubscriptionBillingStatus,
 } from "./dummy-data";
 
 const BASE = "/v1/auth";
@@ -143,24 +173,220 @@ export const authApi = {
     return apiClient.post<{ success: boolean; message: string }>("/password/reset", payload);
   },
 
-  validateCoupon: (code: string) =>
-    apiClient.get<CouponValidateData>(`/coupons/validate/${encodeURIComponent(code)}`),
+  getPlans: async () => {
+    if (isDummyModeEnabled()) {
+      console.log("🧪 [DUMMY MODE] getPlans");
+      await simulateDelay(400);
+      return createResponse<PlansData>(dummyGetPlans());
+    }
+    // apiClient returns the response body directly; wrap it so the shape matches
+    // the dummy path: { data: PlansData } — keeping select(res => res.data.data) consistent.
+    const raw = await apiClient.get<PlansData>("/plans") as unknown as PlansData;
+    return createResponse<PlansData>(raw);
+  },
 
-  initializeSubscription: (payload: SubscriptionInitializePayload) =>
-    apiClient.post<SubscriptionInitializeData>("/subscriptions/initialize", payload),
+  createPlan: async (payload: CreatePlanPayload) => {
+    if (isDummyModeEnabled()) {
+      console.log("🧪 [DUMMY MODE] createPlan", payload);
+      await simulateDelay(500);
+      return createResponse<PlanMutationData>(dummyCreatePlan(payload));
+    }
+    return apiClient.post<PlanMutationData>("/plans", payload);
+  },
 
-  getSubscriptionStatus: (groupId: string | number) =>
-    apiClient.get<SubscriptionStatusData>(`/subscriptions/status/${groupId}`),
+  updatePlan: async (id: number, payload: UpdatePlanPayload) => {
+    if (isDummyModeEnabled()) {
+      console.log("🧪 [DUMMY MODE] updatePlan", id, payload);
+      await simulateDelay(500);
+      return createResponse<PlanMutationData>(dummyUpdatePlan(id, payload));
+    }
+    return apiClient.put<PlanMutationData>(`/plans/${id}`, payload);
+  },
 
-  getMyGroup: () =>
-    apiClient.get<GroupData>("/groups/my-group"),
+  deletePlan: async (id: number) => {
+    if (isDummyModeEnabled()) {
+      console.log("🧪 [DUMMY MODE] deletePlan", id);
+      await simulateDelay(400);
+      return createResponse<{ success: boolean; message: string }>(dummyDeletePlan(id));
+    }
+    return apiClient.delete<{ success: boolean; message: string }>(`/plans/${id}`);
+  },
 
-  getGroupInvitations: () =>
-    apiClient.get<GroupInvitation[]>("/groups/invitations"),
+  listAdminCoupons: async () => {
+    if (isDummyModeEnabled()) {
+      console.log("🧪 [DUMMY MODE] listAdminCoupons");
+      await simulateDelay(400);
+      return createResponse<AdminCouponsListData>(dummyListAdminCoupons());
+    }
+    return apiClient.get<AdminCouponsListData>("/admin/coupons");
+  },
 
-  verifyInvitation: (token: string) =>
-    apiClient.get<InvitationVerifyData>(`/groups/invitations/verify/${encodeURIComponent(token)}`),
+  createCoupon: async (payload: CreateCouponPayload) => {
+    if (isDummyModeEnabled()) {
+      console.log("🧪 [DUMMY MODE] createCoupon", payload);
+      await simulateDelay(500);
+      return createResponse<CouponMutationData>(dummyCreateCoupon(payload));
+    }
+    return apiClient.post<CouponMutationData>("/admin/coupons", payload);
+  },
 
-  acceptInvitation: (payload: InvitationAcceptPayload) =>
-    apiClient.post<InvitationAcceptData>("/groups/invitations/accept", payload),
+  updateCoupon: async (id: number, payload: UpdateCouponPayload) => {
+    if (isDummyModeEnabled()) {
+      console.log("🧪 [DUMMY MODE] updateCoupon", id, payload);
+      await simulateDelay(500);
+      return createResponse<CouponMutationData>(dummyUpdateCoupon(id, payload));
+    }
+    return apiClient.put<CouponMutationData>(`/admin/coupons/${id}`, payload);
+  },
+
+  deleteCoupon: async (id: number) => {
+    if (isDummyModeEnabled()) {
+      console.log("🧪 [DUMMY MODE] deleteCoupon", id);
+      await simulateDelay(400);
+      return createResponse<{ success: boolean; message: string }>(dummyDeleteCoupon(id));
+    }
+    return apiClient.delete<{ success: boolean; message: string }>(`/admin/coupons/${id}`);
+  },
+
+  validateCoupon: async (code: string) => {
+    if (isDummyModeEnabled()) {
+      console.log("🧪 [DUMMY MODE] validateCoupon", code);
+      await simulateDelay(400);
+      return createResponse<CouponValidateData>(dummyValidateCoupon(code));
+    }
+    return apiClient.get<CouponValidateData>(`/coupons/validate/${encodeURIComponent(code)}`);
+  },
+
+  initializeSubscription: async (payload: SubscriptionInitializePayload) => {
+    if (isDummyModeEnabled()) {
+      console.log("🧪 [DUMMY MODE] initializeSubscription", payload);
+      await simulateDelay(600);
+      return createResponse<SubscriptionInitializeData>(dummyInitializeSubscription(payload));
+    }
+    return apiClient.post<SubscriptionInitializeData>("/subscriptions/initialize", payload);
+  },
+
+  getPaymentHistory: async () => {
+    if (isDummyModeEnabled()) {
+      console.log("🧪 [DUMMY MODE] getPaymentHistory");
+      await simulateDelay(400);
+      return createResponse<PaymentHistoryData>(dummyGetPaymentHistory());
+    }
+    return apiClient.get<PaymentHistoryData>("/subscriptions/payment-history");
+  },
+
+  // In @/modules/auth/api/index.ts
+
+  verifyCredoPayment: async (params: {
+    reference: string;
+    transAmount?: string;
+    transRef?: string;
+  }) => {
+    if (isDummyModeEnabled()) {
+      console.log("🧪 [DUMMY MODE] verifyCredoPayment", params);
+      await simulateDelay(1000);
+      return createResponse<{
+        status: "success" | "failed" | "pending";
+        message: string;
+        reference: string;
+      }>({
+        status: "success",
+        message: "Payment verified successfully",
+        reference: params.reference,
+      });
+    }
+
+    // ✅ Send all parameters to the backend
+    return apiClient.get<{
+      status: "success" | "failed" | "pending";
+      message: string;
+      reference: string;
+    }>(`/subscriptions/verify`, {
+      params: params
+    });
+  },
+
+  getSubscriptionBillingStatus: async () => {
+    if (isDummyModeEnabled()) {
+      console.log("🧪 [DUMMY MODE] getSubscriptionBillingStatus");
+      await simulateDelay(400);
+      return createResponse<SubscriptionBillingStatus>(dummyGetSubscriptionBillingStatus());
+    }
+    return apiClient.get<SubscriptionBillingStatus>("/subscriptions/billing-status");
+  },
+
+  retryPayment: async () => {
+    if (isDummyModeEnabled()) {
+      console.log("🧪 [DUMMY MODE] retryPayment");
+      await simulateDelay(500);
+      return createResponse<{ success: boolean; message: string }>({
+        success: true,
+        message: "Payment retry initiated successfully",
+      });
+    }
+    return apiClient.post<{ success: boolean; message: string }>("/subscriptions/retry-payment");
+  },
+
+  getSubscriptionStatus: async (groupId: string | number) => {
+    if (isDummyModeEnabled()) {
+      console.log("🧪 [DUMMY MODE] getSubscriptionStatus", groupId);
+      await simulateDelay(400);
+      return createResponse<SubscriptionStatusData>(dummyGetSubscriptionStatus(groupId));
+    }
+    return apiClient.get<SubscriptionStatusData>(`/subscriptions/status/${groupId}`);
+  },
+
+  getMyGroup: async () => {
+    if (isDummyModeEnabled()) {
+      console.log("🧪 [DUMMY MODE] getMyGroup");
+      await simulateDelay(400);
+      return createResponse<MyGroupData>(dummyGetMyGroup());
+    }
+    return apiClient.get<MyGroupData>("/groups/my-group");
+  },
+
+  sendInvitation: async (payload: SendInvitationPayload) => {
+    if (isDummyModeEnabled()) {
+      console.log("🧪 [DUMMY MODE] sendInvitation", payload);
+      await simulateDelay(400);
+      return createResponse<SendInvitationData>(dummySendInvitation(payload));
+    }
+    return apiClient.post<SendInvitationData>("/groups/invitations", payload);
+  },
+
+  verifyInvitation: async (token: string) => {
+    if (isDummyModeEnabled()) {
+      console.log("🧪 [DUMMY MODE] verifyInvitation", token);
+      await simulateDelay(400);
+      return createResponse<InvitationVerifyData>(dummyVerifyInvitation(token));
+    }
+    return apiClient.get<InvitationVerifyData>(`/groups/invitations/verify/${encodeURIComponent(token)}`);
+  },
+
+  acceptInvitation: async (payload: InvitationAcceptPayload) => {
+    if (isDummyModeEnabled()) {
+      console.log("🧪 [DUMMY MODE] acceptInvitation", payload);
+      await simulateDelay(400);
+      return createResponse<InvitationAcceptData>(dummyAcceptInvitation(payload));
+    }
+    return apiClient.post<InvitationAcceptData>("/groups/invitations/accept", payload);
+  },
+
+  revokeInvitation: async (invitationId: number) => {
+    if (isDummyModeEnabled()) {
+      console.log("🧪 [DUMMY MODE] revokeInvitation", invitationId);
+      await simulateDelay(400);
+      return createResponse<{ success: boolean; message: string }>(dummyRevokeInvitation(invitationId));
+    }
+    return apiClient.delete<{ success: boolean; message: string }>(`/groups/invitations/${invitationId}`);
+  },
+
+  removeMember: async (userId: number) => {
+    if (isDummyModeEnabled()) {
+      console.log("🧪 [DUMMY MODE] removeMember", userId);
+      await simulateDelay(400);
+      return createResponse<{ success: boolean; message: string }>(dummyRemoveMember(userId));
+    }
+    return apiClient.delete<{ success: boolean; message: string }>(`/groups/members/${userId}`);
+  },
 };

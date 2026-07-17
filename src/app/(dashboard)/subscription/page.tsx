@@ -15,10 +15,10 @@ export default function SubscriptionPage() {
   const [selectedPlan, setSelectedPlan] = React.useState<Plan | null>(null);
 
   if (isLoading) return <FullPageLoader label="Loading your subscription…" />;
-
   const userId = session?.user?.id ?? -1;
 
-  if (group) {
+  // ✅ Check if group exists as an object with data
+  if (group?.id) {
     return (
       <div className="space-y-6">
         <h1 className="text-xl font-semibold text-foreground">Subscription</h1>
@@ -26,6 +26,15 @@ export default function SubscriptionPage() {
       </div>
     );
   }
+
+  // Show loading or empty state if no group
+  return (
+    <div className="space-y-6">
+      <h1 className="text-xl font-semibold text-foreground">Subscription</h1>
+      <p className="text-muted-foreground">No active subscription found.</p>
+      {/* Maybe show a button to subscribe */}
+    </div>
+  );
 
   return (
     <div className="max-w-3xl space-y-6">

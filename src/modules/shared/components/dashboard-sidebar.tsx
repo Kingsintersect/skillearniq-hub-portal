@@ -26,10 +26,10 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { href: "/subs/family", label: "Family", icon: Users },
-  { href: "/subs/subscription", label: "Subscription", icon: Wallet },
-  { href: "/subs/billing", label: "Billing", icon: CreditCard },
-  { href: "/subs/referral", label: "Referrals", icon: Gift },
+  { href: "/subscription/family", label: "Family", icon: Users },
+  { href: "/subscription", label: "Subscription", icon: Wallet },
+  { href: "/subscription/billing", label: "Billing", icon: CreditCard },
+  { href: "/subscription/referrals", label: "Referrals", icon: Gift },
 ];
 
 export function DashboardSidebar() {

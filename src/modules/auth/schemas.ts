@@ -67,7 +67,8 @@ export const registerCompleteSchema = z
     gender: z.enum(["male", "female"], { message: "Select a gender" }),
     nationality: z.string().min(2, "Enter your nationality"),
     other_names: z.string().optional(),
-    wantsParentLink: z.boolean().default(false),
+    // wantsParentLink: z.boolean().default(false),
+    wantsParentLink: z.boolean().optional(),
     parent_first_name: z.string().optional(),
     parent_last_name: z.string().optional(),
     parent_email: z

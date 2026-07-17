@@ -139,60 +139,219 @@ export const OTP_MAX_ATTEMPTS = 3;
 export const OTP_LOCK_MINUTES = 15;
 export const OTP_EXPIRY_SECONDS = 600;
 
-/** ---------------- Coupons ---------------- */
+/** ---------------- Plans ---------------- */
+
+export interface PlanData {
+  id: number;
+  name: string;
+  price: number;
+  max_members: number;
+  is_active: boolean;
+}
+
+export interface PlansData {
+  success: boolean;
+  data: PlanData[];
+}
+
+export interface CreatePlanPayload {
+  name: string;
+  price: number;
+  max_members: number;
+  is_active: boolean;
+}
+
+export interface UpdatePlanPayload extends Partial<CreatePlanPayload> { }
+
+export interface PlanMutationData {
+  success: boolean;
+  plan: PlanData;
+}
+
+/** ---------------- Coupons (public validate) ---------------- */
+
+export interface CouponData {
+  code: string;
+  type: "percentage" | "fixed";
+  value: number;
+  is_valid: boolean;
+}
 
 export interface CouponValidateData {
-  valid: boolean;
+  success: boolean;
+  coupon: CouponData;
+}
+
+/** ---------------- Admin Coupons (CRUD) ---------------- */
+
+export type CouponType = "fixed" | "percentage";
+
+export interface AdminCouponData {
+  id: number;
   code: string;
-  discount_type: "percentage" | "fixed";
-  discount_value: number;
-  description?: string;
+  type: "fixed" | "percentage";
+  value: string; // ✅ Note: API returns value as string
+  expires_at: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AdminCouponsListData {
+  success: boolean;
+  coupons: AdminCouponData[];
+}
+
+export interface CreateCouponPayload {
+  code: string;
+  type: CouponType;
+  value: number;
+  expires_at?: string;
+}
+
+export interface UpdateCouponPayload extends Partial<CreateCouponPayload> { }
+
+export interface CouponMutationData {
+  success: boolean;
+  coupon: AdminCouponData;
 }
 
 /** ---------------- Subscriptions ---------------- */
 
+export type PaymentMethod = "card" | "bank_transfer";
+
 export interface SubscriptionInitializePayload {
-  plan_id: string | number;
+  plan_id: number;
+  gateway: string;
+  payment_method: PaymentMethod;
   coupon_code?: string;
 }
 
+export interface BankTransferInstructions {
+  amount_to_pay: number;
+  bank_name: string;
+  account_number: string;
+  reference: string;
+  expires_in_minutes: number;
+}
+
 export interface SubscriptionInitializeData {
-  subscription_reference: string;
-  amount: number;
-  payment_url?: string;
+  success: boolean;
+  payment_method: "card" | "bank_transfer";
+  group_id: number;
+  checkout_url?: string; // Only for card payments
+  instructions?: BankTransferInstructions; // Only for bank transfers
+}
+
+// export interface SubscriptionInitializeData {
+//   success: boolean;
+//   payment_method: PaymentMethod;
+//   group_id: number;
+//   /** Present when payment_method is "card" */
+//   checkout_url?: string;
+//   /** Present when payment_method is "bank_transfer" */
+//   instructions?: BankTransferInstructions;
+// }
+
+export interface CredoPaymentVerificationData {
+  status: "success" | "Successful" | "failed" | "Failed" | "pending" | "Pending";
+  message: string;
+  reference: string;
+  amount?: number;
+  currency?: string;
+  paid_at?: string;
 }
 
 export type SubscriptionStatus = "active" | "inactive" | "pending" | "cancelled" | "expired";
 
+
+export type DunningStage = "current" | "past_due" | "grace_period" | "cancelled";
+
+export interface SubscriptionBillingStatus {
+  status: DunningStage;
+  ends_at: string;
+  grace_period_ends_at?: string;
+  next_retry_at?: string;
+}
+
+
+export interface PaymentHistoryItem {
+  id: number;
+  amount: number;
+  gateway: "paystack" | "flutterwave" | "bank_transfer";
+  status: "pending" | "successful" | "failed" | "expired";
+  reference: string;
+  paid_at: string | null;
+  created_at: string;
+}
+
+export interface PaymentHistoryData {
+  success: boolean;
+  payments: PaymentHistoryItem[];
+}
+
 export interface SubscriptionStatusData {
+  success: boolean;
+  group_id: number;
   status: SubscriptionStatus;
-  group_id: string | number;
-  plan_id: string | number;
-  expires_at?: string;
+  ends_at: string;
 }
 
 /** ---------------- Groups ---------------- */
 
-export interface GroupData {
-  id: string | number;
+export interface GroupMember {
+  user_id: number;
   name: string;
-  role: SystemRole;
-  members_count?: number;
+  role: string;
 }
 
-export interface GroupInvitation {
-  id: string | number;
-  token: string;
-  email?: string;
-  phone?: string;
-  status: "pending" | "accepted" | "expired";
-  created_at: string;
+export interface PendingGroupInvitation {
+  id: number;
+  email: string;
+  sent_at: string;
+}
+
+export interface GroupData {
+  id: number;
+  owner_name: string;
+  plan_name: string;
+  max_slots: number;
+  available_slots: number;
+  active_members: GroupMember[];
+  pending_invitations: PendingGroupInvitation[];
+}
+
+export interface MyGroupData {
+  success: boolean;
+  group: GroupData;
+}
+
+export interface SendInvitationPayload {
+  email: string;
+}
+
+export interface SendInvitationResult {
+  invitation_id: number;
+  email: string;
+  status: string;
+}
+
+export interface SendInvitationData {
+  success: boolean;
+  message: string;
+  data: SendInvitationResult;
+}
+
+export interface InvitationInfo {
+  group_owner: string;
+  plan_name: string;
+  email_invited: string;
 }
 
 export interface InvitationVerifyData {
-  valid: boolean;
-  invitation: GroupInvitation;
-  group: GroupData;
+  success: boolean;
+  message: string;
+  invitation: InvitationInfo;
 }
 
 export interface InvitationAcceptPayload {
@@ -202,4 +361,5 @@ export interface InvitationAcceptPayload {
 export interface InvitationAcceptData {
   success: boolean;
   message: string;
+  group_id: number;
 }

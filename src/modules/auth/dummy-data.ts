@@ -5,13 +5,27 @@
  */
 
 import type {
+    AdminCouponData,
+    AdminCouponsListData,
     AuthUser,
+    CouponMutationData,
+    CouponValidateData,
     ForgotPasswordData,
+    InvitationAcceptData,
+    InvitationVerifyData,
     LoginData,
+    MyGroupData,
     OtpGenerateData,
+    PaymentHistoryData,
+    PlanMutationData,
+    PlansData,
     RegisterCompleteData,
     RegisterInitializeData,
     RegisterVerifyOtpData,
+    SendInvitationData,
+    SubscriptionBillingStatus,
+    SubscriptionInitializeData,
+    SubscriptionStatusData,
 } from "./types";
 
 /** Mock user data for testing */
@@ -306,6 +320,285 @@ export const isDummyModeEnabled = (): boolean => {
         return false;
     }
 };
+
+/** --------------- Admin Coupons --------------- */
+
+const dummyCouponStore: AdminCouponData[] = [
+    {
+        id: 1,
+        code: "SUMMER50",
+        type: "percentage",
+        value: "50",
+        expires_at: "2026-12-31",
+        is_active: true,
+        created_at: "2026-01-01T00:00:00.000Z", // 🛠️ Added mock timestamp
+        updated_at: "2026-01-01T00:00:00.000Z"  // 🛠️ Added mock timestamp
+    },
+    {
+        id: 2,
+        code: "FLAT2000",
+        type: "fixed",
+        value: "2000",
+        expires_at: null,
+        is_active: true,
+        created_at: "2026-01-01T00:00:00.000Z", // 🛠️ Added mock timestamp
+        updated_at: "2026-01-01T00:00:00.000Z"  // 🛠️ Added mock timestamp
+    },
+];
+
+export function dummyListAdminCoupons(): AdminCouponsListData {
+    return { success: true, coupons: [...dummyCouponStore] };
+}
+
+export function dummyCreateCoupon(payload: any): CouponMutationData {
+    const currentTimestamp = new Date().toISOString(); // 🛠️ Generate current time string
+
+    const coupon: AdminCouponData = {
+        id: Date.now(),
+        code: payload.code.toUpperCase(),
+        type: payload.type,
+        value: String(payload.value),
+        expires_at: payload.expires_at ?? null,
+        is_active: true,
+        created_at: currentTimestamp, // 🛠️ Assign here
+        updated_at: currentTimestamp, // 🛠️ Assign here
+    };
+    dummyCouponStore.push(coupon);
+    return { success: true, coupon };
+}
+
+// export function dummyListAdminCoupons(): AdminCouponsListData {
+//     return { success: true, coupons: [...dummyCouponStore] };
+// }
+
+// export function dummyCreateCoupon(payload: any): CouponMutationData {
+//     const coupon: AdminCouponData = {
+//         id: Date.now(),
+//         code: payload.code.toUpperCase(),
+//         type: payload.type,
+//         value: Number(payload.value),
+//         expires_at: payload.expires_at ?? null,
+//         is_active: true,
+//     };
+//     dummyCouponStore.push(coupon);
+//     return { success: true, coupon };
+// }
+
+export function dummyUpdateCoupon(id: number, payload: any): CouponMutationData {
+    const idx = dummyCouponStore.findIndex((c) => c.id === id);
+    const base = dummyCouponStore[idx] ?? { id, code: "UPDATED", type: "fixed", value: 0, expires_at: null, is_active: true };
+    const updated: AdminCouponData = { ...base, ...payload, value: Number(payload.value ?? base.value) };
+    if (idx >= 0) dummyCouponStore[idx] = updated;
+    return { success: true, coupon: updated };
+}
+
+export function dummyDeleteCoupon(_id: number): { success: boolean; message: string } {
+    return { success: true, message: "Coupon deleted successfully." };
+}
+
+/** --------------- Plans --------------- */
+
+export function dummyGetPlans(): PlansData {
+    return {
+        success: true,
+        data: [
+            { id: 1, name: "Individual Plan", price: 5000, max_members: 1, is_active: true },
+            { id: 2, name: "Family Plan (2–3 members)", price: 8000, max_members: 3, is_active: true },
+            { id: 3, name: "Family Plan (4–5 members)", price: 12000, max_members: 5, is_active: true },
+        ],
+    };
+}
+
+export function dummyCreatePlan(payload: any): PlanMutationData {
+    const plan: import("./types").PlanData = {
+        id: Date.now(),
+        name: payload.name,
+        price: payload.price,
+        max_members: Number(payload.max_members),
+        is_active: payload.is_active ?? true,
+    };
+    console.log("[DUMMY] Created plan:", plan);
+    return { success: true, plan };
+}
+
+export function dummyUpdatePlan(id: number, payload: any): PlanMutationData {
+    const plan: import("./types").PlanData = {
+        id,
+        name: payload.name ?? "Updated Plan",
+        price: payload.price ?? 5000,
+        max_members: Number(payload.max_members ?? 1),
+        is_active: payload.is_active ?? true,
+    };
+    console.log("[DUMMY] Updated plan:", plan);
+    return { success: true, plan };
+}
+
+export function dummyDeletePlan(_id: number): { success: boolean; message: string } {
+    return { success: true, message: "Plan deleted successfully." };
+}
+
+export function dummyRevokeInvitation(_invitationId: number): { success: boolean; message: string } {
+    return { success: true, message: "Invitation revoked." };
+}
+
+export function dummyRemoveMember(_userId: number): { success: boolean; message: string } {
+    return { success: true, message: "Member removed from group." };
+}
+
+/** --------------- Coupon --------------- */
+
+export function dummyValidateCoupon(code: string): CouponValidateData {
+    const valid: Record<string, { type: "percentage" | "fixed"; value: number }> = {
+        SUMMER50: { type: "percentage", value: 50 },
+        FLAT2000: { type: "fixed", value: 2000 },
+    };
+    const match = valid[code.toUpperCase()];
+    return {
+        success: true,
+        coupon: {
+            code: code.toUpperCase(),
+            type: match?.type ?? "percentage",
+            value: match?.value ?? 0,
+            is_valid: !!match,
+        },
+    };
+}
+
+/** --------------- Subscriptions --------------- */
+
+export function dummyInitializeSubscription(payload: any): SubscriptionInitializeData {
+    const groupId = Math.floor(Math.random() * 900) + 100;
+    if (payload.payment_method === "bank_transfer") {
+        return {
+            success: true,
+            payment_method: "bank_transfer",
+            group_id: groupId,
+            instructions: {
+                amount_to_pay: 15000.0,
+                bank_name: "Wema Bank (via Paystack)",
+                account_number: "9923847110",
+                reference: `TX-SUB-${Date.now()}`,
+                expires_in_minutes: 30,
+            },
+        };
+    }
+    return {
+        success: true,
+        payment_method: "card",
+        group_id: groupId,
+        checkout_url: "https://checkout.paystack.com/dummy_checkout",
+    };
+}
+
+export function dummyGetSubscriptionStatus(groupId: string | number): SubscriptionStatusData {
+    const ends = new Date();
+    ends.setDate(ends.getDate() + 30);
+    return {
+        success: true,
+        group_id: Number(groupId),
+        status: "active",
+        ends_at: ends.toISOString().replace("T", " ").slice(0, 19),
+    };
+}
+
+export function dummyGetPaymentHistory(): PaymentHistoryData {
+    return {
+        success: true,
+        payments: [
+            {
+                id: 1,
+                amount: 15000.0,
+                gateway: "bank_transfer",
+                status: "successful",
+                reference: "TX-SUB-9081234",
+                paid_at: new Date(Date.now() - 86400000 * 2).toISOString().replace("T", " ").slice(0, 19),
+                created_at: new Date(Date.now() - 86400000 * 2).toISOString().replace("T", " ").slice(0, 19),
+            },
+            {
+                id: 2,
+                amount: 15000.0,
+                gateway: "paystack",
+                status: "successful",
+                reference: "TX-SUB-9081235",
+                paid_at: new Date(Date.now() - 86400000 * 30).toISOString().replace("T", " ").slice(0, 19),
+                created_at: new Date(Date.now() - 86400000 * 30).toISOString().replace("T", " ").slice(0, 19),
+            },
+            {
+                id: 3,
+                amount: 15000.0,
+                gateway: "paystack",
+                status: "pending",
+                reference: "TX-SUB-9081236",
+                paid_at: null,
+                created_at: new Date().toISOString().replace("T", " ").slice(0, 19),
+            },
+        ],
+    };
+}
+
+export function dummyGetSubscriptionBillingStatus(): SubscriptionBillingStatus {
+    const ends = new Date();
+    ends.setDate(ends.getDate() + 30);
+
+    return {
+        status: "current",
+        ends_at: ends.toISOString().replace("T", " ").slice(0, 19),
+    };
+}
+
+/** --------------- Groups --------------- */
+
+export function dummyGetMyGroup(): MyGroupData {
+    return {
+        success: true,
+        group: {
+            id: 102,
+            owner_name: "John Doe",
+            plan_name: "Family Plan",
+            max_slots: 5,
+            available_slots: 3,
+            active_members: [
+                { user_id: 14, name: "John Doe", role: "student" },
+                { user_id: 15, name: "Jane Doe", role: "student" },
+            ],
+            pending_invitations: [
+                { id: 1, email: "friend@example.com", sent_at: "2026-06-25" },
+            ],
+        },
+    };
+}
+
+export function dummySendInvitation(payload: any): SendInvitationData {
+    return {
+        success: true,
+        message: "Invitation sent successfully.",
+        data: {
+            invitation_id: Math.floor(Math.random() * 1000) + 1,
+            email: payload.email,
+            status: "pending",
+        },
+    };
+}
+
+export function dummyVerifyInvitation(_token: string): InvitationVerifyData {
+    return {
+        success: true,
+        message: "Token valid.",
+        invitation: {
+            group_owner: "John Doe",
+            plan_name: "Family Plan",
+            email_invited: "friend@example.com",
+        },
+    };
+}
+
+export function dummyAcceptInvitation(_payload: any): InvitationAcceptData {
+    return {
+        success: true,
+        message: "You have successfully joined the subscription group.",
+        group_id: 102,
+    };
+}
 
 /**
  * Add a test user to the mock users

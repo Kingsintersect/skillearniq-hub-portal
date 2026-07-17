@@ -30,7 +30,7 @@ export default function FamilyPage() {
         <MonitoringScopeNotice />
         <MonitoredStudentList
           onViewStudent={(studentId) =>
-            router.push(`/subs/family/students/${studentId}`)
+            router.push(`/subscription/family/students/${studentId}`)
           }
         />
       </div>

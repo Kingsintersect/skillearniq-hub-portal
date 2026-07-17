@@ -202,6 +202,26 @@ export const AdminNavMain: SidebarNavConfig = {
             ],
             display: true,
         },
+        {
+            title: "SUBSCRIPTIONS",
+            url: "#",
+            icon: Users,
+            items: [
+                {
+                    title: "Subscriptions Plans",
+                    url: "/admin/subscriptions",
+                },
+                {
+                    title: "Coupon Listing",
+                    url: "/admin/coupons",
+                },
+                {
+                    title: "Invoices Listing",
+                    url: "/admin/invoices",
+                },
+            ],
+            display: true,
+        },
 
         {
             title: "MESSAGES",
@@ -279,19 +299,19 @@ export const StudentNavMain: SidebarNavConfig = {
             items: [
                 {
                     title: "User Subscriptions",
-                    url: "/subs/subscription",
+                    url: "/subscription",
                 },
                 {
                     title: "Billings",
-                    url: "/subs/billing",
+                    url: "/subscription/billing",
                 },
                 {
                     title: "Family Subscriptions",
-                    url: "/subs/family",
+                    url: "/subscription/family",
                 },
                 {
                     title: "Referals",
-                    url: "/subs/referrals",
+                    url: "/subscription/referrals",
                 },
             ],
             display: true,

@@ -9,39 +9,38 @@ import { formatCurrency, getErrorMessage } from "@/modules/shared";
 import { useInitiateCheckout } from "../hooks/use-billing";
 import { PaymentMethodSelect } from "./payment-method-select";
 import { CouponInput } from "./coupon-input";
-import type { InitiateCheckoutData, PaymentMethod } from "../types";
-import type { Plan } from "@/modules/subscription";
+import type { PaymentMethod } from "../types";
+import type {
+  SubscriptionInitializeData,
+  SubscriptionInitializePayload,
+} from "@/modules/auth/types";
+import type { PlanData } from "@/modules/auth/types";
 
 export interface CheckoutFormProps {
-  plan: Plan;
-  onCheckoutInitiated: (data: InitiateCheckoutData) => void;
+  plan: PlanData;
+  onCheckoutInitiated: (data: SubscriptionInitializeData) => void;
 }
 
-/**
- * Rule 4.1: pricing is server-side authority — every figure shown here is
- * advisory until the server responds with the actual `total_due`.
- * Rule 5.3: coupon discount resolves before wallet credit is applied.
- */
 export function CheckoutForm({ plan, onCheckoutInitiated }: CheckoutFormProps) {
   const [paymentMethod, setPaymentMethod] = React.useState<PaymentMethod>("card");
   const [couponCode, setCouponCode] = React.useState<string | undefined>();
   const [estimatedDiscount, setEstimatedDiscount] = React.useState(0);
-  const [useWalletCredit, setUseWalletCredit] = React.useState(false);
 
   const checkoutMutation = useInitiateCheckout();
 
   const estimatedTotal = Math.max(plan.price - estimatedDiscount, 0);
 
   const handleSubmit = () => {
-    checkoutMutation.mutate(
-      {
-        plan_id: plan.id,
-        payment_method: paymentMethod,
-        coupon_code: couponCode,
-        use_wallet_credit: useWalletCredit,
-      },
-      { onSuccess: (response) => onCheckoutInitiated(response.data) }
-    );
+    const payload: SubscriptionInitializePayload = {
+      plan_id: plan.id,
+      gateway: "paystack",           // your default gateway
+      payment_method: paymentMethod,
+      coupon_code: couponCode,
+    };
+
+    checkoutMutation.mutate(payload, {
+      onSuccess: (response) => onCheckoutInitiated(response.data),
+    });
   };
 
   return (
@@ -60,7 +59,6 @@ export function CheckoutForm({ plan, onCheckoutInitiated }: CheckoutFormProps) {
       <div>
         <h3 className="mb-2 text-sm font-medium text-foreground">Coupon</h3>
         <CouponInput
-          planId={plan.id}
           appliedCode={couponCode}
           onApply={(code, discount) => {
             setCouponCode(code);
@@ -96,7 +94,7 @@ export function CheckoutForm({ plan, onCheckoutInitiated }: CheckoutFormProps) {
         </p>
       </div>
 
-      {checkoutMutation.error && (
+      {Boolean(checkoutMutation.error) && (
         <p className="text-sm text-destructive">
           {getErrorMessage(checkoutMutation.error)}
         </p>
@@ -111,7 +109,9 @@ export function CheckoutForm({ plan, onCheckoutInitiated }: CheckoutFormProps) {
         {checkoutMutation.isPending && (
           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
         )}
-        {paymentMethod === "card" ? "Continue to payment" : "Generate transfer details"}
+        {paymentMethod === "card"
+          ? "Continue to payment"
+          : "Generate transfer details"}
       </Button>
     </motion.div>
   );
