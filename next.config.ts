@@ -5,6 +5,19 @@ const nextConfig = {
     ignoreDuringBuilds: true, // Add this for now to ensure deployment
   },
 
+  // Proxy /api/v1/* to the external backend so the browser never makes a
+  // cross-origin request (eliminates CORS preflight failures in development).
+  async rewrites() {
+    const apiDomain = process.env.NEXT_PUBLIC_EXTERNAL_API_DOMAIN;
+    if (!apiDomain) return [];
+    return [
+      {
+        source: "/api/v1/:path*",
+        destination: `${apiDomain}/api/v1/:path*`,
+      },
+    ];
+  },
+
   headers: async () => {
     return [
       {

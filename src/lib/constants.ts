@@ -271,6 +271,31 @@ export const StudentNavMain: SidebarNavConfig = {
             ],
             display: true,
         },
+
+        {
+            title: "SUBSCRIPTIONS",
+            url: "#",
+            icon: Users,
+            items: [
+                {
+                    title: "User Subscriptions",
+                    url: "/subs/subscription",
+                },
+                {
+                    title: "Billings",
+                    url: "/subs/billing",
+                },
+                {
+                    title: "Family Subscriptions",
+                    url: "/subs/family",
+                },
+                {
+                    title: "Referals",
+                    url: "/subs/referrals",
+                },
+            ],
+            display: true,
+        },
         {
             title: "PAYMENTS",
             url: "#",
@@ -317,7 +342,7 @@ export const StudentNavMain: SidebarNavConfig = {
             display: true,
         },
         {
-            title: "LEADERBOARD & PERFORMANCES",
+            title: "PERFORMANCES",
             url: "#",
             icon: Gamepad2,
             items: [
@@ -443,7 +468,7 @@ export const ParentNavMain: SidebarNavConfig = {
             icon: SendHorizonal,
             display: true,
         },
-        
+
 
         {
 

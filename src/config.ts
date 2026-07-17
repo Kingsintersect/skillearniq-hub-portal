@@ -4,7 +4,10 @@ import { getApiHost } from "./lib/utils";
 export const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? "";
 export const baseApiUrl = (process.env.NEXT_PUBLIC_BASE_URL ?? "") + "/api";
 
-export const externalApiUrl = (process.env.NEXT_PUBLIC_EXTERNAL_API_DOMAIN ?? "") + "/api/v1";
+// In development the browser can't call the external API directly due to CORS.
+// We proxy /api/v1/* through Next.js (server-side rewrite in next.config.ts)
+// so the browser never makes a cross-origin request.
+export const externalApiUrl = "/api/v1";
 export const ROOT_IMAGE_URL = (process.env.NEXT_PUBLIC_EXTERNAL_API_DOMAIN ?? "") + "/storage";
 export const remoteApiHost = getApiHost(process.env.NEXT_PUBLIC_EXTERNAL_API_DOMAIN);
 export const lmsLoginUrl = process.env.NEXT_PUBLIC_LMS_LOGIN_URL ?? "";
@@ -75,6 +78,7 @@ export const APP_CONFIG = {
 export const ROUTES = {
     home: '/',
     login: '/auth/signin',
+    register: '/auth/register',
     dashboard: '/dashboard',
     profile: '/profile',
     forgotPassword: '/forgot-password',
