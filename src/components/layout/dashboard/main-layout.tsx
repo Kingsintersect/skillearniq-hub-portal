@@ -19,9 +19,10 @@ export function MainLayout({ children, requireAuth = false }: MainLayoutProps) {
 
     useEffect(() => {
         if (!isLoading) {
+            // console.log("MainLayout: isAuthenticated", isAuthenticated, "user", user, "pathname", pathname);
             if (requireAuth && !isAuthenticated) {
                 router.push(ROUTES.login);
-                // } else if (!requireAuth && isAuthenticated && pathname === ROUTES.login) {
+                // alert("MainLayout: User is not authenticated. Redirecting to login page.");
             } else if (!requireAuth && isAuthenticated && pathname === ROUTES.login) {
                 if (user?.role === "STUDENT") router.push(`/enrollment`)
                 else router.push(`/${user?.role.toLocaleLowerCase() + ROUTES.dashboard}`);

@@ -23,15 +23,23 @@ interface AuthContextType extends AuthenState {
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export default function AuthProvider({ children, session }: AuthProviderProps) {
-    const auth = useAuth();
-
     return (
         <SessionProvider session={session}>
-            <AuthContext.Provider value={auth} >
+            <AuthContextBridge>
                 <ClientOnly>{children}</ClientOnly>
-            </AuthContext.Provider>
+            </AuthContextBridge>
         </SessionProvider>
     )
+}
+
+/** Rendered inside SessionProvider so useSession() is available inside useAuth(). */
+function AuthContextBridge({ children }: { children: React.ReactNode }) {
+    const auth = useAuth();
+    return (
+        <AuthContext.Provider value={auth}>
+            {children}
+        </AuthContext.Provider>
+    );
 }
 
 export function useAuthContext() {

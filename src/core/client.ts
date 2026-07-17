@@ -78,25 +78,25 @@ class ApiClient {
                         }
                     };
                 }
-                
+
                 // Handle different response structures
                 const responseData = response.data;
-                
+
                 // If it's already in ApiResponse format, return as is
                 // if (responseData && typeof responseData === 'object' && 'status' in responseData) {
                 //     return response;
                 // }
 
                 if (
-  responseData &&
-  typeof responseData === 'object' &&
-  'status' in responseData &&
-  'data' in responseData
-) {
-  return response;
-}
+                    responseData &&
+                    typeof responseData === 'object' &&
+                    'status' in responseData &&
+                    'data' in responseData
+                ) {
+                    return response;
+                }
 
-                
+
                 // If response is an array (like categories data from /odl/categories)
                 if (Array.isArray(responseData)) {
                     response.data = {
@@ -106,20 +106,20 @@ class ApiClient {
                     };
                     return response;
                 }
-                
+
                 // If response is an object with data property
                 if (responseData && typeof responseData === 'object' && 'data' in responseData) {
                     // Already formatted correctly
                     return response;
                 }
-                
+
                 // For any other response structure, wrap it
                 response.data = {
                     status: 200,
                     message: 'Success',
                     data: responseData || null
                 };
-                
+
                 return response;
             },
             async (error: unknown) => {
@@ -159,9 +159,9 @@ class ApiClient {
             if (axiosError.response) {
                 const responseData = axiosError.response.data;
                 return {
-                    message: responseData?.message || 
-                             responseData?.error || 
-                             `HTTP ${axiosError.response.status}: ${axiosError.response.statusText}`,
+                    message: responseData?.message ||
+                        responseData?.error ||
+                        `HTTP ${axiosError.response.status}: ${axiosError.response.statusText}`,
                     errors: responseData?.errors,
                     statusCode: axiosError.response.status,
                 };

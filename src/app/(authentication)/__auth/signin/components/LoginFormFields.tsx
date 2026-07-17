@@ -3,6 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { ROUTES } from '@/config';
 import { useLoginFormContext } from '@/contexts/FormContext';
 import { signInFormData } from '@/schema/auth-schema';
 import Link from 'next/link';
@@ -110,7 +111,7 @@ export const ApplySection = () => (
             New to our platform?
         </p>
         <Link
-            href="/auth/create-account"
+            href={ROUTES.register}
             className="inline-flex items-center text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-semibold text-sm transition-all duration-300 cursor-pointer hover:underline underline-offset-4 group"
         >
             Apply for an admission

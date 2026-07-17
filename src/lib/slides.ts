@@ -1,3 +1,4 @@
+import { ROUTES } from "@/config";
 import { SlideData } from "@/types/slide";
 
 export const slidesData: SlideData[] = [
@@ -9,7 +10,7 @@ export const slidesData: SlideData[] = [
         image: "/slides/ai1.jpg",
         category: "Academic Excellence",
         primaryAction: { text: "Explore Programs", icon: "▶", url: "programs" },
-        secondaryAction: { text: "Learn More", icon: "ℹ", url: "/auth/create-account" }
+        secondaryAction: { text: "Learn More", icon: "ℹ", url: ROUTES.register }
     },
     {
         id: 2,
@@ -19,7 +20,7 @@ export const slidesData: SlideData[] = [
         image: "/slides/ai2.jpg",
         category: "Research & Innovation",
         primaryAction: { text: "Research Centers", icon: "🔬", url: "programs" },
-        secondaryAction: { text: "Join Teams", icon: "👥", url: "/auth/create-account" }
+        secondaryAction: { text: "Join Teams", icon: "👥", url: ROUTES.register }
     },
     {
         id: 3,
@@ -29,7 +30,7 @@ export const slidesData: SlideData[] = [
         image: "/slides/ai3.jpg",
         category: "Student Life",
         primaryAction: { text: "Campus Events", icon: "📅", url: "programs" },
-        secondaryAction: { text: "Collaborative Learning", icon: "🏠", url: "/auth/create-account" }
+        secondaryAction: { text: "Collaborative Learning", icon: "🏠", url: ROUTES.register }
     },
     {
         id: 4,
@@ -39,6 +40,6 @@ export const slidesData: SlideData[] = [
         image: "/slides/ai4.jpg",
         category: "Career Development",
         primaryAction: { text: "Career Boost", icon: "💼", url: "programs" },
-        secondaryAction: { text: "Alumni Network", icon: "🤝", url: "/auth/create-account" }
+        secondaryAction: { text: "Alumni Network", icon: "🤝", url: ROUTES.register }
     }
 ];

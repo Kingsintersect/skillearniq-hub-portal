@@ -1,9 +1,10 @@
-import { emailSchema, passwordSchema, rememberMeSchema, tokenSchema, confirmPasswordSchema, otpSchema } from "@/lib/validations/zod"
+import { emailSchema, passwordSchema, rememberMeSchema, tokenSchema, confirmPasswordSchema, otpSchema, emailOrPhoneNumberSchema } from "@/lib/validations/zod"
 import z, { object } from "zod"
 
 // SIGNIN SCHEMA
 export const loginInSchema = object({
     email: emailSchema(),
+    // email_or_phone_number: emailOrPhoneNumberSchema(),
     password: passwordSchema,
     rememberMe: rememberMeSchema,
     userType: z.literal('general'),

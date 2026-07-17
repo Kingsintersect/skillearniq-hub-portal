@@ -279,170 +279,165 @@ export const teacherService = {
   // ==================== DASHBOARD ====================
   // In teacherService.ts - update the getDashboardData method:
 
-  getDashboardData: async (teacherId: number): Promise<ApiResponse<DashboardStats>> => {
-    try {
-      const response = await apiClient.get<DashboardApiResponse>('/teacher/dashboard/stats');
-
-      console.log('Dashboard API Response:', response);
-
-      // If response is empty or doesn't have the expected structure
-      if (!response.data || !response.data.dashboard || Object.keys(response.data).length === 0) {
-        console.warn('Dashboard API returned empty or invalid response, using fallback data');
-
-        // Try to fetch students separately to get accurate count
-        try {
-          const studentsResponse = await apiClient.get<StudentsApiResponse>('/teacher/dashboard/students');
-          const studentCount = studentsResponse.data?.data?.length || 0;
-
-          // Try to fetch classes to get accurate count
-          const classesResponse = await apiClient.get<any[]>('/teacher/dashboard/classes');
-          const classCount = classesResponse.data?.length || 0;
-
-          const fallbackStats: DashboardStats = {
-            totalClasses: classCount,
-            totalStudents: studentCount,
-            totalAssessments: 0,
-            averageAttendance: 0,
-            pendingGrading: 0,
-            upcomingDeadlines: 0,
-            recentActivities: [],
-            performanceTrend: [],
-            subjectPerformance: [],
-            attendanceTrend: []
-          };
-
-          return {
-            status: 200,
-            data: fallbackStats,
-            message: 'Using fallback dashboard data'
-          };
-        } catch (fallbackError) {
-          console.error('Failed to fetch fallback data:', fallbackError);
-
-          // Return basic fallback
-          const fallbackStats: DashboardStats = {
-            totalClasses: 0,
-            totalStudents: 0,
-            totalAssessments: 0,
-            averageAttendance: 0,
-            pendingGrading: 0,
-            upcomingDeadlines: 0,
-            recentActivities: [],
-            performanceTrend: [],
-            subjectPerformance: [],
-            attendanceTrend: []
-          };
-
-          return {
-            status: 200,
-            data: fallbackStats,
-            message: 'Dashboard data not available, using empty data'
-          };
-        }
+getDashboardData: async (teacherId: number): Promise<ApiResponse<DashboardStats>> => {
+  try {
+    const response = await apiClient.get<DashboardApiResponse>('/teacher/dashboard/stats');
+    
+    console.log('Dashboard API Response:', response);
+    
+    // If response is empty or doesn't have the expected structure
+    if (!response.data || !response.data.dashboard || Object.keys(response.data).length === 0) {
+      console.warn('Dashboard API returned empty or invalid response, using fallback data');
+      
+      // Try to fetch students separately to get accurate count
+      try {
+        const studentsResponse = await apiClient.get<StudentsApiResponse>('/teacher/dashboard/students');
+        const studentCount = studentsResponse.data?.data?.length || 0;
+        
+        // Try to fetch classes to get accurate count
+        const classesResponse = await apiClient.get<any[]>('/teacher/dashboard/classes');
+        const classCount = classesResponse.data?.length || 0;
+        
+        const fallbackStats: DashboardStats = {
+          totalClasses: classCount,
+          totalStudents: studentCount,
+          totalAssessments: 0,
+          averageAttendance: 0,
+          pendingGrading: 0,
+          upcomingDeadlines: 0,
+          recentActivities: [],
+          performanceTrend: [],
+          subjectPerformance: [],
+          attendanceTrend: []
+        };
+        
+        return {
+          status: 200,
+          data: fallbackStats,
+          message: 'Using fallback dashboard data'
+        };
+      } catch (fallbackError) {
+        console.error('Failed to fetch fallback data:', fallbackError);
+        
+        // Return basic fallback
+        const fallbackStats: DashboardStats = {
+          totalClasses: 0,
+          totalStudents: 0,
+          totalAssessments: 0,
+          averageAttendance: 0,
+          pendingGrading: 0,
+          upcomingDeadlines: 0,
+          recentActivities: [],
+          performanceTrend: [],
+          subjectPerformance: [],
+          attendanceTrend: []
+        };
+        
+        return {
+          status: 200,
+          data: fallbackStats,
+          message: 'Dashboard data not available, using empty data'
+        };
       }
-
-      const dashboardData = response.data.dashboard;
-
-      const overview = dashboardData.overview || {};
-
-      console.log('Dashboard overview data:', overview);
-
-      const dashboardStats: DashboardStats = {
-        totalClasses: overview.totalClasses || 0,
-        totalStudents: overview.totalStudents || 0,
-        totalAssessments: overview.totalAssessments || 0,
-        averageAttendance: overview.averageAttendance || 0,
-        pendingGrading: overview.pendingGrading || 0,
-        upcomingDeadlines: overview.upcomingDeadlines || 0,
-        recentActivities: dashboardData.recentActivities || [],
-        performanceTrend: dashboardData.performanceTrend || [],
-        subjectPerformance: dashboardData.subjectPerformance || [],
-        attendanceTrend: dashboardData.attendanceTrend || []
-      };
-
-      console.log('Processed dashboard stats:', dashboardStats);
-
-      return {
-        status: response.status || 200,
-        data: dashboardStats,
-        message: 'Dashboard data fetched successfully'
-      };
-
-    } catch (error: any) {
-      console.error('Error in getDashboardData:', error);
-
-      // Return empty stats on error
-      const fallbackStats: DashboardStats = {
-        totalClasses: 0,
-        totalStudents: 0,
-        totalAssessments: 0,
-        averageAttendance: 0,
-        pendingGrading: 0,
-        upcomingDeadlines: 0,
-        recentActivities: [],
-        performanceTrend: [],
-        subjectPerformance: [],
-        attendanceTrend: []
-      };
-
-      return {
-        status: 500,
-        data: fallbackStats,
-        message: error.message || 'Failed to fetch dashboard data'
-      };
     }
-  },
+    
+    const dashboardData = response.data.dashboard;
+    
+    const overview = dashboardData.overview || {};
+    
+    console.log('Dashboard overview data:', overview);
+    
+    const dashboardStats: DashboardStats = {
+      totalClasses: overview.totalClasses || 0,
+      totalStudents: overview.totalStudents || 0,
+      totalAssessments: overview.totalAssessments || 0,
+      averageAttendance: overview.averageAttendance || 0,
+      pendingGrading: overview.pendingGrading || 0,
+      upcomingDeadlines: overview.upcomingDeadlines || 0,
+      recentActivities: dashboardData.recentActivities || [],
+      performanceTrend: dashboardData.performanceTrend || [],
+      subjectPerformance: dashboardData.subjectPerformance || [],
+      attendanceTrend: dashboardData.attendanceTrend || []
+    };
+    
+    console.log('Processed dashboard stats:', dashboardStats);
+    
+    return {
+      status: response.status || 200,
+      data: dashboardStats,
+      message: 'Dashboard data fetched successfully'
+    };
+    
+  } catch (error: any) {
+    console.error('Error in getDashboardData:', error);
+    
+    // Return empty stats on error
+    const fallbackStats: DashboardStats = {
+      totalClasses: 0,
+      totalStudents: 0,
+      totalAssessments: 0,
+      averageAttendance: 0,
+      pendingGrading: 0,
+      upcomingDeadlines: 0,
+      recentActivities: [],
+      performanceTrend: [],
+      subjectPerformance: [],
+      attendanceTrend: []
+    };
+    
+    return {
+      status: 500,
+      data: fallbackStats,
+      message: error.message || 'Failed to fetch dashboard data'
+    };
+  }
+},
 
-  getTeacherCourses: async (): Promise<ApiResponse<Course[]>> => {
-    try {
-      const response = await apiClient.get<any>('/teacher/courses');
-
-      // Handle different response structures
-      let coursesData: Course[] = [];
-
-      if (Array.isArray(response.data)) {
-        // Direct array response
-        coursesData = response.data;
-      } else if (response.data && Array.isArray(response.data.data)) {
-        // Nested data property
-        coursesData = response.data.data;
-      } else if (response.data?.data) {
-        // Single object response
-        coursesData = [response.data.data];
-      } else if (response.data) {
-        // If response.data is already an array of courses
-        coursesData = response.data;
-      }
-
-      return {
-        status: 200,
-        message: 'Success',
-        data: coursesData
-      };
-    } catch (error: any) {
-      console.error('Error fetching teacher courses:', error);
-      return {
-        status: error.statusCode || 500,
-        message: error.message || 'Failed to fetch courses',
-        data: []
-      };
+getTeacherCourses: async (): Promise<ApiResponse<Course[]>> => {
+  try {
+    const response = await apiClient.get<any>('/teacher/courses');
+    
+    // Handle different response structures
+    let coursesData: Course[] = [];
+    
+    if (Array.isArray(response.data)) {
+      // Direct array response
+      coursesData = response.data;
+    } else if (response.data && Array.isArray(response.data.data)) {
+      // Nested data property
+      coursesData = response.data.data;
+    } else if (response.data?.data) {
+      // Single object response
+      coursesData = [response.data.data];
+    } else if (response.data) {
+      // If response.data is already an array of courses
+      coursesData = response.data;
     }
-  },
+    
+    return {
+      status: 200,
+      message: 'Success',
+      data: coursesData
+    };
+  } catch (error: any) {
+    console.error('Error fetching teacher courses:', error);
+    return {
+      status: error.statusCode || 500,
+      message: error.message || 'Failed to fetch courses',
+      data: []
+    };
+  }
+},
 
 
 
-  getStudentsCount: async (teacherId: number): Promise<number> => {
-    try {
-      const response = await apiClient.get<StudentsApiResponse>('/teacher/dashboard/students');
-      console.log('Students API Response for count:', response);
-
-      if (response.data?.data && Array.isArray(response.data.data)) {
-        return response.data.data.length;
-      }
-      return 0;
-    } catch (error) {
-      console.error('Error fetching students count:', error);
-      return 0;
+getStudentsCount: async (teacherId: number): Promise<number> => {
+  try {
+    const response = await apiClient.get<StudentsApiResponse>('/teacher/dashboard/students');
+    console.log('Students API Response for count:', response);
+    
+    if (response.data?.data && Array.isArray(response.data.data)) {
+      return response.data.data.length;
     }
     return 0;
   } catch (error) {
@@ -507,13 +502,6 @@ export const teacherService = {
           message: attendanceData.message || 'Attendance fetched successfully'
         };
       }
-
-      // Return empty data but don't throw - let the component handle empty state
-      return {
-        status: error.status || 500,
-        data: { daily: [], monthly: [] },
-        message: error.message || 'Failed to fetch attendance data'
-      };
     }
     
     // Structure 2: { data: { daily, monthly } }
@@ -661,38 +649,97 @@ getAttendancePerCourse: async (teacherId: number, filters?: {
       
       // Return empty data structure instead of throwing
       return {
-        status: response.status || 200,
-        data: {
-          daily: dailyData,
-          monthly: monthlyData,
-          course_details: courseDetails
-        },
-        message: response.data.message || 'Attendance data fetched successfully'
-      };
-
-    } catch (error: any) {
-      console.error('❌ [getAttendancePerCourse] Error:', error);
-      console.error('❌ Error response:', error.response?.data);
-      console.error('❌ Error status:', error.response?.status);
-
-      return {
-        status: error.response?.status || 500,
+        status: 200,
         data: {
           daily: [],
           monthly: [],
           course_details: {
-            id: filters?.classId || 0,
-            fullname: `Class ${filters?.classId || 'Unknown'}`,
+            id: courseId,
+            fullname: `Class ${courseId}`,
             shortname: '',
             idnumber: '',
             category: 0,
             categoryName: ''
           }
         },
-        message: error.message || 'Failed to fetch course attendance data'
+        message: 'No attendance data found for this course'
       };
     }
-  },
+    
+    // Try to extract data from different possible structures
+    let dailyData: any[] = [];
+    let monthlyData: any[] = [];
+    let courseDetails: any = {
+      id: courseId,
+      fullname: `Class ${courseId}`,
+      shortname: '',
+      idnumber: '',
+      category: 0,
+      categoryName: ''
+    };
+    
+    // Structure 1: Your expected structure (from Postman)
+    if (response.data.data) {
+      console.log('📊 Using structure 1: response.data.data');
+      dailyData = response.data.data.daily || [];
+      monthlyData = response.data.data.monthly || [];
+      courseDetails = response.data.data.course_details || courseDetails;
+    }
+    // Structure 2: Data directly in response
+    else if (response.data.daily || response.data.monthly) {
+      console.log('📊 Using structure 2: data at root level');
+      dailyData = response.data.daily || [];
+      monthlyData = response.data.monthly || [];
+      courseDetails = response.data.course_details || courseDetails;
+    }
+    // Structure 3: Maybe the entire response is the data
+    else if (Array.isArray(response.data.daily) || Array.isArray(response.data.monthly)) {
+      console.log('📊 Using structure 3: arrays at root');
+      dailyData = response.data.daily || [];
+      monthlyData = response.data.monthly || [];
+    }
+    // Structure 4: Completely different structure
+    else {
+      console.warn('⚠️ Unexpected response structure, using empty data');
+      console.warn('⚠️ Response structure:', JSON.stringify(response.data, null, 2));
+    }
+    
+    console.log('📊 Extracted - Daily:', dailyData.length, 'Monthly:', monthlyData.length);
+    console.log('📊 Course details:', courseDetails);
+    
+    return {
+      status: response.status || 200,
+      data: {
+        daily: dailyData,
+        monthly: monthlyData,
+        course_details: courseDetails
+      },
+      message: response.data.message || 'Attendance data fetched successfully'
+    };
+    
+  } catch (error: any) {
+    console.error('❌ [getAttendancePerCourse] Error:', error);
+    console.error('❌ Error response:', error.response?.data);
+    console.error('❌ Error status:', error.response?.status);
+    
+    return {
+      status: error.response?.status || 500,
+      data: {
+        daily: [],
+        monthly: [],
+        course_details: {
+          id: filters?.classId || 0,
+          fullname: `Class ${filters?.classId || 'Unknown'}`,
+          shortname: '',
+          idnumber: '',
+          category: 0,
+          categoryName: ''
+        }
+      },
+      message: error.message || 'Failed to fetch course attendance data'
+    };
+  }
+},
 
   // ==================== STUDENTS ====================
   getStudentsPerCourse: async (teacherId: number, filters?: {
@@ -701,15 +748,15 @@ getAttendancePerCourse: async (teacherId: number, filters?: {
   }): Promise<ApiResponse<any[]>> => {
     try {
       const response = await apiClient.get<any>('/teacher/dashboard/students');
-
+      
       console.log('Students API Full Response:', response);
-
+      
       if (response.data) {
-        const studentsData =
+        const studentsData = 
           response.data.data ||
           response.data.students ||
           response.data;
-
+        
         if (Array.isArray(studentsData)) {
           return {
             status: response.status || 200,
@@ -718,13 +765,13 @@ getAttendancePerCourse: async (teacherId: number, filters?: {
           };
         }
       }
-
+      
       console.error('Unexpected response structure:', response.data);
       throw new Error('Invalid students response structure');
-
+      
     } catch (error: any) {
       console.error('Error fetching students:', error);
-
+      
       return {
         status: 500,
         data: [],
@@ -732,21 +779,21 @@ getAttendancePerCourse: async (teacherId: number, filters?: {
       };
     }
   },
-  getStudents: async (teacherId: number, filters?: {
+ getStudents: async (teacherId: number, filters?: {
     term?: string;
     classId?: number;
   }): Promise<ApiResponse<any[]>> => {
     try {
       const response = await apiClient.get<any>('/teacher/dashboard/students');
-
+      
       console.log('Students API Full Response:', response);
-
+      
       if (response.data) {
-        const studentsData =
+        const studentsData = 
           response.data.data ||
           response.data.students ||
           response.data;
-
+        
         if (Array.isArray(studentsData)) {
           return {
             status: response.status || 200,
@@ -755,13 +802,13 @@ getAttendancePerCourse: async (teacherId: number, filters?: {
           };
         }
       }
-
+      
       console.error('Unexpected response structure:', response.data);
       throw new Error('Invalid students response structure');
-
+      
     } catch (error: any) {
       console.error('Error fetching students:', error);
-
+      
       return {
         status: 500,
         data: [],
@@ -775,7 +822,7 @@ getAttendancePerCourse: async (teacherId: number, filters?: {
     try {
       const params = new URLSearchParams();
       if (filters?.term) params.append('term', filters.term);
-
+      
       const response = await apiClient.get<any[]>(`/teacher/dashboard/classes?${params.toString()}`);
       return response.data;
     } catch (error) {
@@ -795,7 +842,7 @@ getAttendancePerCourse: async (teacherId: number, filters?: {
       if (filters?.term) params.append('term', filters.term);
       if (filters?.classId) params.append('classId', filters.classId?.toString() || '');
       if (filters?.type) params.append('type', filters.type || '');
-
+      
       const response = await apiClient.get<any>(`/teacher/dashboard/assessments?${params.toString()}`);
       return response.data;
     } catch (error: any) {
@@ -1007,7 +1054,7 @@ getAttendancePerCourse: async (teacherId: number, filters?: {
       const params = new URLSearchParams();
       if (filters?.classId) params.append('classId', filters.classId.toString());
       if (filters?.format) params.append('format', filters.format);
-
+      
       const response = await apiClient.get<any>(`/teacher/dashboard/assessments/export?${params.toString()}`);
       return response.data;
     } catch (error) {
@@ -1145,50 +1192,50 @@ return apiClient.delete(
 
 
   getCourseGrades: async (courseId: number): Promise<ApiResponse<CourseGradesResponse>> => {
-    try {
-      const response = await apiClient.get<any>(`/teacher/course/course-gradings/${courseId}`);
-
-      console.log('Teacher Course Grades Response:', response);
-
-      // Handle different response structures
-      let courseData: any = {};
-
-      if (response.data && typeof response.data === 'object') {
-        if (response.data.data) {
-          courseData = response.data.data;
-        } else {
-          courseData = response.data;
-        }
+  try {
+    const response = await apiClient.get<any>(`/teacher/course/course-gradings/${courseId}`);
+    
+    console.log('Teacher Course Grades Response:', response);
+    
+    // Handle different response structures
+    let courseData: any = {};
+    
+    if (response.data && typeof response.data === 'object') {
+      if (response.data.data) {
+        courseData = response.data.data;
+      } else {
+        courseData = response.data;
       }
-
-      const formattedData: CourseGradesResponse = {
-        course_id: courseData.course_id || courseId,
-        course_code: courseData.course_code || '',
-        course_name: courseData.course_name || '',
-        course_image_url: courseData.course_image_url || '',
-        instructors: Array.isArray(courseData.instructors) ? courseData.instructors : [],
-        students: Array.isArray(courseData.students) ? courseData.students : []
-      };
-
-      return {
-        status: 200,
-        message: 'Success',
-        data: formattedData
-      };
-    } catch (error: any) {
-      console.error('Error fetching teacher course grades:', error);
-      return {
-        status: error.statusCode || 500,
-        message: error.message || 'Failed to fetch course grades',
-        data: {
-          course_id: courseId,
-          course_code: '',
-          course_name: '',
-          course_image_url: '',
-          instructors: [],
-          students: []
-        }
-      };
     }
+    
+    const formattedData: CourseGradesResponse = {
+      course_id: courseData.course_id || courseId,
+      course_code: courseData.course_code || '',
+      course_name: courseData.course_name || '',
+      course_image_url: courseData.course_image_url || '',
+      instructors: Array.isArray(courseData.instructors) ? courseData.instructors : [],
+      students: Array.isArray(courseData.students) ? courseData.students : []
+    };
+    
+    return {
+      status: 200,
+      message: 'Success',
+      data: formattedData
+    };
+  } catch (error: any) {
+    console.error('Error fetching teacher course grades:', error);
+    return {
+      status: error.statusCode || 500,
+      message: error.message || 'Failed to fetch course grades',
+      data: {
+        course_id: courseId,
+        course_code: '',
+        course_name: '',
+        course_image_url: '',
+        instructors: [],
+        students: []
+      }
+    };
   }
+}
 };

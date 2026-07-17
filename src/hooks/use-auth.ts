@@ -8,13 +8,14 @@ import { AuthenState, ApiError, AuthUser } from "@/types/auth";
 import { authApi } from "@/lib/services/auth";
 import { UserInterface } from "@/types/global";
 import { useLocalStorage } from "./use-local-storage";
-import { getSession, signIn, signOut } from "next-auth/react";
+import { getSession, signIn, signOut, useSession } from "next-auth/react";
 import { signInFormData } from "@/schema/auth-schema";
 import { apiClient } from "@/core/client";
 
 export function useAuth() {
     const router = useRouter();
     const queryClient = useQueryClient();
+    const { status: sessionStatus } = useSession();
 
     const [accessToken, setAccessToken, removeAccessToken] = useLocalStorage<string | null>(
         LOCAL_STORAGE_KEYS.accessToken,
@@ -154,11 +155,12 @@ export function useAuth() {
         queryClient.clear();
     };
 
-    // Check if user is authenticated
-    const isAuthenticated = apiClient.isAuthenticated();
+    // Check if user is authenticated — use NextAuth session status as the
+    // single source of truth so it stays in sync with the auth layout guard.
+    const isAuthenticated = sessionStatus === 'authenticated';
 
-    // Loading state
-    const isLoading = loginMutation.isPending || isLoadingProfile;
+    // Loading state: include session hydration so guards don't fire too early.
+    const isLoading = loginMutation.isPending || isLoadingProfile || sessionStatus === 'loading';
 
     // Auth state object
     const authState: AuthenState = {

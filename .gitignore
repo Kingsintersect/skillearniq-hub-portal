@@ -19,6 +19,7 @@
 
 # production
 /build
+/placeholders
 
 # misc
 .DS_Store
