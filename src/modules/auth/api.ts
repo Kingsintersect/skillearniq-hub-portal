@@ -401,7 +401,7 @@ export const authApi = {
       await simulateDelay(400);
       return createResponse<{ success: boolean; message: string }>(dummyRevokeInvitation(invitationId));
     }
-    return apiClient.delete<{ success: boolean; message: string }>(`/groups/invitations/${invitationId}`);
+    return apiClient.post<{ success: boolean; message: string }>(`/groups/invitations/${invitationId}/cancel`);
   },
 
   removeMember: async (userId: number) => {

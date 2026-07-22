@@ -27,7 +27,7 @@ function initials(name?: string) {
 export function MemberSlotGrid({ group, isOwner }: MemberSlotGridProps) {
   const reduceMotion = useReducedMotion();
   const emptySeats = Array.from({ length: group.available_slots });
- console.log(group);
+
   return (
     <div className="space-y-2">
       <p className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-white/50">
