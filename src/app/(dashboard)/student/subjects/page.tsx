@@ -127,7 +127,7 @@ function CourseDetailsContent({ course }: { course: CourseItem }) {
       {/* Course Description */}
       <div className="rounded-2xl border border-border/70 bg-background/60 p-4">
         <h3 className="text-sm font-semibold text-foreground mb-2">
-          Course Description
+          Subject Description
         </h3>
         <p className="text-sm text-muted-foreground">
           {parseSummary(course.summary)}
@@ -138,7 +138,7 @@ function CourseDetailsContent({ course }: { course: CourseItem }) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="rounded-2xl border border-border/70 bg-background/60 p-4">
           <h3 className="text-sm font-semibold text-foreground mb-3">
-            Course Information
+            Subject Information
           </h3>
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
@@ -466,7 +466,7 @@ export default function StudentClassesPage() {
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
               <div className="text-lg text-muted-foreground">
-                Loading your classes...
+                Loading your subjects...
               </div>
             </div>
           </div>
@@ -526,10 +526,10 @@ export default function StudentClassesPage() {
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent-300">
               Learning Hub
             </p>
-            <h1 className="mt-2 text-2xl font-bold sm:text-3xl">My Classes</h1>
+            <h1 className="mt-2 text-2xl font-bold sm:text-3xl">My Subjects</h1>
             <p className="mt-2 max-w-2xl text-sm text-white/75">
-              Continue where you stopped, jump into live classes, and monitor
-              your progress across courses.
+              Continue where you stopped, jump into live subjects, and monitor
+              your progress across subjects.
             </p>
           </div>
           <div className="flex gap-2">
@@ -594,7 +594,7 @@ export default function StudentClassesPage() {
           <div className="flex items-center gap-2">
             <Filter size={16} className="text-primary" />
             <p className="text-sm font-semibold text-foreground">
-              Filter Courses
+              Filter Subjects
             </p>
           </div>
 
@@ -606,7 +606,7 @@ export default function StudentClassesPage() {
             <input
               value={searchTerm}
               onChange={(event) => setSearchTerm(event.target.value)}
-              placeholder="Search by course name or code..."
+              placeholder="Search by subject name or code..."
               className="h-9 w-full rounded-xl border border-input bg-background pr-3 pl-9 text-sm text-foreground outline-none transition-shadow focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
             />
           </div>
@@ -834,7 +834,7 @@ export default function StudentClassesPage() {
             {isFetchingNextPage && (
               <div className="flex items-center gap-2 text-sm text-muted-foreground py-4">
                 <Loader2 className="h-4 w-4 animate-spin" />
-                Loading more courses...
+                Loading more subjects...
               </div>
             )}
             {!hasNextPage && gridCourses.length > 0 && (
@@ -852,7 +852,7 @@ export default function StudentClassesPage() {
                 <thead className="border-b border-border/70 bg-muted/30">
                   <tr>
                     <th className="text-left p-4 text-sm font-semibold text-foreground">
-                      Course
+                      Subject
                     </th>
                     <th className="text-left p-4 text-sm font-semibold text-foreground">
                       Code
