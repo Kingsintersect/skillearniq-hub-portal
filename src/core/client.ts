@@ -9,6 +9,17 @@ import axios, {
 import { ApiError, ApiResponse } from "@/types/auth";
 import { APP_CONFIG, LOCAL_STORAGE_KEYS } from "@/config";
 
+// Allow individual requests to opt out of the global 401 → /auth/signin
+// redirect. Used by pre-auth calls (e.g. the invite registration check) that
+// legitimately run before the visitor is signed in and must handle a 401
+// themselves instead of being bounced to the login page.
+declare module "axios" {
+    // eslint-disable-next-line @typescript-eslint/no-empty-interface
+    export interface AxiosRequestConfig {
+        skipAuthRedirect?: boolean;
+    }
+}
+
 // Define the structure for API error response
 interface ApiErrorResponse {
     message?: string;
@@ -126,9 +137,12 @@ class ApiClient {
                 const axiosError = error as AxiosError<ApiErrorResponse>;
 
                 if (axiosError.response?.status === 401) {
-                    this.clearAuthTokens();
-                    if (typeof window !== "undefined") {
-                        window.location.href = "/auth/signin";
+                    const skipRedirect = (axiosError.config as AxiosRequestConfig | undefined)?.skipAuthRedirect;
+                    if (!skipRedirect) {
+                        this.clearAuthTokens();
+                        if (typeof window !== "undefined") {
+                            window.location.href = "/auth/signin";
+                        }
                     }
                     return Promise.reject(this.handleError(error));
                 }

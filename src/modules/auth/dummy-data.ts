@@ -601,6 +601,20 @@ export function dummyAcceptInvitation(_payload: any): InvitationAcceptData {
 }
 
 /**
+ * Mock registration check. To exercise both branches locally, any email that
+ * contains "new" (e.g. newmember@example.com) is treated as NOT registered;
+ * everything else is treated as an existing account.
+ */
+export function dummyVerifyRegistration(payload: { email: string }) {
+    const registered = !payload.email.toLowerCase().includes("new");
+    return {
+        success: true,
+        message: registered ? "Email is registered." : "Email is not registered.",
+        registered,
+    };
+}
+
+/**
  * Add a test user to the mock users
  */
 export function addTestUser(
