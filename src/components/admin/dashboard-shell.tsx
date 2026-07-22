@@ -20,7 +20,7 @@ export function DashboardShell({ role, userName, children }: DashboardShellProps
     const pathname = usePathname();
 
     return (
-        <div className="flex h-screen overflow-hidden bg-muted/30 dark:bg-background">
+        <div className="flex font-outfit h-screen overflow-hidden bg-muted/30 dark:bg-background">
             <motion.aside
                 animate={{ width: collapsed ? 76 : 260 }}
                 transition={{ type: "spring", stiffness: 300, damping: 30 }}

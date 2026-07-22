@@ -330,12 +330,12 @@ export const StudentNavMain: SidebarNavConfig = {
             display: false,
         },
         {
-            title: "MY COURSES",
+            title: "MY SUBJECTS",
             url: "#",
             icon: School,
             items: [
                 {
-                    title: "My Courses",
+                    title: "My Subjects",
                     url: "/student/classes",
                 },
 

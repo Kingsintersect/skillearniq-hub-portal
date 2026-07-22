@@ -5,7 +5,17 @@ import { motion } from "framer-motion";
 import { ArrowRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { formatCurrency, getErrorMessage } from "@/modules/shared";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { getErrorMessage } from "@/modules/shared";
+import { formatLocalizedPrice } from "@/lib/pricing";
+import { useUserCountry } from "@/lib/user-country";
+import { AFRICAN_COUNTRIES, getCurrencyLabel } from "@/lib/africa-countries";
 import { useInitiateCheckout } from "../hooks/use-billing";
 import { PaymentMethodSelect } from "./payment-method-select";
 import { CouponInput } from "./coupon-input";
@@ -21,6 +31,18 @@ export function CheckoutForm({ plan, onCheckoutInitiated }: CheckoutFormProps) {
   const [paymentMethod, setPaymentMethod] = React.useState<PaymentMethod>("card");
   const [couponCode, setCouponCode] = React.useState<string | undefined>();
   const [estimatedDiscount, setEstimatedDiscount] = React.useState(0);
+  const [chosenCurrency, setChosenCurrency] = React.useState<string | null>(null);
+
+  const country = useUserCountry();
+  // Default to the learner's country currency until they pick another.
+  const currency = chosenCurrency ?? country.currency;
+
+  // Unique currency options, with the learner's country currency first.
+  const currencyOptions = React.useMemo(() => {
+    const seen = new Set<string>();
+    return [country.currency, "NGN", "USD", ...AFRICAN_COUNTRIES.map((c) => c.currency)]
+      .filter((code) => (seen.has(code) ? false : (seen.add(code), true)));
+  }, [country.currency]);
 
   const checkoutMutation = useInitiateCheckout();
   const estimatedTotal = Math.max(plan.price - estimatedDiscount, 0);
@@ -31,6 +53,7 @@ export function CheckoutForm({ plan, onCheckoutInitiated }: CheckoutFormProps) {
       gateway: "paystack",
       payment_method: paymentMethod,
       coupon_code: couponCode ?? "",
+      currency,
     };
     checkoutMutation.mutate(payload, {
       onSuccess: (response) => onCheckoutInitiated(response.data),
@@ -42,6 +65,25 @@ export function CheckoutForm({ plan, onCheckoutInitiated }: CheckoutFormProps) {
       <div className="rounded-2xl border border-border bg-card p-4">
         <h3 className="mb-3 text-sm font-semibold text-foreground">Payment method</h3>
         <PaymentMethodSelect value={paymentMethod} onChange={setPaymentMethod} />
+      </div>
+
+      <div className="rounded-2xl border border-border bg-card p-4">
+        <h3 className="mb-1 text-sm font-semibold text-foreground">Pay in currency</h3>
+        <p className="mb-3 text-xs text-muted-foreground">
+          Choose the currency you want to be charged in.
+        </p>
+        <Select value={currency} onValueChange={setChosenCurrency}>
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Select currency" />
+          </SelectTrigger>
+          <SelectContent className="max-h-72">
+            {currencyOptions.map((code) => (
+              <SelectItem key={code} value={code}>
+                {getCurrencyLabel(code)}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="rounded-2xl border border-border bg-card p-4">
@@ -65,7 +107,7 @@ export function CheckoutForm({ plan, onCheckoutInitiated }: CheckoutFormProps) {
       >
         <div className="flex justify-between text-sm">
           <span className="text-muted-foreground">{plan.name}</span>
-          <span className="text-foreground">{formatCurrency(plan.price)}</span>
+          <span className="text-foreground">{formatLocalizedPrice(plan.price, currency)}</span>
         </div>
         {estimatedDiscount > 0 && (
           <motion.div
@@ -74,13 +116,13 @@ export function CheckoutForm({ plan, onCheckoutInitiated }: CheckoutFormProps) {
             className="flex justify-between text-sm text-emerald-600 dark:text-emerald-400"
           >
             <span>Coupon discount</span>
-            <span>-{formatCurrency(estimatedDiscount)}</span>
+            <span>-{formatLocalizedPrice(estimatedDiscount, currency)}</span>
           </motion.div>
         )}
         <Separator className="bg-accent-200 dark:bg-accent-400/20" />
         <div className="flex justify-between text-base font-bold text-foreground">
           <span>Estimated total</span>
-          <span>{formatCurrency(estimatedTotal)}</span>
+          <span>{formatLocalizedPrice(estimatedTotal, currency)}</span>
         </div>
         <p className="text-[11px] text-muted-foreground">
           Final amount is confirmed by the server at checkout.

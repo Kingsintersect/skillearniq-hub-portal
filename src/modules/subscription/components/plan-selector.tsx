@@ -3,7 +3,9 @@
 import * as React from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { Check, Sparkles, User, Users2 } from "lucide-react";
-import { cn, formatCurrency, FullPageLoader } from "@/modules/shared";
+import { cn, FullPageLoader } from "@/modules/shared";
+import { formatLocalizedPrice } from "@/lib/pricing";
+import { useUserCountry } from "@/lib/user-country";
 import { usePlans } from "../hooks/use-subscription";
 import type { Plan } from "../types";
 
@@ -15,6 +17,7 @@ export interface PlanSelectorProps {
 export function PlanSelector({ selectedPlanId, onSelect }: PlanSelectorProps) {
   const { data: plans, isLoading } = usePlans();
   const reduceMotion = useReducedMotion();
+  const country = useUserCountry();
 
   if (isLoading) return <FullPageLoader label="Loading plans…" />;
   if (!plans || plans.length === 0) return null;
@@ -81,7 +84,7 @@ export function PlanSelector({ selectedPlanId, onSelect }: PlanSelectorProps) {
             <p className="text-sm font-semibold text-slate-900 dark:text-white">{plan.name}</p>
 
             <p className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
-              {formatCurrency(plan.price)}
+              {formatLocalizedPrice(plan.price, country.currency)}
               <span className="text-sm font-normal text-slate-500 dark:text-white/50">/month</span>
             </p>
 

@@ -60,18 +60,21 @@ export default function TeacherDetailPage() {
     <div className="min-h-screen p-6 bg-background">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center space-x-4">
-            <Button variant="outline" onClick={() => router.push('/admin/teachers')} className="border-border">
+        <section className="relative mb-8 overflow-hidden rounded-3xl bg-primary p-6 text-white sm:p-8">
+          <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-white/5" />
+          <div className="pointer-events-none absolute -bottom-20 -left-10 h-52 w-52 rounded-full bg-white/5" />
+          <div className="relative flex items-center gap-4">
+            <Button variant="varsecondary" onClick={() => router.push('/admin/teachers')}>
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Teachers
             </Button>
             <div>
-              <h1 className="text-3xl font-bold text-foreground">Teacher Details</h1>
-              <p className="text-muted-foreground">Detailed information about {teacher.first_name} {teacher.last_name}</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent-300">Staff</p>
+              <h1 className="mt-1 text-2xl font-bold sm:text-3xl">Teacher Details</h1>
+              <p className="mt-1 text-sm text-white/75">Detailed information about {teacher.first_name} {teacher.last_name}</p>
             </div>
           </div>
-        </div>
+        </section>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Teacher Information */}

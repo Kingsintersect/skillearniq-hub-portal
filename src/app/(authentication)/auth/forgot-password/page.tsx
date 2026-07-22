@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { KeyRound } from "lucide-react";
 import { ForgotPasswordForm } from "../../__auth/forgot-password/components/ForgotPasswordForm";
 import AuthSidebar from "../../components/AuthSidebar";
@@ -19,6 +20,9 @@ export default function ForgotPasswordPage() {
 				{/* Right Side Form (Takes full width on Mobile) */}
 				<div className="auth-scope min-h-screen lg:col-span-6 xl:col-span-5 flex flex-col justify-center bg-secondary-50 dark:bg-gray-950 px-6 lg:px-16 py-16">
 					<div className="w-full max-w-md mx-auto rounded-3xl border border-gray-100 bg-white p-6 sm:p-8 shadow-xl shadow-black/5 dark:border-gray-800 dark:bg-gray-900">
+						<div className="mb-6 flex justify-center lg:hidden">
+							<Image src="/logo/logo.jpg" alt="SkillearnIQ Hub" width={140} height={140} className="h-16 w-16 object-contain" />
+						</div>
 						<div className="mb-6 flex items-center gap-4">
 							<span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-accent/10 text-accent">
 								<KeyRound className="h-6 w-6" />

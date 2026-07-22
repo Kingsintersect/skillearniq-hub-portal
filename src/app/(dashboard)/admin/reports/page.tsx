@@ -78,12 +78,17 @@ function DashboardContent() {
   return (
     <div className="min-h-screen bg-background">
       <main className="container mx-auto px-4 py-6 space-y-6">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-foreground">Grade Reports</h1>
-          <p className="text-muted-foreground mt-2">
-            View and analyze student performance across different courses
-          </p>
-        </div>
+        <section className="relative overflow-hidden rounded-3xl bg-primary p-6 text-white sm:p-8">
+          <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-white/5" />
+          <div className="pointer-events-none absolute -bottom-20 -left-10 h-52 w-52 rounded-full bg-white/5" />
+          <div className="relative">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent-300">Analytics</p>
+            <h1 className="mt-2 text-2xl font-bold sm:text-3xl">Grade Reports</h1>
+            <p className="mt-2 text-sm text-white/75">
+              View and analyze student performance across different courses.
+            </p>
+          </div>
+        </section>
 
         <Suspense fallback={<LoadingState />}>
           <FilterSection />

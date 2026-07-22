@@ -67,14 +67,6 @@ function DashboardCard({ title, subtitle, icon, action, children }: DashboardCar
   );
 }
 
-function StatPill({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-2xl border border-border/70 bg-background/60 px-3 py-2">
-      <p className="text-[11px] text-muted-foreground">{label}</p>
-      <p className="mt-1 text-sm font-semibold text-foreground">{value}</p>
-    </div>
-  );
-}
 
 export default function ProfilePage() {
   const { useProfile, useUpdateProfile, useChangePassword, useExportData } = useStudentQueries();
@@ -215,28 +207,40 @@ export default function ProfilePage() {
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35 }}
-        className="overflow-hidden rounded-3xl border border-primary/20 bg-linear-to-br from-primary/15 via-background to-blue-500/10 p-6"
+        className="relative overflow-hidden font-outfit rounded-3xl bg-primary p-6 text-white sm:p-8"
       >
-        <div className="flex flex-wrap items-start justify-between gap-4">
+        <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div className="absolute -top-16 -right-10 h-56 w-56 rounded-full bg-white/5" />
+          <div className="absolute -bottom-24 -left-12 h-72 w-72 rounded-full bg-white/5" />
+        </div>
+
+        <div className="relative flex flex-wrap items-start justify-between gap-4">
           <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Account Settings</p>
-            <h1 className="mt-2 text-2xl font-bold text-foreground sm:text-3xl">My Profile</h1>
-            <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+            <span className="text-xs font-semibold uppercase tracking-[0.2em] text-accent-300">Account Settings</span>
+            <h1 className="mt-2 text-2xl font-bold sm:text-3xl">My Profile</h1>
+            <p className="mt-2 max-w-2xl text-sm text-white/75">
               Manage your personal information, account settings, and privacy preferences.
             </p>
           </div>
-          <Button onClick={() => setIsEditing(!isEditing)} variant="outline" className="gap-2">
+          <Button onClick={() => setIsEditing(!isEditing)} variant="varsecondary" className="gap-2">
             <Edit size={16} />
             {isEditing ? 'Cancel Editing' : 'Edit Profile'}
           </Button>
         </div>
 
         {/* Stats Cards */}
-        <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-4">
-          <StatPill label="Student ID" value={profile?.admission_no || 'Not assigned'} />
-          <StatPill label="Enrollment Status" value={profile?.enrollment_status || 'Active'} />
-          <StatPill label="Email" value={profile?.email || 'Not provided'} />
-          <StatPill label="Phone" value={profile?.phone || 'Not provided'} />
+        <div className="relative mt-6 grid grid-cols-1 gap-3 sm:grid-cols-4">
+          {[
+            { label: "Student ID", value: profile?.admission_no || 'Not assigned' },
+            { label: "Enrollment Status", value: profile?.enrollment_status || 'Active' },
+            { label: "Email", value: profile?.email || 'Not provided' },
+            { label: "Phone", value: profile?.phone || 'Not provided' },
+          ].map((pill) => (
+            <div key={pill.label} className="rounded-2xl border border-white/10 bg-white/10 px-4 py-3 backdrop-blur-sm">
+              <p className="text-[11px] text-white/60">{pill.label}</p>
+              <p className="mt-1 truncate text-sm font-semibold text-white">{pill.value}</p>
+            </div>
+          ))}
         </div>
       </motion.section>
 
