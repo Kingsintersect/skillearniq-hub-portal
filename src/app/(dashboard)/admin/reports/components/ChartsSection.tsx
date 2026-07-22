@@ -130,7 +130,7 @@ export default function ChartsSection() {
                                 labelLine={false}
                                 label={({ name, percent }) => `${(percent * 100).toFixed(0)}%`}
                                 outerRadius={80}
-                                fill="#8884d8"
+                                fill="#293073"
                                 dataKey="value"
                             >
                                 {pieChartData.map((entry, index) => (

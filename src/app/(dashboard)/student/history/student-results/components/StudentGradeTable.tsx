@@ -49,9 +49,9 @@ export default function GradeTable() {
                             <p className="text-2xl font-bold text-foreground">{gradeData.length}</p>
                         </div>
                         
-                        <div className="bg-blue-500/5 p-4 rounded-lg border border-blue-500/10">
+                        <div className="bg-primary/5 p-4 rounded-lg border border-primary/10">
                             <div className="flex items-center gap-2 mb-2">
-                                <Info className="h-4 w-4 text-blue-500" />
+                                <Info className="h-4 w-4 text-primary" />
                                 <span className="text-sm font-medium text-foreground">Average Grade</span>
                             </div>
                             <p className="text-2xl font-bold text-foreground">{averageGrade.toFixed(1)}%</p>
@@ -67,9 +67,9 @@ export default function GradeTable() {
                             </p>
                         </div>
                         
-                        <div className="bg-purple-500/5 p-4 rounded-lg border border-purple-500/10">
+                        <div className="bg-accent/5 p-4 rounded-lg border border-accent/10">
                             <div className="flex items-center gap-2 mb-2">
-                                <Info className="h-4 w-4 text-purple-500" />
+                                <Info className="h-4 w-4 text-accent" />
                                 <span className="text-sm font-medium text-foreground">Course Code</span>
                             </div>
                             <p className="text-2xl font-bold text-foreground">{courseInfo?.course_code || 'N/A'}</p>
@@ -129,14 +129,14 @@ export default function GradeTable() {
                                         </TableCell>
                                         <TableCell className="px-6">
                                             <div className="text-center">
-                                                <span className="inline-flex items-center justify-center bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 px-3 py-1 rounded-full text-sm font-medium">
+                                                <span className="inline-flex items-center justify-center bg-primary/10 dark:bg-primary/20 text-primary dark:text-primary-200 px-3 py-1 rounded-full text-sm font-medium">
                                                     {student.assignment}
                                                 </span>
                                             </div>
                                         </TableCell>
                                         <TableCell className="px-6">
                                             <div className="text-center">
-                                                <span className="inline-flex items-center justify-center bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 px-3 py-1 rounded-full text-sm font-medium">
+                                                <span className="inline-flex items-center justify-center bg-secondary/15 dark:bg-secondary/20 text-secondary px-3 py-1 rounded-full text-sm font-medium">
                                                     {student.quiz}
                                                 </span>
                                             </div>

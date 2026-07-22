@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Image from "next/image";
 import { motion } from "framer-motion";
 import { cn } from "@/modules/shared";
 import { LucideIcon } from "lucide-react";
@@ -36,6 +37,15 @@ export function AuthLayout({
 					className
 				)}
 			>
+				<div className="mb-6 flex justify-center lg:hidden">
+					<Image
+						src="/logo/logo.jpg"
+						alt="SkillearnIQ Hub"
+						width={140}
+						height={140}
+						className="h-16 w-16 object-contain"
+					/>
+				</div>
 				<div className="mb-6 flex items-center gap-4">
 					{Icon && (
 						<span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-accent/10 text-accent">

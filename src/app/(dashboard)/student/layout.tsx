@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 const layout = async ({ children }: { children: React.ReactNode }) => {
 
     return (
-        <ProtectedRoute allowedRoles={[UserRole.STUDENT]}>
+        <ProtectedRoute allowedRoles={[UserRole.STUDENT]} >
             {children}
         </ProtectedRoute>
     )

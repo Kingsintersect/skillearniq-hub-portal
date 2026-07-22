@@ -127,37 +127,39 @@ export const TeachersPageView: React.FC = () => {
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35 }}
-        className="overflow-hidden rounded-3xl border border-primary/20 bg-linear-to-br from-primary/15 via-background to-green-500/10 p-6"
+        className="relative overflow-hidden rounded-3xl bg-primary p-6 text-white sm:p-8"
       >
-        <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-white/5" />
+        <div className="pointer-events-none absolute -bottom-20 -left-10 h-52 w-52 rounded-full bg-white/5" />
+        <div className="relative flex flex-wrap items-start justify-between gap-4">
           <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">User Management</p>
-            <h1 className="mt-2 text-2xl font-bold text-foreground sm:text-3xl">Teachers</h1>
-            <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent-300">User Management</p>
+            <h1 className="mt-2 text-2xl font-bold sm:text-3xl">Teachers</h1>
+            <p className="mt-2 max-w-2xl text-sm text-white/75">
               Manage all teachers and their assignments. View, add, edit, and track teacher information.
             </p>
           </div>
-          <Button onClick={() => setIsCreateDialogOpen(true)} className="gap-2">
+          <Button onClick={() => setIsCreateDialogOpen(true)} variant="secondary" className="gap-2">
             <Plus size={16} />
             Add Teacher
           </Button>
         </div>
 
         {/* Stats Cards */}
-        <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <div className="rounded-2xl border border-border/70 bg-background/60 p-4">
+        <div className="relative mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-card">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-muted-foreground">Total Teachers</p>
                 <p className="mt-1 text-2xl font-bold text-foreground">{totalTeachers}</p>
               </div>
-              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-500/10 text-blue-500">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary/10 text-primary">
                 <Users size={18} />
               </div>
             </div>
           </div>
 
-          <div className="rounded-2xl border border-border/70 bg-background/60 p-4">
+          <div className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-card">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-muted-foreground">Active</p>
@@ -170,7 +172,7 @@ export const TeachersPageView: React.FC = () => {
             <Progress value={totalTeachers > 0 ? (activeTeachers / totalTeachers) * 100 : 0} className="h-1 mt-2" />
           </div>
 
-          <div className="rounded-2xl border border-border/70 bg-background/60 p-4">
+          <div className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-card">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-muted-foreground">Inactive</p>
@@ -183,13 +185,13 @@ export const TeachersPageView: React.FC = () => {
             <Progress value={totalTeachers > 0 ? (inactiveTeachers / totalTeachers) * 100 : 0} className="h-1 mt-2" />
           </div>
 
-          <div className="rounded-2xl border border-border/70 bg-background/60 p-4">
+          <div className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-card">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-muted-foreground">Verified</p>
-                <p className="mt-1 text-2xl font-bold text-purple-600">{verifiedTeachers}</p>
+                <p className="mt-1 text-2xl font-bold text-secondary">{verifiedTeachers}</p>
               </div>
-              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-purple-500/10 text-purple-500">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-secondary/15 text-secondary">
                 <Mail size={18} />
               </div>
             </div>

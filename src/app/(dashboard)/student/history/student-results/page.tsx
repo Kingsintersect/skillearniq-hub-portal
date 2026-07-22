@@ -171,10 +171,10 @@ function InfoItem({ label, value }: { label: string; value: string }) {
 
 function StudentHeader({ academicYear, summary }: { academicYear: string; summary: ReportSummary }) {
    return (
-      <div className="rounded-t-3xl bg-gradient-to-br from-primary/20 via-background to-amber-500/10 p-6">
+      <div className="rounded-t-3xl border-b border-border bg-primary/5 p-6">
          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
-               <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Official Result Slip</p>
+               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">Official Result Slip</p>
                <h1 className="mt-1 text-2xl font-bold text-foreground">Student Grade Report</h1>
                <p className="mt-1 text-sm text-muted-foreground">{academicYear} Academic Session</p>
                <p className="text-xs text-muted-foreground">5.00 grading system</p>
@@ -504,10 +504,10 @@ export default function StudentGradeReportsPage() {
    return (
       <div className="space-y-6 p-4 md:p-6">
          {/* Hero Section */}
-         <section className="overflow-hidden rounded-3xl border border-primary/20 bg-linear-to-br from-primary/15 via-background to-amber-500/10 p-6">
+         <section className="overflow-hidden rounded-3xl border border-border/70 bg-card p-6 shadow-sm">
             <div className="flex flex-wrap items-start justify-between gap-4">
                <div>
-                  <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Result History</p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">Result History</p>
                   <h1 className="mt-2 text-2xl font-bold text-foreground sm:text-3xl">Grade Reports</h1>
                   <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
                      Review your published results, breakdown by course, and track your academic performance.
