@@ -49,14 +49,9 @@ import { queryKeys } from "@/modules/shared";
 import { authApi } from "@/modules/auth";
 import type { PlanData } from "@/modules/auth";
 
-// TODO: move `duration_months` onto the real `PlanData` type once the API
-// returns it. Kept as a local extension here so this file doesn't silently
-// assume a shape your backend hasn't shipped yet.
 type PlanWithDuration = PlanData & { duration_months: number | null };
 
 // ─── Presets ─────────────────────────────────────────────────────────────────
-// Your four standard tiers. "Quick fill" only — admins can still edit any
-// field after selecting one, nothing is locked in.
 
 const PLAN_PRESETS = [
     { key: "free", label: "Free", name: "Free Plan", price: 0, max_members: 1, duration_months: null },
@@ -65,17 +60,14 @@ const PLAN_PRESETS = [
     { key: "family", label: "Family", name: "Family Plan", price: 30000, max_members: 5, duration_months: 3 },
 ] as const;
 
-// ─── Schema ──────────────────────────────────────────────────────────────────
+// ─── Schema & Types ──────────────────────────────────────────────────────────
 
 const planSchema = z
     .object({
         name: z.string().min(2, "Name must be at least 2 characters"),
-        // 0 is now valid — that's what makes a plan free.
         price: z.coerce.number().min(0, "Price can't be negative"),
         max_members: z.coerce.number().int().min(1, "Must allow at least 1 member"),
         is_active: z.boolean(),
-        // Only meaningful for paid plans. Free plans are indefinite, so this
-        // is coerced to null on submit regardless of what's in the field.
         duration_months: z.coerce.number().int().positive().nullable(),
     })
     .transform((values) => ({
@@ -83,7 +75,14 @@ const planSchema = z
         duration_months: values.price === 0 ? null : values.duration_months ?? 3,
     }));
 
-type PlanFormValues = z.input<typeof planSchema>;
+type PlanFormValues = {
+    name: string;
+    price: number;
+    max_members: number;
+    is_active: boolean;
+    duration_months: number | null;
+};
+
 type PlanFormOutput = z.output<typeof planSchema>;
 
 // ─── Hooks ───────────────────────────────────────────────────────────────────
@@ -188,7 +187,7 @@ function PlanDialog({ open, onOpenChange, editingPlan }: PlanDialogProps) {
     };
 
     const onSubmit = (values: PlanFormValues) => {
-        const parsed = planSchema.parse(values); // applies the free-plan → null-duration transform
+        const parsed = planSchema.parse(values);
 
         if (isEdit && editingPlan) {
             updateMutation.mutate(
@@ -251,7 +250,13 @@ function PlanDialog({ open, onOpenChange, editingPlan }: PlanDialogProps) {
                                     <FormItem>
                                         <FormLabel>Price (₦)</FormLabel>
                                         <FormControl>
-                                            <Input type="number" min={0} placeholder="0 for free" {...field} />
+                                            <Input
+                                                type="number"
+                                                min={0}
+                                                placeholder="0 for free"
+                                                {...field}
+                                                onChange={(e) => field.onChange(Number(e.target.value))}
+                                            />
                                         </FormControl>
                                         <p className="text-xs text-muted-foreground">
                                             {isFree ? "Free plan — no charge." : "Enter 0 to make this a free plan."}
@@ -268,7 +273,13 @@ function PlanDialog({ open, onOpenChange, editingPlan }: PlanDialogProps) {
                                     <FormItem>
                                         <FormLabel>Max Members</FormLabel>
                                         <FormControl>
-                                            <Input type="number" min={1} placeholder="4" {...field} />
+                                            <Input
+                                                type="number"
+                                                min={1}
+                                                placeholder="4"
+                                                {...field}
+                                                onChange={(e) => field.onChange(Number(e.target.value))}
+                                            />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -371,23 +382,18 @@ export default function AdminSubscriptionsPage() {
     return (
         <div className="space-y-6">
             {/* Header */}
-            <section className="relative overflow-hidden rounded-3xl bg-primary p-6 text-white sm:p-8">
-                <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-white/5" />
-                <div className="pointer-events-none absolute -bottom-20 -left-10 h-52 w-52 rounded-full bg-white/5" />
-                <div className="relative flex flex-wrap items-start justify-between gap-4">
-                    <div>
-                        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent-300">Billing</p>
-                        <h1 className="mt-2 text-2xl font-bold sm:text-3xl">Subscription Plans</h1>
-                        <p className="mt-2 text-sm text-white/75">
-                            Manage the plans subscribers can choose from.
-                        </p>
-                    </div>
-                    <Button onClick={openCreate} variant="secondary">
-                        <Plus className="mr-2 h-4 w-4" />
-                        New Plan
-                    </Button>
+            <div className="flex items-center justify-between">
+                <div>
+                    <h1 className="text-xl font-semibold text-foreground">Subscription Plans</h1>
+                    <p className="text-sm text-muted-foreground">
+                        Manage the plans subscribers can choose from.
+                    </p>
                 </div>
-            </section>
+                <Button onClick={openCreate}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    New Plan
+                </Button>
+            </div>
 
             {/* Table */}
             <div className="rounded-md border">
