@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+//@ts-ignore
 import "./globals.css";
+import { Geist, Geist_Mono, Quicksand, Outfit } from "next/font/google";
 import { APP_CONFIG } from "@/config";
 import { cookies } from "next/headers";
 import { cn } from "@/lib/utils";
@@ -20,6 +21,18 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
 	variable: "--font-geist-mono",
 	subsets: ["latin"],
+});
+
+const quicksand = Quicksand({
+  subsets: ["latin"],
+  variable: "--font-quicksand",
+  weight: ["300", "400", "500", "600", "700"],
+});
+
+const outfit = Outfit({
+  subsets: ["latin"],
+  variable: "--font-outfit",
+  weight: ["300", "400", "500", "600", "700", "800"],
 });
 
 const META_THEME_COLORS = {
@@ -71,7 +84,7 @@ export default async function RootLayout({
 			</head>
 			<body
 				className={cn(
-					`${geistSans.variable} ${geistMono.variable} h-full antialiased`,
+					`${geistSans.variable} ${geistMono.variable} ${quicksand.variable} ${outfit.variable} h-full antialiased`,
 					activeThemeValue ? `theme-${activeThemeValue}` : "",
 					isScaled ? "theme-scaled" : "",
 				)}

@@ -17,13 +17,12 @@ export const Slide = ({ data, isActive, slideRef }: SlideProps) => {
             style={{
                 backgroundImage: `url(${data.image})`,
                 backgroundSize: 'cover',
-                backgroundPosition: 'center',
+                backgroundPosition: 'top',
             }}
         >
-            {/* Gradient Overlays */}
-            <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 to-purple-900/20" />
+            {/* Legibility scrim: single neutral overlay so hero copy stays readable over any photo */}
+            <div className="absolute inset-0 bg-black/55" />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/70 to-transparent" />
 
             {/* Content positioned in the center-left */}
             <div className="absolute left-8 lg:left-16 top-1/2 transform -translate-y-1/2">
