@@ -37,10 +37,8 @@ export const authApi = {
         apiClient.post("/auth/password/forgot", { ...forgotCredention }),
 
 
-    resetPassword: (resetPCredention: resetPasswordFormData) => {
-        const { token, email, ...passwordFeilds } = resetPCredention;
-        return apiClient.post(`/auth/password/reset?token=${token}&email=${email}`, { ...passwordFeilds })
-    },
+    resetPassword: (resetPCredention: resetPasswordFormData) =>
+        apiClient.post("/auth/password/reset", { ...resetPCredention }),
 
     verifyResetPasswordToken: (token: string) =>
         apiClient.get(`/verify-token?token=${token}`),

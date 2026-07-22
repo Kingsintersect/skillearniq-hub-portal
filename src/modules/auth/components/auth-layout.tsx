@@ -26,26 +26,26 @@ export function AuthLayout({
 	Icon,
 }: AuthLayoutProps) {
 	return (
-		<div className="flex items-center justify-center px-4">
+		<div className="flex font-outfit items-center justify-center px-4">
 			<motion.div
 				initial={{ opacity: 0, y: 16 }}
 				animate={{ opacity: 1, y: 0 }}
 				transition={{ duration: 0.4, ease: "easeOut" }}
 				className={cn(
-					"w-full rounded-xl p-6 sm:p-8",
+					"auth-scope w-full max-w-md rounded-3xl border border-gray-100 bg-white p-6 shadow-xl shadow-black/5 sm:p-8 dark:border-gray-800 dark:bg-gray-900",
 					className
 				)}
 			>
-				<div className="mb-6 space-y-1.5 animate-in fade-in-50 duration-700 delay-200 flex inset-ring-accent justify-start gap-3">
+				<div className="mb-6 flex items-center gap-4">
 					{Icon && (
-						<div className="flex items-center justify-center">
-							<Icon className="h-10 w-10 mx-auto mb-4 text-blue-500 dark:text-blue-400 transition-colors duration-300" />
-						</div>
+						<span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-accent/10 text-accent">
+							<Icon className="h-6 w-6" />
+						</span>
 					)}
-					<div className="">
-						<h1 className="text-3xl font-semibold text-foreground mb-2 transition-colors duration-300">{title}</h1>
+					<div>
+						<h1 className="text-2xl font-bold text-foreground">{title}</h1>
 						{description && (
-							<p className="text-muted-foreground transition-colors duration-300">{description}</p>
+							<p className="mt-1 text-sm text-muted-foreground">{description}</p>
 						)}
 					</div>
 				</div>

@@ -146,13 +146,6 @@ export const HomepageSlider = () => {
             onMouseEnter={stopAutoplay}
             onMouseLeave={startAutoplay}
         >
-            {/* Floating Background Elements */}
-            <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                <div className="floating-element absolute top-[10%] left-[10%] w-48 h-48 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-full blur-3xl" />
-                <div className="floating-element absolute top-[60%] right-[15%] w-64 h-64 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-full blur-3xl" />
-                <div className="floating-element absolute bottom-[20%] left-[70%] w-56 h-56 bg-gradient-to-r from-pink-500/10 to-blue-500/10 rounded-full blur-3xl" />
-            </div>
-
             {/* Background Particles */}
             <Particles />
 

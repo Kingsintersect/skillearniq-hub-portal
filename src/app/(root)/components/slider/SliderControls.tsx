@@ -37,7 +37,7 @@ export const SliderControls = ({
             {/* Progress Bar */}
             <div className="absolute bottom-0 left-0 w-full h-1 bg-white/20 z-20">
                 <div
-                    className="progress-bar-fill h-full bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 transition-all duration-500"
+                    className="progress-bar-fill h-full bg-accent transition-all duration-500"
                     style={{ width: `${((currentSlide + 1) / totalSlides) * 100}%` }}
                 />
             </div>

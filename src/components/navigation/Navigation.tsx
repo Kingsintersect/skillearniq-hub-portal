@@ -28,7 +28,7 @@ export const Navigation = () => {
 
     const handleLogout = () => { logout(); };
 
-    const navLinkClasses = "text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors duration-200 relative group cursor-pointer bg-transparent border-none";
+    const navLinkClasses = "text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-primary-400 font-medium transition-colors duration-200 relative group cursor-pointer bg-transparent border-none";
 
     return (
         <>
@@ -41,7 +41,7 @@ export const Navigation = () => {
                         className={cn(navLinkClasses, !isHomepage ? " hidden" : "")}
                     >
                         {item.label}
-                        <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 dark:bg-blue-400 transition-all duration-200 group-hover:w-full" />
+                        <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary dark:bg-primary-400 transition-all duration-200 group-hover:w-full" />
                     </button>
                 ))}
                 {user ? (
@@ -49,7 +49,7 @@ export const Navigation = () => {
                         <div className={`${isOnEnrollmentPage ? "hidden" : "hidden md:block "}`}>
                             <Link href={`/enrollment`} className={cn(navLinkClasses, "")}>
                                 Enroll In Courses
-                                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 dark:bg-blue-400 transition-all duration-200 group-hover:w-full" />
+                                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary dark:bg-primary-400 transition-all duration-200 group-hover:w-full" />
                             </Link>
                         </div>
                         <div className={`${isHomepage ? "hidden" : "hidden md:block "}`}>
@@ -58,7 +58,7 @@ export const Navigation = () => {
                                     <User className="w-4 h-4 text-gray-600 dark:text-gray-300" />
                                 </div>
                                 <span className="text-sm font-medium text-gray-700 dark:text-gray-200">{user.first_name}</span>
-                                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 dark:bg-blue-400 transition-all duration-200 group-hover:w-full" />
+                                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary dark:bg-primary-400 transition-all duration-200 group-hover:w-full" />
                             </Link>
                         </div>
                         <Button
@@ -96,12 +96,12 @@ export const Navigation = () => {
 
             {/* Mobile Navigation */}
             {isMobileMenuOpen && (
-                <nav className="absolute top-full left-0 right-0 bg-white dark:bg-gray-900 shadow-lg dark:shadow-gray-800/50 p-5 flex flex-col gap-4 md:hidden">
+                <nav className="absolute top-[calc(100%+0.75rem)] left-0 right-0 rounded-3xl border border-gray-200/70 dark:border-gray-700/70 bg-white dark:bg-gray-900 shadow-xl shadow-black/5 p-5 flex flex-col gap-4 md:hidden">
                     {NAV_ITEMS.map((item) => (
                         <button
                             key={item.href}
                             onClick={() => handleNavClick(item.href)}
-                            className={`text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors duration-200 text-left cursor-pointer bg-transparent border-none ${!isHomepage ? " hidden" : ""}`}
+                            className={`text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-primary-400 font-medium transition-colors duration-200 text-left cursor-pointer bg-transparent border-none ${!isHomepage ? " hidden" : ""}`}
                         >
                             {item.label}
                         </button>

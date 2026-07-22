@@ -2,12 +2,10 @@ import { NavItem, Feature, Program, Stat, FooterSection, CampusHighlights } from
 
 export const NAV_ITEMS: NavItem[] = [
     { href: '#home', label: 'Home' },
-    { href: '#features', label: 'features' },
-    { href: '#programs', label: 'Programs' },
-    { href: '#calender_view', label: 'Updates' },
-    { href: '#campus_highlight', label: 'Highlights' },
-    // { href: '#about', label: 'About' },
-    // { href: '#contact', label: 'Contact' },
+    { href: '#features', label: 'Features' },
+    { href: '#how-it-works', label: 'How it works' },
+    { href: '#rewards', label: 'Rewards' },
+    { href: '#parents', label: 'Parents' },
 ];
 
 export const FEATURES: Feature[] = [
@@ -95,23 +93,22 @@ export const STATS: Stat[] = [
 
 export const FOOTER_SECTIONS: FooterSection[] = [
     {
-        title: 'Quick Links',
+        title: 'Explore',
         links: [
-            { label: 'Programs', href: '#programs' },
-            { label: 'Admissions', href: '#admissions' },
-            { label: 'Research', href: '#research' },
-            { label: 'Faculty', href: '#faculty' },
-            { label: 'Careers', href: '#careers' },
+            { label: 'Features', href: '#features' },
+            { label: 'CBT & exams', href: '#features' },
+            { label: 'How it works', href: '#how-it-works' },
+            { label: 'Rewards & XP', href: '#rewards' },
+            { label: 'For parents', href: '#parents' },
         ],
     },
     {
-        title: 'Student Resources',
+        title: 'Account',
         links: [
-            { label: 'Student Portal', href: '/auth/signin' },
-            { label: 'Library', href: '#library' },
-            { label: 'Academic Calendar', href: '#calendar' },
-            { label: 'Student Services', href: '#services' },
-            { label: 'Alumni Network', href: '#alumni' },
+            { label: 'Log in', href: '/auth/signin' },
+            { label: 'Sign up free', href: '/auth/signin' },
+            { label: 'For parents', href: '#rewards' },
+            { label: 'Help center', href: '#' },
         ],
     },
 ];

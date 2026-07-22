@@ -79,7 +79,7 @@ export function LoginForm({
   return (
     <AuthLayout title="Sign in to your account" description="Enter your credentials to access the courseware." Icon={Fingerprint}>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 font-outfit">
           <FormField
             control={form.control}
             name="email_or_phone_number"

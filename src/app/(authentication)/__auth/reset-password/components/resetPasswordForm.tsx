@@ -45,7 +45,7 @@ export const ResetPasswordForm = () => {
                         name="password_confirmation"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Enter your password</FormLabel>
+                                <FormLabel>Confirm password</FormLabel>
                                 <FormControl>
                                     <Input type='password' placeholder="Confirm Password" {...field} />
                                 </FormControl>
@@ -58,13 +58,12 @@ export const ResetPasswordForm = () => {
                 <div className="animate-in fade-in-50 duration-700 delay-600">
                     <Button
                         type="submit"
-                        variant="gradient"
                         size="xl"
                         className="w-full"
                         loading={isProcessing}
                         disabled={!form.formState.isValid || isProcessing}
                     >
-                        Sign in
+                        Update password
                     </Button>
                 </div>
 

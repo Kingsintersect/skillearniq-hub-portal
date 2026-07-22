@@ -49,7 +49,7 @@ export const useResetPasswordForm = () => {
         onSuccess: async () => {
             toast.success(`Password has been successfully updated`)
             form.reset();
-            router.push(`/auth/signin?email${email}`);
+            router.push(`/auth/signin?email=${email}`);
         },
         onError: (error: ApiError) => {
             const message = error.message || "Failed to Reset your password. Please try again.";

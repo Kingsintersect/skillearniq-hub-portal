@@ -31,7 +31,7 @@ export default function UpcomingEvents() {
 
     return (
         <Card className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm dark:shadow-gray-700/30 h-full">
-            <CardHeader className="text-2xl font-bold text-[#23608c] dark:text-blue-400 mb-6">
+            <CardHeader className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
                 Upcoming Events
             </CardHeader>
 
@@ -39,10 +39,10 @@ export default function UpcomingEvents() {
                 {events.map((event, index) => (
                     <div
                         key={index}
-                        className="flex items-start border-l-2 border-[#d25400] dark:border-orange-400 pl-4 py-2"
+                        className="flex items-start border-l-2 border-accent pl-4 py-2"
                     >
                         <div className="mr-4 text-center">
-                            <div className="bg-[#23608c] dark:bg-blue-600 text-white font-bold rounded px-3 py-1">
+                            <div className="bg-primary text-white font-bold rounded px-3 py-1">
                                 {event.date}
                             </div>
                         </div>
@@ -58,7 +58,7 @@ export default function UpcomingEvents() {
             <CardFooter className="mt-6 text-center">
                 <Link
                     href="#"
-                    className="inline-block bg-[#23608c] dark:bg-blue-600 hover:bg-[#1d5175] dark:hover:bg-blue-700 text-white px-4 py-2 rounded-md transition-colors text-sm font-medium"
+                    className="inline-block bg-primary hover:bg-primary-700 text-white px-4 py-2 rounded-lg transition-colors text-sm font-medium"
                 >
                     View Calendar
                 </Link>
