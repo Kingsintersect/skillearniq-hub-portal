@@ -9,10 +9,15 @@ export default function AdminProfile() {
   return (
     <div className="min-h-screen p-6 bg-background">
       <div className="max-w-8xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground">Admin Profile</h1>
-          <p className="text-muted-foreground">Manage your admin profile and account settings</p>
-        </div>
+        <section className="relative mb-8 overflow-hidden rounded-3xl bg-primary p-6 text-white sm:p-8">
+          <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-white/5" />
+          <div className="pointer-events-none absolute -bottom-20 -left-10 h-52 w-52 rounded-full bg-white/5" />
+          <div className="relative">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent-300">Account</p>
+            <h1 className="mt-2 text-2xl font-bold sm:text-3xl">Admin Profile</h1>
+            <p className="mt-2 text-sm text-white/75">Manage your admin profile and account settings.</p>
+          </div>
+        </section>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Profile Information */}

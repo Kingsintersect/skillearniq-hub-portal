@@ -47,7 +47,7 @@ export const NAV_SECTIONS: NavSection[] = [
     {
         title: "Learning",
         items: [
-            { label: "My Courses", href: "/student/classes", icon: School, roles: [STUDENT] },
+            { label: "My Subjects", href: "/student/subjects", icon: School, roles: [STUDENT] },
             { label: "My Classes", href: "/teacher/classes", icon: School, roles: [TEACHER] },
             { label: "My Children's Classes", href: "/parent/classes", icon: BookOpen, roles: [PARENT] },
             { label: "Grade Reports", href: "/teacher/grade-reports", icon: BookOpenCheck, roles: [TEACHER] },

@@ -225,6 +225,8 @@ export interface SubscriptionInitializePayload {
   gateway: string;
   payment_method: PaymentMethod;
   coupon_code?: string;
+  /** ISO-4217 currency the learner chose to pay in; forwarded to the gateway. */
+  currency?: string;
 }
 
 export interface BankTransferInstructions {

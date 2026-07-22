@@ -1,5 +1,6 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { CURRENCY_SYMBOLS } from "@/lib/africa-countries";
 
 /** Default digit count for the shared OtpInput component (matches the 6-digit business rule). */
 export const OTP_LENGTH = 6;
@@ -9,14 +10,29 @@ export function cn(...inputs: ClassValue[]): string {
   return twMerge(clsx(inputs));
 }
 
-/** Formats kobo-safe decimal amounts as Naira currency, matching the docs' ₦ figures. */
+/** Formats an amount as currency. Defaults to Naira; pass any ISO-4217 code
+ *  (e.g. "GHS", "KES", "USD"). Uses a known display symbol where available
+ *  (so DZD renders as د.ج, not "DZD"), falling back to Intl otherwise. */
 export function formatCurrency(
   amount: number,
-  currency: "NGN" | "USD" = "NGN"
+  currency: string = "NGN"
 ): string {
+  const symbol = CURRENCY_SYMBOLS[currency];
+  if (symbol) {
+    const number = new Intl.NumberFormat("en-NG", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(amount);
+    // Space after multi-character symbols (e.g. "KSh 30,000.00"), none after
+    // single glyphs (e.g. "₦30,000.00").
+    const separator = symbol.length > 1 ? " " : "";
+    return `${symbol}${separator}${number}`;
+  }
+
   return new Intl.NumberFormat("en-NG", {
     style: "currency",
     currency,
+    currencyDisplay: "narrowSymbol",
     minimumFractionDigits: 2,
   }).format(amount);
 }

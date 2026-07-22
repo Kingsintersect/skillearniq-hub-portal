@@ -175,18 +175,20 @@ export default function PaymentsPage() {
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35 }}
-        className="overflow-hidden rounded-3xl border border-primary/20 bg-linear-to-br from-primary/15 via-background to-emerald-500/10 p-6"
+        className="relative overflow-hidden rounded-3xl bg-primary p-6 text-white sm:p-8"
       >
-        <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-white/5" />
+        <div className="pointer-events-none absolute -bottom-20 -left-10 h-52 w-52 rounded-full bg-white/5" />
+        <div className="relative flex flex-wrap items-start justify-between gap-4">
           <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Financial Hub</p>
-            <h1 className="mt-2 text-2xl font-bold text-foreground sm:text-3xl">Payment Management</h1>
-            <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent-300">Financial Hub</p>
+            <h1 className="mt-2 text-2xl font-bold sm:text-3xl">Payment Management</h1>
+            <p className="mt-2 max-w-2xl text-sm text-white/75">
               View and manage your payment records, track outstanding balances, and make secure payments.
             </p>
           </div>
           <Link href="/enrollment">
-            <Button className="gap-2">
+            <Button variant="secondary" className="gap-2">
               <CreditCard size={16} />
               Make New Payment
             </Button>
@@ -195,19 +197,19 @@ export default function PaymentsPage() {
 
         {/* Stats Cards */}
         <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-4">
-          <div className="rounded-2xl border border-border/70 bg-background/60 p-4">
+          <div className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-card">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-muted-foreground">Total Due</p>
                 <p className="mt-1 text-2xl font-bold text-foreground">{formatCurrency(summary.totalDue)}</p>
               </div>
-              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-500/10 text-blue-500">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary/10 text-primary">
                 <DollarSign size={18} />
               </div>
             </div>
           </div>
 
-          <div className="rounded-2xl border border-border/70 bg-background/60 p-4">
+          <div className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-card">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-muted-foreground">Paid Amount</p>
@@ -221,7 +223,7 @@ export default function PaymentsPage() {
             <p className="text-xs text-muted-foreground mt-1">{paidPercentage.toFixed(1)}% of total due</p>
           </div>
 
-          <div className="rounded-2xl border border-border/70 bg-background/60 p-4">
+          <div className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-card">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-muted-foreground">Pending</p>
@@ -235,7 +237,7 @@ export default function PaymentsPage() {
             <p className="text-xs text-muted-foreground mt-1">{pendingPercentage.toFixed(1)}% of total due</p>
           </div>
 
-          <div className="rounded-2xl border border-border/70 bg-background/60 p-4">
+          <div className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-card">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-muted-foreground">Overdue</p>

@@ -8,6 +8,7 @@ import {
 } from "../hooks/use-auth-mutations";
 import { useRegistrationStore } from "../hooks/use-registration-store";
 import { detectIdentityType, maskEmail, maskPhone } from "@/modules/shared";
+import { setUserCountry } from "@/lib/user-country";
 import { AuthLayout, StepTransition } from "./auth-layout";
 import { RegistrationStepIndicator } from "./registration-step-indicator";
 import { RoleSelectStep } from "./role-select-step";
@@ -87,6 +88,9 @@ export function RegistrationWizard({ onComplete }: RegistrationWizardProps) {
 
   const handleProfileSubmit = (values: RegisterCompleteFormValues) => {
     if (!registrationReference) return;
+    // Persist the chosen country so the dashboard can price in its currency.
+    // (The backend does not currently return nationality on the user object.)
+    setUserCountry(values.nationality);
     completeMutation.mutate(
       {
         registration_reference: registrationReference,

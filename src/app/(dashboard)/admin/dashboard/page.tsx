@@ -76,11 +76,11 @@ const revenueData = [
 ];
 
 const courseDistribution = [
-  { name: 'Computer Science', value: 35, color: '#3b82f6' },
-  { name: 'Mathematics', value: 25, color: '#10b981' },
-  { name: 'Physics', value: 20, color: '#f59e0b' },
-  { name: 'Chemistry', value: 15, color: '#8b5cf6' },
-  { name: 'Biology', value: 5, color: '#ef4444' },
+  { name: 'Computer Science', value: 35, color: '#293073' },
+  { name: 'Mathematics', value: 25, color: '#FB6801' },
+  { name: 'Physics', value: 20, color: '#C08A2D' },
+  { name: 'Chemistry', value: 15, color: '#6B72B8' },
+  { name: 'Biology', value: 5, color: '#9AA0D4' },
 ];
 
 const attendanceData = [
@@ -146,10 +146,10 @@ export default function AdminDashboard() {
     text: isDark ? '#94a3b8' : '#64748b',
     grid: isDark ? '#334155' : '#e2e8f0',
     stroke: isDark ? '#475569' : '#cbd5e1',
-    primary: '#3b82f6',
-    secondary: '#10b981',
-    accent: '#f59e0b',
-    purple: '#8b5cf6',
+    primary: '#293073',
+    secondary: '#FB6801',
+    accent: '#C08A2D',
+    purple: '#6B72B8',
     red: '#ef4444',
   }), [isDark]);
 
@@ -206,38 +206,40 @@ export default function AdminDashboard() {
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35 }}
-        className="overflow-hidden rounded-3xl border border-primary/20 bg-linear-to-br from-primary/15 via-background to-blue-500/10 p-6"
+        className="relative overflow-hidden rounded-3xl bg-primary p-6 text-white sm:p-8"
       >
-        <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-white/5" />
+        <div className="pointer-events-none absolute -bottom-20 -left-10 h-52 w-52 rounded-full bg-white/5" />
+        <div className="relative flex flex-wrap items-start justify-between gap-4">
           <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Admin Portal</p>
-            <h1 className="mt-2 text-2xl font-bold text-foreground sm:text-3xl">Dashboard</h1>
-            <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent-300">Admin Portal</p>
+            <h1 className="mt-2 text-2xl font-bold sm:text-3xl">Dashboard</h1>
+            <p className="mt-2 max-w-2xl text-sm text-white/75">
               School management overview and analytics. Monitor key metrics across students, teachers, and financials.
             </p>
           </div>
-          <Button onClick={() => refetch()} variant="outline" className="gap-2">
+          <Button onClick={() => refetch()} variant="varsecondary" className="gap-2">
             <RefreshCw size={16} />
             Refresh Data
           </Button>
         </div>
 
         {/* Stats Cards */}
-        <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <div className="rounded-2xl border border-border/70 bg-background/60 p-4">
+        <div className="relative mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-card">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-muted-foreground">Total Students</p>
                 <p className="mt-1 text-2xl font-bold text-foreground">{stats?.totalStudents || 0}</p>
               </div>
-              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-500/10 text-blue-500">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary/10 text-primary">
                 <Users size={18} />
               </div>
             </div>
             <p className="text-xs text-green-600 mt-2">+12 this month</p>
           </div>
 
-          <div className="rounded-2xl border border-border/70 bg-background/60 p-4">
+          <div className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-card">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-muted-foreground">Total Teachers</p>
@@ -250,20 +252,20 @@ export default function AdminDashboard() {
             <p className="text-xs text-green-600 mt-2">+2 this month</p>
           </div>
 
-          <div className="rounded-2xl border border-border/70 bg-background/60 p-4">
+          <div className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-card">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-muted-foreground">Total Parents</p>
                 <p className="mt-1 text-2xl font-bold text-foreground">{stats?.totalParents || 0}</p>
               </div>
-              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-purple-500/10 text-purple-500">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-secondary/15 text-secondary">
                 <UserCog size={18} />
               </div>
             </div>
             <p className="text-xs text-green-600 mt-2">+8 this month</p>
           </div>
 
-          <div className="rounded-2xl border border-border/70 bg-background/60 p-4">
+          <div className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-card">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-muted-foreground">Active Classes</p>

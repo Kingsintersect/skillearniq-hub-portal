@@ -562,30 +562,23 @@ export default function AdminCouponsPage() {
         <div className="space-y-6">
 
             {/* Header */}
-
-            <div className="flex items-center justify-between">
-
-                <div>
-
-                    <h1 className="text-xl font-semibold text-foreground">Coupons</h1>
-
-                    <p className="text-sm text-muted-foreground">
-
-                        Create and manage discount codes for subscribers.
-
-                    </p>
-
+            <section className="relative overflow-hidden rounded-3xl bg-primary p-6 text-white sm:p-8">
+                <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-white/5" />
+                <div className="pointer-events-none absolute -bottom-20 -left-10 h-52 w-52 rounded-full bg-white/5" />
+                <div className="relative flex flex-wrap items-start justify-between gap-4">
+                    <div>
+                        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent-300">Promotions</p>
+                        <h1 className="mt-2 text-2xl font-bold sm:text-3xl">Coupons</h1>
+                        <p className="mt-2 text-sm text-white/75">
+                            Create and manage discount codes for subscribers.
+                        </p>
+                    </div>
+                    <Button onClick={openCreate} variant="secondary">
+                        <Plus className="mr-2 h-4 w-4" />
+                        New Coupon
+                    </Button>
                 </div>
-
-                <Button onClick={openCreate}>
-
-                    <Plus className="mr-2 h-4 w-4" />
-
-                    New Coupon
-
-                </Button>
-
-            </div>
+            </section>
 
 
 

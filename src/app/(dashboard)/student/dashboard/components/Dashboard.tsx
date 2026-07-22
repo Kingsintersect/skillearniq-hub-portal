@@ -58,37 +58,33 @@ interface DashboardCardProps {
     icon: ReactNode;
     children: ReactNode;
     action?: ReactNode;
+    tone?: "primary" | "accent";
 }
 
-function DashboardCard({ title, subtitle, icon, action, children }: DashboardCardProps) {
+function DashboardCard({ title, subtitle, icon, action, children, tone = "primary" }: DashboardCardProps) {
     return (
         <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.28 }}
-            className="rounded-3xl border border-border/70 bg-card/95 p-5 shadow-sm backdrop-blur-sm"
+            className="rounded-3xl border border-border/70 bg-card p-5 shadow-sm transition-shadow hover:shadow-md"
         >
             <div className="mb-4 flex items-start justify-between gap-3">
                 <div>
                     <p className="text-sm font-semibold text-card-foreground">{title}</p>
                     {subtitle && <p className="mt-1 text-xs text-muted-foreground">{subtitle}</p>}
                 </div>
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                <div
+                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl ${
+                        tone === "accent" ? "bg-accent/15 text-accent" : "bg-primary/10 text-primary"
+                    }`}
+                >
                     {icon}
                 </div>
             </div>
             {children}
             {action && <div className="mt-4">{action}</div>}
         </motion.div>
-    );
-}
-
-function StatPill({ label, value }: { label: string; value: string }) {
-    return (
-        <div className="rounded-2xl border border-border/70 bg-background/60 px-3 py-2">
-            <p className="text-[11px] text-muted-foreground">{label}</p>
-            <p className="mt-1 text-sm font-semibold text-foreground">{value}</p>
-        </div>
     );
 }
 
@@ -106,7 +102,7 @@ export default function Dashboard() {
 
     if (isLoading) {
         return (
-            <div className="min-h-screen p-4 md:p-6 flex items-center justify-center">
+            <div className="min-h-screen font-outfit p-4 md:p-6 flex items-center justify-center">
                 <div className="text-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
                     <div className="text-lg text-muted-foreground">Loading dashboard...</div>
@@ -169,18 +165,21 @@ export default function Dashboard() {
         { name: "Peer 4", grade: 65 },
     ];
 
+    // Brand palette: navy, orange, gold, light-navy.
+    const CHART_COLORS = ['#293073', '#FB6801', '#C08A2D', '#6B72B8'];
+
     const achievementData = (gamificationData?.badges?.filter((b: any) => b.earned) || []).slice(0, 4).map((badge: any, idx: number) => ({
         name: badge.name,
         value: badge.points || 10,
-        color: ['#2563eb', '#f97316', '#0f766e', '#7c3aed'][idx % 4],
+        color: CHART_COLORS[idx % 4],
     }));
 
     if (achievementData.length === 0) {
         achievementData.push(
-            { name: "CBT Passed", value: 18, color: "#2563eb" },
-            { name: "Streaks", value: 7, color: "#f97316" },
-            { name: "Live Classes", value: 9, color: "#0f766e" },
-            { name: "Badges", value: 5, color: "#7c3aed" }
+            { name: "CBT Passed", value: 18, color: CHART_COLORS[0] },
+            { name: "Streaks", value: 7, color: CHART_COLORS[1] },
+            { name: "Live Classes", value: 9, color: CHART_COLORS[2] },
+            { name: "Badges", value: 5, color: CHART_COLORS[3] }
         );
     }
 
@@ -210,30 +209,46 @@ export default function Dashboard() {
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.35 }}
-                className="overflow-hidden rounded-3xl border border-primary/20 bg-linear-to-br from-primary/15 via-background to-sky-500/10 p-6"
+                className="relative overflow-hidden rounded-3xl bg-primary p-6 text-white sm:p-8"
             >
-                <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+                {/* Soft solid shapes (no gradients) */}
+                <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+                    <div className="absolute -top-16 -right-10 h-56 w-56 rounded-full bg-white/5" />
+                    <div className="absolute -bottom-24 -left-12 h-72 w-72 rounded-full bg-white/5" />
+                </div>
+
+                <div className="relative flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
                     <div>
-                        <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">
+                        <span className="text-xs font-semibold uppercase tracking-[0.22em] text-accent-300">
                             Student Dashboard
-                        </p>
-                        <h1 className="mt-2 text-2xl font-bold text-foreground sm:text-3xl">
+                        </span>
+                        <h1 className="mt-2 text-2xl font-bold sm:text-3xl">
                             {greeting()}, {firstName}
                         </h1>
-                        <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+                        <p className="mt-2 max-w-2xl text-sm text-white/75">
                             Track your learning rhythm, CBT readiness, and weekly class position from one focused dashboard.
                         </p>
                     </div>
-                    <Avatar className="h-16 w-16 border-2 border-primary/20">
-                        <AvatarFallback className="bg-primary/10 text-primary text-xl">
+                    <Avatar className="h-16 w-16 border-2 border-white/20">
+                        <AvatarFallback className="bg-white/10 text-white text-xl">
                             {fullName.split(' ').map(n => n[0]).join('').toUpperCase()}
                         </AvatarFallback>
                     </Avatar>
                 </div>
-                <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
-                    <StatPill label="Student ID" value={studentId} />
-                    <StatPill label="Department" value={department} />
-                    <StatPill label="Level" value={level} />
+                <div className="relative mt-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
+                    {[
+                        { label: "Student ID", value: studentId },
+                        { label: "Department", value: department },
+                        { label: "Level", value: level },
+                    ].map((pill) => (
+                        <div
+                            key={pill.label}
+                            className="rounded-2xl border border-white/10 bg-white/10 px-4 py-3 backdrop-blur-sm"
+                        >
+                            <p className="text-[11px] text-white/60">{pill.label}</p>
+                            <p className="mt-1 text-sm font-semibold text-white">{pill.value}</p>
+                        </div>
+                    ))}
                 </div>
             </motion.div>
 
@@ -243,6 +258,7 @@ export default function Dashboard() {
                     title="Study Streak"
                     subtitle="Your consistency pulse"
                     icon={<Flame size={18} />}
+                    tone="accent"
                 >
                     <p className="text-3xl font-bold text-foreground">{gamificationData?.profile?.streak || 0} days</p>
                     <p className="mt-1 text-xs text-muted-foreground">Level {gamificationData?.profile?.level || 1} • {gamificationData?.profile?.points || 0} points</p>
@@ -452,7 +468,7 @@ export default function Dashboard() {
                                         <XAxis dataKey="name" tickLine={false} axisLine={false} fontSize={12} />
                                         <YAxis domain={[0, 100]} tickLine={false} axisLine={false} fontSize={12} />
                                         <Tooltip />
-                                        <Bar dataKey="grade" radius={[8, 8, 0, 0]} fill="#f59e0b" />
+                                        <Bar dataKey="grade" radius={[8, 8, 0, 0]} fill="#FB6801" />
                                     </BarChart>
                                 </ResponsiveContainer>
                             </div>
@@ -496,8 +512,8 @@ export default function Dashboard() {
                                 <AreaChart data={cbtPerformanceData} margin={{ left: 0, right: 8, top: 10, bottom: 0 }}>
                                     <defs>
                                         <linearGradient id="cbtScoreFill" x1="0" x2="0" y1="0" y2="1">
-                                            <stop offset="0%" stopColor="#0ea5e9" stopOpacity={0.5} />
-                                            <stop offset="100%" stopColor="#0ea5e9" stopOpacity={0.05} />
+                                            <stop offset="0%" stopColor="#293073" stopOpacity={0.45} />
+                                            <stop offset="100%" stopColor="#293073" stopOpacity={0.04} />
                                         </linearGradient>
                                     </defs>
                                     <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.25} />
@@ -507,7 +523,7 @@ export default function Dashboard() {
                                     <Area
                                         type="monotone"
                                         dataKey="score"
-                                        stroke="#0ea5e9"
+                                        stroke="#293073"
                                         strokeWidth={2.5}
                                         fill="url(#cbtScoreFill)"
                                     />
