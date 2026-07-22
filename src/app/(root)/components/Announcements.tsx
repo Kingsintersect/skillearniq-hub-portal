@@ -37,10 +37,10 @@ export default function Announcements() {
     return (
         <Card className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm dark:shadow-gray-700/30">
             <CardHeader className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-[#23608c] dark:text-blue-400">Announcements</h2>
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Announcements</h2>
                 <Link
                     href="#"
-                    className="text-sm font-medium text-[#d25400] dark:text-orange-400 hover:text-[#b34800] dark:hover:text-orange-300"
+                    className="text-sm font-medium text-accent hover:text-accent-600"
                 >
                     View all
                 </Link>

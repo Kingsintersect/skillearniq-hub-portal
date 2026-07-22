@@ -3,6 +3,12 @@
 
 @custom-variant dark (&:is(.dark *));
 
+@theme {
+  --font-quicksand: var(--font-quicksand);
+  --font-outfit: var(--font-outfit);
+}
+
+
 @theme inline {
 	--color-background: var(--background);
 	--color-foreground: var(--foreground);
@@ -651,4 +657,50 @@
 
 .no-scrollbar::-webkit-scrollbar {
 	display: none;
+}
+
+/* Marquee (infinite horizontal scroll). Track holds two identical sets;
+   translating by -50% loops seamlessly. */
+@keyframes marquee-x {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee-x 45s linear infinite;
+}
+
+.animate-marquee-reverse {
+  animation: marquee-x 45s linear infinite reverse;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-marquee,
+  .animate-marquee-reverse {
+    animation: none;
+  }
+}
+
+/* Auth form polish — scoped to .auth-scope so dashboard inputs are untouched.
+   Makes fields taller, rounder and gives them a branded accent focus ring. */
+.auth-scope input[data-slot="input"] {
+  height: 2.9rem;
+  border-radius: 0.85rem;
+  padding-inline: 0.9rem;
+  font-size: 0.95rem;
+}
+
+.auth-scope input[data-slot="input"]:focus-visible {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 22%, transparent);
+}
+
+.auth-scope button[data-slot="button"].w-full {
+  height: 2.9rem;
+  border-radius: 0.85rem;
+  font-size: 0.95rem;
 }

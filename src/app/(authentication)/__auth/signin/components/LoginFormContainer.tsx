@@ -15,7 +15,7 @@ const LoginFormContainer = () => {
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
                 <RoleSelector />
 
-                <div className="grid gap-6 mt-10 mb-10">
+                <div className="grid font-outfit gap-6 mt-10 mb-10">
                     <FormField
                         control={form.control}
                         name="email"
