@@ -17,10 +17,10 @@ export const credoPaymentBaseUrl = process.env.NEXT_PUBLIC_CREDO_PAYMENT_GATEWAY
 
 // APPLICATION BASE CONFIG
 export const SITE_VERSION = process.env.NEXT_PUBLIC_APP_VERSION ?? "1.0.0";
-export const SITE_SHORT_NAME = process.env.NEXT_PUBLIC_APP_SHORT_NAME ?? "UPI";
-export const INSTITUTION = process.env.NEXT_PUBLIC_INSTITUTUIN ?? "UNIVERSITY";
-export const SITE_NAME = process.env.NEXT_PUBLIC_APP_NAME ?? "University Portal Interface";
-export const SITE_TITLE = process.env.NEXT_PUBLIC_SITE_TITLE ?? "University Portal Interface";
+export const SITE_SHORT_NAME = process.env.NEXT_PUBLIC_APP_SHORT_NAME ?? "SIQ";
+export const INSTITUTION = process.env.NEXT_PUBLIC_INSTITUTUIN ?? "SkillEarnIQ";
+export const SITE_NAME = process.env.NEXT_PUBLIC_APP_NAME ?? "SkillEarnIQ";
+export const SITE_TITLE = process.env.NEXT_PUBLIC_SITE_TITLE ?? "SkillEarnIQ";
 
 // COOKIE AND SESSION CONFIG
 export const ssoSessionKey = process.env.NEXT_PUBLIC_SSO_SESSION_KEY ?? "";
@@ -51,6 +51,7 @@ export enum UserRole {
     TEACHER = "TEACHER",
     MANAGER = "MANAGER",
     PARENT = "PARENT",
+    SUPER_ADMIN = "SUPER_ADMIN", // was missing entirely
 }
 
 export const APPLICATION_FEE = 37000;

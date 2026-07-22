@@ -5,7 +5,7 @@ const Layout = ({ children }: { children: ReactNode }) => {
     return (
         <main className='root'>
             <div className="root-container">
-                <div className="wrapper">
+                <div className="wrapper font-outfit">
                     <HomeHeader />
                     {children}
                 </div>

@@ -1,8 +1,8 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Users } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PartyPopper, Users } from "lucide-react";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { EmptyState, FullPageLoader } from "@/modules/shared";
 import { useMyGroup } from "../hooks/use-subscription";
 import { CapacityMeter } from "./capacity-meter";
@@ -10,7 +10,6 @@ import { MemberSlotGrid } from "./member-slot-grid";
 import { InviteMemberDialog } from "./invite-member-dialog";
 
 export interface GroupDashboardProps {
-  /** The current authenticated user's id, to determine ownership-gated actions. */
   currentUserId: number;
 }
 
@@ -19,7 +18,6 @@ export function GroupDashboard({ currentUserId }: GroupDashboardProps) {
 
   if (isLoading) return <FullPageLoader label="Loading your group…" />;
 
-  // 🛠️ FIX: Catch empty arrays [] or objects missing 'active_members' safely
   if (!group || Array.isArray(group) || !group.active_members) {
     return (
       <EmptyState
@@ -30,30 +28,26 @@ export function GroupDashboard({ currentUserId }: GroupDashboardProps) {
     );
   }
 
-  // 🛠️ FIX: Add optional chaining (?.) for absolute runtime safety
-  const isOwner = group.active_members?.some(
-    (m) => m.user_id === currentUserId
-  ) ?? false;
+  const isOwner = group.active_members?.some((m) => m.user_id === currentUserId) ?? false;
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
+      transition={{ duration: 0.35, ease: "easeOut" }}
     >
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between gap-2">
-          <div>
-            <CardTitle className="text-base">{group.plan_name}</CardTitle>
-            <p className="text-xs text-muted-foreground">
-              Owned by {group.owner_name}
-            </p>
+      <Card className="overflow-hidden border-none shadow-sm dark:bg-[#141833]">
+        <CardHeader className="flex flex-row items-center justify-between gap-2 bg-gradient-to-br from-[#293073] to-[#1B2151] px-5 py-6 text-white">
+          <div className="flex items-center gap-2">
+            <PartyPopper className="h-5 w-5 text-[#FD8A3D]" />
+            <div>
+              <p className="text-base font-semibold">{group.plan_name}</p>
+              <p className="text-xs text-white/60">Owned by {group.owner_name}</p>
+            </div>
           </div>
-          {isOwner && (
-            <InviteMemberDialog availableSlots={group.available_slots} />
-          )}
+          {isOwner && <InviteMemberDialog availableSlots={group.available_slots} />}
         </CardHeader>
-        <CardContent className="space-y-6">
+        <CardContent className="space-y-6 p-5">
           <CapacityMeter group={group} />
           <MemberSlotGrid group={group} isOwner={isOwner} />
         </CardContent>

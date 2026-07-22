@@ -226,7 +226,7 @@ export default function LoginPage() {
   if (authMethod === "otp") {
     return (
 
-      <div className="min-h-screen flex-1">
+      <div className="min-h-screen font-outfit flex-1">
         <div className="grid grid-cols-1 lg:grid-cols-12 min-h-screen gap-0">
           {/* Left Sidebar Content (Hidden on Mobile) */}
           <div className="min-h-screen hidden lg:block lg:col-span-7 xl:col-span-8">
@@ -234,7 +234,7 @@ export default function LoginPage() {
           </div>
 
           {/* Right Side Form (Takes full width on Mobile) */}
-          <div className="min-h-screen lg:col-span-5 xl:col-span-4 flex flex-col justify-center bg-primary-50">
+          <div className="min-h-screen font-outfit lg:col-span-5 xl:col-span-4 flex flex-col justify-center bg-secondary-50 dark:bg-gray-950">
             <OtpLoginCard
               otpStep={otpStep}
               otpIdentity={otpIdentity}
@@ -254,7 +254,7 @@ export default function LoginPage() {
               <button
                 onClick={() => setAuthMethod("otp")}
                 disabled={otpLoading}
-                className="inline-flex items-center gap-1.5 text-sm text-blue-500 hover:text-blue-600 underline disabled:opacity-50 disabled:cursor-not-allowed"
+                className="inline-flex items-center gap-1.5 text-sm text-accent hover:text-accent-600 underline disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {otpLoading && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
                 Sign in with OTP instead
@@ -379,7 +379,7 @@ export default function LoginPage() {
         </div>
 
         {/* Right Side Form (Takes full width on Mobile) */}
-        <div className="min-h-screen lg:col-span-5 xl:col-span-4 flex flex-col justify-center bg-primary-50">
+        <div className="min-h-screen lg:col-span-5 xl:col-span-4 flex flex-col justify-center bg-secondary-50 dark:bg-gray-950">
           <LoginForm
             onSubmitOverride={handlePasswordSubmit}
             isPending={otpLoading}
@@ -390,7 +390,7 @@ export default function LoginPage() {
             <button
               onClick={() => setAuthMethod("otp")}
               disabled={otpLoading}
-              className="inline-flex items-center gap-1.5 text-sm text-blue-500 hover:text-blue-600 underline disabled:opacity-50 disabled:cursor-not-allowed"
+              className="inline-flex items-center gap-1.5 text-sm text-accent hover:text-accent-600 underline disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {otpLoading && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
               Sign in with OTP instead

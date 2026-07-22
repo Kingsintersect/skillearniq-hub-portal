@@ -33,7 +33,7 @@ export default function ProtectedRoute({ children, allowedRoles }: ProtectedRout
                 [UserRole.STUDENT]: '/student/dashboard',
             };
 
-            const redirectPath = roleRoutes[user.role as UserRole] || '/auth/signin';
+            const redirectPath = roleRoutes[user.role] || '/auth/signin';
 
             if (!pathname.startsWith(redirectPath.replace('/dashboard', ''))) {
                 router.push(redirectPath);

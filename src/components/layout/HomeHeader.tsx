@@ -10,15 +10,17 @@ export const HomeHeader: React.FC = () => {
     const { isScrolled } = useScrollAnimation();
 
     return (
-        <header
-            className={cn(
-                'fixed top-0 left-0 right-0 bg-white dark:bg-gray-900 dark:border-b dark:border-b-gray-700 z-50 transition-all duration-300',
-                isScrolled ? 'shadow-lg dark:shadow-gray-800/50' : 'shadow-md dark:shadow-gray-800/30'
-            )}
-        >
-            <div className="max-w-7xl mx-auto flex justify-between items-center px-6 py-1">
-                <Logo size='lg' />
-
+        <header className="fixed top-4 inset-x-0 z-50 px-4">
+            <div
+                className={cn(
+                    'relative mx-auto max-w-6xl flex justify-between items-center gap-4',
+                    'rounded-full border border-gray-200/70 dark:border-gray-700/70',
+                    'bg-white/80 dark:bg-gray-900/80 backdrop-blur-md',
+                    'px-4 sm:px-6 py-2.5 transition-all duration-300',
+                    isScrolled ? 'shadow-xl shadow-black/5' : 'shadow-md shadow-black/5'
+                )}
+            >
+                <Logo size="md" />
                 <Navigation />
             </div>
         </header>

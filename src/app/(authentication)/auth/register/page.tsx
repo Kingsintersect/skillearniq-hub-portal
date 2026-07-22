@@ -64,7 +64,7 @@ const RegisterPage = () => {
     };
 
     return (
-        <div className="min-h-screen flex-1">
+        <div className="min-h-screen font-outfit flex-1">
             <div className="grid grid-cols-1 lg:grid-cols-12 min-h-screen gap-0">
                 {/* Left Sidebar Content (Hidden on Mobile) */}
                 <div className="min-h-screen hidden lg:block  lg:col-span-5 xl:col-span-4">
@@ -72,7 +72,7 @@ const RegisterPage = () => {
                 </div>
 
                 {/* Right Side Form (Takes full width on Mobile) */}
-                <div className="min-h-screen lg:col-span-7 xl:col-span-8 flex flex-col justify-center  px-10 bg-primary-50">
+                <div className="auth-scope min-h-screen lg:col-span-7 xl:col-span-8 flex flex-col justify-center  px-10 bg-secondary-50 dark:bg-gray-950">
                     <AuthContainerHeader
                         heading='Create your account'
                         subHeading='Follow the steps below to create your account and access the Learning Management System.'

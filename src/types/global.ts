@@ -19,7 +19,7 @@ export interface UserInterface extends Record<string, unknown> {
     username: string | null;
     email: string;
     phone: string;
-    role: UserRole | string; // extend as needed
+    role: UserRole;
     is_active: number;
     email_verified: number;
     phone_verified: number;

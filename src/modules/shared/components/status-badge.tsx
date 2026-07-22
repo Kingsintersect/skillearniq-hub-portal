@@ -16,21 +16,11 @@ const toneClasses: Record<StatusTone, string> = {
   info: "bg-primary-50 text-primary-700 border-primary-200",
 };
 
-/**
- * Maps backend status strings (e.g. subscription_groups.status,
- * payments.status, group_invitations.status) to a visual tone.
- */
 export function statusToTone(status: string): StatusTone {
   const normalized = status.toLowerCase();
-  if (["active", "successful", "accepted", "verified", "credited"].includes(normalized)) {
-    return "success";
-  }
-  if (["pending", "pending_payment", "past_due"].includes(normalized)) {
-    return "warning";
-  }
-  if (["cancelled", "failed", "expired", "locked", "blocked"].includes(normalized)) {
-    return "danger";
-  }
+  if (["active", "successful", "accepted", "verified", "credited"].includes(normalized)) return "success";
+  if (["pending", "pending_payment", "past_due"].includes(normalized)) return "warning";
+  if (["cancelled", "failed", "expired", "locked", "blocked"].includes(normalized)) return "danger";
   return "neutral";
 }
 
