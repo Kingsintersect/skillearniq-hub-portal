@@ -1,72 +1,72 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { cn, clamp } from "@/modules/shared";
-import type { MyGroup } from "../types";
+import * as React from "react";
+import gsap from "gsap";
 
-export interface CapacityMeterProps {
-  group: MyGroup;
+export interface CapacityMeterGroup {
+  active_members: unknown[];
+  available_slots: number;
 }
 
-/**
- * Visualizes Rule 3.2: Active Members + Pending Invitations <= Max Plan Capacity.
- * Filled segments = active members, hatched/lighter segments = reserved
- * (pending invitation) slots, per Rule 3.3 slot locking.
- */
+export interface CapacityMeterProps {
+  group: CapacityMeterGroup;
+}
+
 export function CapacityMeter({ group }: CapacityMeterProps) {
-  const { max_slots, active_members, pending_invitations } = group;
-  const activeCount = active_members.length;
-  const pendingCount = pending_invitations.length;
-  const usedCount = clamp(activeCount + pendingCount, 0, max_slots);
-  const percentUsed = max_slots > 0 ? (usedCount / max_slots) * 100 : 0;
+  const filled = group.active_members.length;
+  const total = filled + group.available_slots;
+  const percent = total > 0 ? Math.round((filled / total) * 100) : 0;
+
+  const barRef = React.useRef<HTMLDivElement>(null);
+  const countRef = React.useRef<HTMLSpanElement>(null);
+
+  React.useLayoutEffect(() => {
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    const ctx = gsap.context(() => {
+      if (reduce) {
+        gsap.set(barRef.current, { width: `${percent}%` });
+        if (countRef.current) countRef.current.textContent = String(filled);
+        return;
+      }
+      gsap.fromTo(
+        barRef.current,
+        { width: "0%" },
+        { width: `${percent}%`, duration: 1, ease: "power3.out" }
+      );
+      const counter = { value: 0 };
+      gsap.to(counter, {
+        value: filled,
+        duration: 1,
+        ease: "power3.out",
+        onUpdate: () => {
+          if (countRef.current) countRef.current.textContent = String(Math.round(counter.value));
+        },
+      });
+    });
+
+    return () => ctx.revert();
+  }, [filled, percent]);
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center justify-between text-sm">
-        <span className="font-medium text-foreground">
-          {group.available_slots} of {max_slots} slots available
-        </span>
-        <span className="text-muted-foreground">{group.plan_name}</span>
+      <div className="flex items-baseline justify-between">
+        <p className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-white/50">
+          Squad capacity
+        </p>
+        <p className="text-sm font-semibold text-slate-900 dark:text-white">
+          <span ref={countRef}>0</span>
+          <span className="text-slate-400 dark:text-white/40"> / {total} seats filled</span>
+        </p>
       </div>
-
-      <div className="flex h-2.5 overflow-hidden rounded-full bg-muted">
-        <motion.div
-          className="h-full bg-primary"
-          initial={{ width: 0 }}
-          animate={{ width: `${(activeCount / max_slots) * 100}%` }}
-          transition={{ duration: 0.4, ease: "easeOut" }}
-        />
-        <motion.div
-          className="h-full bg-accent-300"
-          initial={{ width: 0 }}
-          animate={{ width: `${(pendingCount / max_slots) * 100}%` }}
-          transition={{ duration: 0.4, delay: 0.15, ease: "easeOut" }}
+      <div className="h-3 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-white/10">
+        <div
+          ref={barRef}
+          className="h-full rounded-full bg-gradient-to-r from-[#293073] to-[#FB6801]"
+          style={{ width: 0 }}
         />
       </div>
-
-      <div className="flex gap-4 text-xs text-muted-foreground">
-        <span className="flex items-center gap-1.5">
-          <span className="h-2 w-2 rounded-full bg-primary" />
-          {activeCount} active
-        </span>
-        {pendingCount > 0 && (
-          <span className="flex items-center gap-1.5">
-            <span className="h-2 w-2 rounded-full bg-accent-300" />
-            {pendingCount} pending invite{pendingCount > 1 ? "s" : ""}
-          </span>
-        )}
-      </div>
-
-      <p
-        className={cn(
-          "text-xs",
-          percentUsed >= 100 ? "text-destructive" : "text-muted-foreground"
-        )}
-      >
-        {percentUsed >= 100
-          ? "All slots are reserved or filled."
-          : `${group.available_slots} slot${group.available_slots === 1 ? "" : "s"} left to invite.`}
-      </p>
     </div>
   );
 }
+

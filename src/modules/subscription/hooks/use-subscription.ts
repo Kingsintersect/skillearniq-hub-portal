@@ -33,15 +33,6 @@ export function useSendInvitation() {
   });
 }
 
-// export function useVerifyInvitationToken(token: string, enabled = true) {
-//   return useQuery({
-//     queryKey: queryKeys.subscription.invitationToken(token),
-//     queryFn: () => authApi.verifyInvitation(token),
-//     select: (response) => response.data,
-//     enabled: enabled && token.length > 0,
-//     retry: false,
-//   });
-// }
 export function useVerifyInvitationToken(token: string, enabled = true) {
   return useQuery({
     queryKey: queryKeys.subscription.invitationToken(token),

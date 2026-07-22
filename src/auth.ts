@@ -1,4 +1,5 @@
 import NextAuth, { User } from "next-auth"
+import { toRole } from "./lib/rbac"
 import Credentials from "next-auth/providers/credentials"
 import { signInFormData, signInSchema } from "./schema/auth-schema"
 import { authApi } from "./lib/services/auth"
@@ -31,7 +32,8 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
                         return {
                             ...user,
                             id: String(user.id),
-                            role: user.role.toUpperCase(),
+                            // role: user.role.toUpperCase(),
+                            role: toRole(user.role),
                             access_token: token,
                             expires_in: expires_in ?? 86400,
                         } as unknown as User;
@@ -120,7 +122,8 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
                         name: `${user.first_name} ${user.last_name}`,
                         first_name: user.first_name,
                         last_name: user.last_name,
-                        role: user.role.toUpperCase(),
+                        // role: user.role.toUpperCase(),
+                        role: toRole(user.role),
                         access_token,
                         expires_in: expiresInSeconds ?? 86400,
                     } as unknown as User;
@@ -158,7 +161,8 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
                     name: `${credentials.user_first_name} ${credentials.user_last_name}`,
                     first_name: credentials.user_first_name as string,
                     last_name: credentials.user_last_name as string,
-                    role: (credentials.user_role as string).toUpperCase(),
+                    // role: (credentials.user_role as string).toUpperCase(),
+                    role: toRole(credentials.user_role as string),
                     access_token: credentials.access_token as string,
                     expires_in: 86400,
                 } as unknown as User;

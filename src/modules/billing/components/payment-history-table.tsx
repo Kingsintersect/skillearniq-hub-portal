@@ -36,10 +36,14 @@ export function PaymentHistoryTable() {
   }
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="overflow-hidden rounded-2xl border border-border bg-card"
+    >
       <Table>
         <TableHeader>
-          <TableRow>
+          <TableRow className="hover:bg-transparent">
             <TableHead>Date</TableHead>
             <TableHead>Amount</TableHead>
             <TableHead>Gateway</TableHead>
@@ -50,24 +54,15 @@ export function PaymentHistoryTable() {
         <TableBody>
           {payments.map((payment) => (
             <TableRow key={payment.id}>
-              <TableCell className="text-sm text-muted-foreground">
-                {formatDate(payment.created_at)}
-              </TableCell>
-              <TableCell className="text-sm font-medium text-foreground">
-                {formatCurrency(payment.amount)}
-              </TableCell>
+              <TableCell className="text-sm text-muted-foreground">{formatDate(payment.created_at)}</TableCell>
+              <TableCell className="text-sm font-medium text-foreground">{formatCurrency(payment.amount)}</TableCell>
               <TableCell className="text-sm capitalize text-muted-foreground">
                 {payment.gateway.replace("_", " ")}
               </TableCell>
               <TableCell>
-                <StatusBadge
-                  label={payment.status}
-                  tone={statusToTone(payment.status)}
-                />
+                <StatusBadge label={payment.status} tone={statusToTone(payment.status)} />
               </TableCell>
-              <TableCell className="font-mono text-xs text-muted-foreground">
-                {payment.reference}
-              </TableCell>
+              <TableCell className="font-mono text-xs text-muted-foreground">{payment.reference}</TableCell>
             </TableRow>
           ))}
         </TableBody>
