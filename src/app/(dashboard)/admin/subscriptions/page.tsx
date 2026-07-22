@@ -276,18 +276,23 @@ export default function AdminSubscriptionsPage() {
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-xl font-semibold text-foreground">Subscription Plans</h1>
-                    <p className="text-sm text-muted-foreground">
-                        Manage the plans subscribers can choose from.
-                    </p>
+            <section className="relative overflow-hidden rounded-3xl bg-primary p-6 text-white sm:p-8">
+                <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-white/5" />
+                <div className="pointer-events-none absolute -bottom-20 -left-10 h-52 w-52 rounded-full bg-white/5" />
+                <div className="relative flex flex-wrap items-start justify-between gap-4">
+                    <div>
+                        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent-300">Billing</p>
+                        <h1 className="mt-2 text-2xl font-bold sm:text-3xl">Subscription Plans</h1>
+                        <p className="mt-2 text-sm text-white/75">
+                            Manage the plans subscribers can choose from.
+                        </p>
+                    </div>
+                    <Button onClick={openCreate} variant="secondary">
+                        <Plus className="mr-2 h-4 w-4" />
+                        New Plan
+                    </Button>
                 </div>
-                <Button onClick={openCreate}>
-                    <Plus className="mr-2 h-4 w-4" />
-                    New Plan
-                </Button>
-            </div>
+            </section>
 
             {/* Table */}
             <div className="rounded-md border">

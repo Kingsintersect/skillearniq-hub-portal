@@ -133,7 +133,7 @@ export default function StudentChartsSection() {
                                 labelLine={false}
                                 label={({ name }) => name}
                                 outerRadius={100}
-                                fill="#8884d8"
+                                fill="#293073"
                                 dataKey="value"
                             >
                                 {pieChartData.map((entry, index) => (

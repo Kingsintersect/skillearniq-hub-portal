@@ -29,6 +29,7 @@ import {
   type RegisterCompleteFormValues,
 } from "../schemas";
 import type { RegistrableRole } from "../types";
+import { AFRICAN_COUNTRIES, getAfricanCountry } from "@/lib/africa-countries";
 
 export interface ProfileCompletionStepProps {
   role: RegistrableRole;
@@ -82,7 +83,7 @@ export function ProfileCompletionStep({
                     <SelectValue placeholder="Select gender" />
                   </SelectTrigger>
                 </FormControl>
-                <SelectContent>
+                <SelectContent className="font-outfit">
                   <SelectItem value="male">Male</SelectItem>
                   <SelectItem value="female">Female</SelectItem>
                 </SelectContent>
@@ -95,15 +96,39 @@ export function ProfileCompletionStep({
         <FormField
           control={form.control}
           name="nationality"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Nationality</FormLabel>
-              <FormControl>
-                <Input placeholder="Nigerian" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+          render={({ field }) => {
+            const selected = getAfricanCountry(field.value);
+            return (
+              <FormItem>
+                <FormLabel>Country</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      {selected ? (
+                        <span className="flex items-center gap-2">
+                          <span className={`fi fi-${selected.code} rounded-sm`} />
+                          {selected.name}
+                        </span>
+                      ) : (
+                        <SelectValue placeholder="Select your country" />
+                      )}
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent className="max-h-72 font-outfit">
+                    {AFRICAN_COUNTRIES.map((country) => (
+                      <SelectItem key={country.code} value={country.name}>
+                        <span className="flex items-center gap-2">
+                          <span className={`fi fi-${country.code} rounded-sm`} />
+                          {country.name}
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            );
+          }}
         />
 
         <FormField

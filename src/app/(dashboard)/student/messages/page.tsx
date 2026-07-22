@@ -162,57 +162,46 @@ export default function StudentMessagesPage() {
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35 }}
-        className="overflow-hidden rounded-3xl border border-primary/20 bg-linear-to-br from-primary/15 via-background to-sky-500/10 p-6"
+        className="relative overflow-hidden rounded-3xl bg-primary p-6 text-white sm:p-8"
       >
-        <div className="flex flex-wrap items-start justify-between gap-4">
+        <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div className="absolute -top-16 -right-10 h-56 w-56 rounded-full bg-white/5" />
+          <div className="absolute -bottom-24 -left-12 h-72 w-72 rounded-full bg-white/5" />
+        </div>
+
+        <div className="relative flex flex-wrap items-start justify-between gap-4">
           <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Communication Hub</p>
-            <h1 className="mt-2 text-2xl font-bold text-foreground sm:text-3xl">Messages</h1>
-            <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+            <span className="text-xs font-semibold uppercase tracking-[0.2em] text-accent-300">Communication Hub</span>
+            <h1 className="mt-2 text-2xl font-bold sm:text-3xl">Messages</h1>
+            <p className="mt-2 max-w-2xl text-sm text-white/75">
               Send and receive messages with your teachers. Track all your conversations in one place.
             </p>
           </div>
-          <Button onClick={() => setOpen(true)} className="gap-2">
+          <Button onClick={() => setOpen(true)} variant="varsecondary" className="gap-2">
             <Send size={16} />
             New Message
           </Button>
         </div>
 
         {/* Stats Cards */}
-        <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
-          <div className="rounded-2xl border border-border/70 bg-background/60 p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs text-muted-foreground">Sent Messages</p>
-                <p className="mt-1 text-2xl font-bold text-foreground">{sentCount}</p>
-              </div>
-              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-                <Mail size={18} />
-              </div>
-            </div>
-          </div>
-          <div className="rounded-2xl border border-border/70 bg-background/60 p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs text-muted-foreground">Received Messages</p>
-                <p className="mt-1 text-2xl font-bold text-foreground">{receivedCount}</p>
-              </div>
-              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-                <Inbox size={18} />
+        <div className="relative mt-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
+          {[
+            { label: "Sent Messages", value: sentCount, icon: <Mail size={18} /> },
+            { label: "Received Messages", value: receivedCount, icon: <Inbox size={18} /> },
+            { label: "Teachers Available", value: teachers.length, icon: <Users size={18} /> },
+          ].map((stat) => (
+            <div key={stat.label} className="rounded-2xl border border-white/10 bg-white/10 p-4 backdrop-blur-sm">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-white/60">{stat.label}</p>
+                  <p className="mt-1 text-2xl font-bold text-white">{stat.value}</p>
+                </div>
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/15 text-white">
+                  {stat.icon}
+                </div>
               </div>
             </div>
-          </div>
-          <div className="rounded-2xl border border-border/70 bg-background/60 p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs text-muted-foreground">Teachers Available</p>
-                <p className="mt-1 text-2xl font-bold text-foreground">{teachers.length}</p>
-              </div>
-              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-                <Users size={18} />
-              </div>
-            </div>
-          </div>
+          ))}
         </div>
       </motion.section>
 
@@ -332,7 +321,7 @@ export default function StudentMessagesPage() {
 
       {/* Compose Dialog */}
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-lg rounded-3xl">
+        <DialogContent className="max-w-lg font-outfit rounded-3xl">
           <DialogHeader>
             <DialogTitle className="text-xl">New Message</DialogTitle>
           </DialogHeader>

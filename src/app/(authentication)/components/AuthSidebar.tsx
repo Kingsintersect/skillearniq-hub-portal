@@ -19,12 +19,16 @@ export default function AuthSidebar() {
 
             {/* Brand */}
             <div className="relative">
-                <Link href="/" className="inline-flex items-center gap-2.5">
-                    <span className="grid h-10 w-10 place-items-center rounded-xl bg-accent text-white">
-                        <GraduationCap className="h-5 w-5" />
-                    </span>
-                    <span className="text-xl font-extrabold tracking-tight">
-                        Skillearn<span className="text-accent-300">IQ</span>
+                <Link href="/" className="inline-flex items-center" aria-label="SkillearnIQ Hub home">
+                    <span className="inline-flex items-center justify-center rounded-2xl bg-white p-2 shadow-sm">
+                        <Image
+                            src="/logo/logo.jpg"
+                            alt="SkillearnIQ Hub"
+                            width={160}
+                            height={160}
+                            className="h-16 w-16 object-contain"
+                            priority
+                        />
                     </span>
                 </Link>
             </div>

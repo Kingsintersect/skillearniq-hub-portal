@@ -118,7 +118,7 @@ export const TeachersTable: React.FC<TeachersTableProps> = ({
                                     <div>
                                         <button
                                             onClick={() => router.push(`/admin/teachers/${teacher.id}`)}
-                                            className="font-medium hover:text-blue-600 hover:underline text-left text-foreground"
+                                            className="font-medium hover:text-accent hover:underline text-left text-foreground"
                                         >
                                             {teacher.first_name} {teacher.last_name}
                                         </button>
@@ -179,7 +179,7 @@ export const TeachersTable: React.FC<TeachersTableProps> = ({
                                             variant="outline"
                                             size="sm"
                                             onClick={() => onEditTeacher(teacher)}
-                                            className="border-border hover:bg-blue-500/10 hover:text-blue-600"
+                                            className="border-border hover:bg-accent/10 hover:text-accent"
                                         >
                                             <Edit className="h-4 w-4" />
                                         </Button>

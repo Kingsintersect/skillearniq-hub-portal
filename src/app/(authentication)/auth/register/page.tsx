@@ -7,6 +7,7 @@ import { useLocalStorage } from '@/hooks/use-local-storage'
 import { LOCAL_STORAGE_KEYS } from '@/config'
 import { UserInterface } from '@/types/global'
 import { toast } from 'sonner'
+import Image from 'next/image'
 import AuthSidebar from '../../components/AuthSidebar'
 import { AuthContainerHeader } from '../components/AuthContainerHeader'
 import { Fingerprint } from 'lucide-react'
@@ -73,6 +74,9 @@ const RegisterPage = () => {
 
                 {/* Right Side Form (Takes full width on Mobile) */}
                 <div className="auth-scope min-h-screen lg:col-span-7 xl:col-span-8 flex flex-col justify-center  px-10 bg-secondary-50 dark:bg-gray-950">
+                    <div className="mb-6 flex justify-start lg:hidden">
+                        <Image src="/logo/logo.jpg" alt="SkillearnIQ Hub" width={140} height={140} className="h-16 w-16 object-contain" />
+                    </div>
                     <AuthContainerHeader
                         heading='Create your account'
                         subHeading='Follow the steps below to create your account and access the Learning Management System.'

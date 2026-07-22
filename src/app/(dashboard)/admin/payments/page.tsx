@@ -196,10 +196,15 @@ export default function PaymentsPage() {
   return (
     <div className="min-h-screen p-6 bg-background">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground">Payment History</h1>
-          <p className="text-muted-foreground">View and manage all student payments</p>
-        </div>
+        <section className="relative mb-8 overflow-hidden rounded-3xl bg-primary p-6 text-white sm:p-8">
+          <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-white/5" />
+          <div className="pointer-events-none absolute -bottom-20 -left-10 h-52 w-52 rounded-full bg-white/5" />
+          <div className="relative">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent-300">Finance</p>
+            <h1 className="mt-2 text-2xl font-bold sm:text-3xl">Payment History</h1>
+            <p className="mt-2 text-sm text-white/75">View and manage all student payments across the school.</p>
+          </div>
+        </section>
 
         {/* Filters and Search */}
         <Card className="mb-6 bg-card border-border">

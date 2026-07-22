@@ -6,7 +6,9 @@ import { motion } from "framer-motion";
 import { ArrowLeft, CreditCard, Loader2, PackageX } from "lucide-react";
 import type { SubscriptionInitializeData } from "@/modules/auth/types";
 import { CheckoutForm, usePlans } from "@/modules/billing";
-import { EmptyState, FullPageLoader, formatCurrency } from "@/modules/shared";
+import { EmptyState, FullPageLoader } from "@/modules/shared";
+import { formatLocalizedPrice } from "@/lib/pricing";
+import { useUserCountry } from "@/lib/user-country";
 import { BankTransferInstructions } from "@/modules/billing/components/bank-transfer-instructions";
 
 type CardData = SubscriptionInitializeData & {
@@ -32,6 +34,7 @@ export default function CheckoutPage() {
 
   const { data: plans, isLoading } = usePlans();
   const [checkout, setCheckout] = React.useState<SubscriptionInitializeData | null>(null);
+  const country = useUserCountry();
 
   const plan = plans?.data?.find((p) => p.id === planId);
 
@@ -120,7 +123,7 @@ export default function CheckoutPage() {
         <div className="mt-1 flex items-end justify-between">
           <p className="text-lg font-bold">{plan.name}</p>
           <p className="text-lg font-bold">
-            {formatCurrency(plan.price)}
+            {formatLocalizedPrice(plan.price, country.currency)}
             <span className="text-xs font-normal text-primary-foreground/60">/mo</span>
           </p>
         </div>
