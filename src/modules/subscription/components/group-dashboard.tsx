@@ -8,6 +8,7 @@ import { useMyGroup } from "../hooks/use-subscription";
 import { CapacityMeter } from "./capacity-meter";
 import { MemberSlotGrid } from "./member-slot-grid";
 import { InviteMemberDialog } from "./invite-member-dialog";
+import { PendingInvitationsTable } from "./pending-invitations-table";
 
 export interface GroupDashboardProps {
   currentUserId: number;
@@ -50,6 +51,9 @@ export function GroupDashboard({ currentUserId }: GroupDashboardProps) {
         <CardContent className="space-y-6 p-5">
           <CapacityMeter group={group} />
           <MemberSlotGrid group={group} isOwner={isOwner} />
+          {group.pending_invitations && (
+            <PendingInvitationsTable invitations={group.pending_invitations} isOwner={isOwner} />
+          )}
         </CardContent>
       </Card>
     </motion.div>
