@@ -51,6 +51,7 @@ export enum UserRole {
     TEACHER = "TEACHER",
     MANAGER = "MANAGER",
     PARENT = "PARENT",
+    SUPER_ADMIN = "SUPER_ADMIN", // was missing entirely
 }
 
 export const APPLICATION_FEE = 37000;

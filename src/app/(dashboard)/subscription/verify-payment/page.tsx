@@ -2,8 +2,10 @@
 
 import React, { Suspense, useEffect, useState, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { motion } from "framer-motion";
 import { authApi } from "@/modules/auth/api";
 import { Loader2, CheckCircle2, XCircle, ShieldCheck, ArrowRight, RefreshCw } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 type VerificationStatus = "initializing" | "verifying" | "success" | "failed";
 
@@ -15,7 +17,6 @@ function VerificationContent() {
     const [countdown, setCountdown] = useState<number>(3);
     const [isRetrying, setIsRetrying] = useState<boolean>(false);
 
-    // Extract all Credo callback parameters
     const reference = searchParams.get("reference") || searchParams.get("transRef");
     const transAmount = searchParams.get("transAmount");
     const transRef = searchParams.get("transRef");
@@ -25,7 +26,6 @@ function VerificationContent() {
     const gateway = searchParams.get("gateway");
     const statusParam = searchParams.get("status");
 
-    // Core verification function
     const verifyPayment = useCallback(async () => {
         if (!reference) {
             setStatus("failed");
@@ -37,20 +37,16 @@ function VerificationContent() {
             setStatus("verifying");
             setIsRetrying(false);
 
-            // Pass all Credo parameters to the backend
             const response = await authApi.verifyCredoPayment({
                 reference,
                 transAmount: transAmount || undefined,
                 transRef: transRef || undefined,
             });
 
-            // ✅ Check response - handle both "success" and "Successful" (case insensitive)
             const responseStatus = response.data?.status?.toLowerCase();
 
             if (responseStatus === "success" || responseStatus === "successful") {
                 setStatus("success");
-
-                // Auto-redirect to subscription page after 3 seconds
                 const interval = setInterval(() => {
                     setCountdown((prev) => {
                         if (prev <= 1) {
@@ -60,34 +56,26 @@ function VerificationContent() {
                         return prev - 1;
                     });
                 }, 1000);
-
                 return () => clearInterval(interval);
             } else if (responseStatus === "pending") {
-                // Still pending, retry after 3 seconds
                 setTimeout(() => {
                     verifyPayment();
                 }, 3000);
             } else {
                 setStatus("failed");
-                setErrorMessage(
-                    response.data?.message || "Payment verification failed on the server."
-                );
+                setErrorMessage(response.data?.message || "Payment verification failed on the server.");
             }
         } catch (error: any) {
             console.error("Verification error:", error);
             setStatus("failed");
-            setErrorMessage(
-                error?.message || "We encountered a network error while verifying your payment."
-            );
+            setErrorMessage(error?.message || "We encountered a network error while verifying your payment.");
         }
     }, [reference, transAmount, transRef, processorFee, errorMessageParam, currency, gateway, statusParam, router]);
 
-    // Initial verification on mount
     useEffect(() => {
         verifyPayment();
     }, [verifyPayment]);
 
-    // Handle retry without page reload
     const handleRetry = useCallback(() => {
         setIsRetrying(true);
         setErrorMessage("");
@@ -96,51 +84,56 @@ function VerificationContent() {
 
     return (
         <div className="flex min-h-[60vh] flex-col items-center justify-center p-6 text-center">
-            <div className="w-full max-w-md rounded-2xl border border-slate-100 bg-white p-8 shadow-sm">
-
-                {/* Status Image / Icon Banner */}
+            <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="w-full max-w-md rounded-2xl border border-border bg-card p-8 shadow-sm"
+            >
                 <div className="mb-6 flex justify-center">
                     {status === "verifying" && (
-                        <div className="relative flex h-16 w-16 items-center justify-center rounded-full bg-blue-50 text-blue-600">
+                        <motion.div
+                            animate={{ scale: [1, 1.06, 1] }}
+                            transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
+                            className="flex h-16 w-16 items-center justify-center rounded-full bg-primary-100 text-primary-600 dark:bg-primary-400/15 dark:text-primary-300"
+                        >
                             <Loader2 className="h-8 w-8 animate-spin" />
-                        </div>
+                        </motion.div>
                     )}
                     {status === "success" && (
-                        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-50 text-green-600">
+                        <motion.div
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            transition={{ type: "spring", stiffness: 400, damping: 18 }}
+                            className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 dark:bg-emerald-400/15 dark:text-emerald-300"
+                        >
                             <CheckCircle2 className="h-10 w-10" />
-                        </div>
+                        </motion.div>
                     )}
                     {status === "failed" && (
-                        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-red-50 text-red-600">
+                        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10 text-destructive">
                             <XCircle className="h-10 w-10" />
                         </div>
                     )}
                 </div>
 
-                {/* Content Dynamic Text */}
                 {status === "verifying" && (
                     <>
-                        <h2 className="text-xl font-semibold text-slate-800">Verifying Your Payment</h2>
-                        <p className="mt-2 text-sm text-slate-500">
+                        <h2 className="text-xl font-semibold text-foreground">Verifying your payment</h2>
+                        <p className="mt-2 text-sm text-muted-foreground">
                             {isRetrying
-                                ? "Retrying verification..."
-                                : "Please do not refresh this page or click the back button. We are securely communicating with Credo to verify your transaction."
-                            }
+                                ? "Retrying verification…"
+                                : "Please don't refresh this page or click back. We're securely confirming your transaction."}
                         </p>
-                        {reference && (
-                            <p className="mt-2 text-xs text-slate-400">
-                                Reference: {reference}
-                            </p>
-                        )}
+                        {reference && <p className="mt-2 text-xs text-muted-foreground/70">Reference: {reference}</p>}
                         {transAmount && currency && (
-                            <p className="mt-1 text-xs text-slate-400">
+                            <p className="mt-1 text-xs text-muted-foreground/70">
                                 Amount: {currency} {parseFloat(transAmount).toFixed(2)}
                             </p>
                         )}
                         {isRetrying && (
-                            <div className="mt-4 flex items-center justify-center gap-2 text-xs text-blue-600">
+                            <div className="mt-4 flex items-center justify-center gap-2 text-xs text-primary-600 dark:text-primary-300">
                                 <Loader2 className="h-3 w-3 animate-spin" />
-                                <span>Attempting to verify again...</span>
+                                <span>Attempting to verify again…</span>
                             </div>
                         )}
                     </>
@@ -148,86 +141,73 @@ function VerificationContent() {
 
                 {status === "success" && (
                     <>
-                        <h2 className="text-xl font-semibold text-slate-800">Payment Successful!</h2>
-                        <p className="mt-2 text-sm text-slate-500">
+                        <h2 className="text-xl font-semibold text-foreground">Payment successful!</h2>
+                        <p className="mt-2 text-sm text-muted-foreground">
                             Your subscription is active and your workspace setup is complete.
                         </p>
                         {transAmount && currency && (
-                            <p className="mt-1 text-xs text-slate-400">
+                            <p className="mt-1 text-xs text-muted-foreground/70">
                                 Amount paid: {currency} {parseFloat(transAmount).toFixed(2)}
                             </p>
                         )}
-                        <div className="mt-6 rounded-lg bg-emerald-50/50 p-3 text-xs text-emerald-700">
-                            Redirecting you to your group dashboard in {countdown}s...
+                        <div className="mt-6 rounded-xl bg-emerald-50 p-3 text-xs font-medium text-emerald-700 dark:bg-emerald-400/10 dark:text-emerald-300">
+                            Redirecting you to your dashboard in {countdown}s…
                         </div>
-                        <button
+                        <Button
                             onClick={() => router.push("/subscription")}
-                            className="mt-6 flex w-full items-center justify-center gap-2 rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white transition-all hover:bg-slate-800"
+                            className="mt-6 w-full gap-2 bg-accent-500 text-white hover:bg-accent-600"
+                            size="lg"
                         >
-                            Go to Dashboard <ArrowRight className="h-4 w-4" />
-                        </button>
+                            Go to dashboard <ArrowRight className="h-4 w-4" />
+                        </Button>
                     </>
                 )}
 
                 {status === "failed" && (
                     <>
-                        <h2 className="text-xl font-semibold text-slate-800">Verification Failed</h2>
-                        <p className="mt-2 text-sm text-red-600 bg-red-50/50 rounded-lg p-3 text-left border border-red-100">
+                        <h2 className="text-xl font-semibold text-foreground">Verification failed</h2>
+                        <p className="mt-2 rounded-xl border border-destructive/20 bg-destructive/5 p-3 text-left text-sm text-destructive">
                             {errorMessage || "Payment verification failed. Please try again."}
                         </p>
                         {errorMessageParam && errorMessageParam !== "AUTHENTICATION_SUCCESSFUL" && (
-                            <p className="mt-2 text-xs text-slate-500">
-                                Credo error: {errorMessageParam}
-                            </p>
+                            <p className="mt-2 text-xs text-muted-foreground">Gateway error: {errorMessageParam}</p>
                         )}
-                        <p className="mt-3 text-xs text-slate-400">
-                            If your bank account was debited, please do not panic. Our webhook processor will retroactively update your profile shortly.
+                        <p className="mt-3 text-xs text-muted-foreground">
+                            If your bank account was debited, don't worry — our webhook processor will update your account
+                            automatically shortly.
                         </p>
                         <div className="mt-6 flex flex-col gap-2">
-                            <button
+                            <Button
                                 onClick={handleRetry}
                                 disabled={isRetrying}
-                                className="w-full rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white transition-all hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                className="w-full gap-2 bg-primary-600 text-primary-foreground hover:bg-primary-700"
                             >
-                                {isRetrying ? (
-                                    <>
-                                        <Loader2 className="h-4 w-4 animate-spin" />
-                                        Retrying...
-                                    </>
-                                ) : (
-                                    <>
-                                        <RefreshCw className="h-4 w-4" />
-                                        Retry Verification
-                                    </>
-                                )}
-                            </button>
-                            <button
-                                onClick={() => router.push("/subscription")}
-                                className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-600 transition-all hover:bg-slate-50"
-                            >
-                                Back to Billing Page
-                            </button>
+                                {isRetrying ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+                                {isRetrying ? "Retrying…" : "Retry verification"}
+                            </Button>
+                            <Button variant="outline" className="w-full" onClick={() => router.push("/subscription")}>
+                                Back to billing page
+                            </Button>
                         </div>
                     </>
                 )}
-            </div>
+            </motion.div>
 
-            <div className="mt-6 flex items-center gap-1.5 text-xs text-slate-400">
-                <ShieldCheck className="h-3.5 w-3.5 text-slate-400" />
+            <div className="mt-6 flex items-center gap-1.5 text-xs text-muted-foreground">
+                <ShieldCheck className="h-3.5 w-3.5" />
                 <span>Securely processed by Credo Payment Systems</span>
             </div>
         </div>
     );
 }
 
-// Wrap the content block inside a Suspense Boundary to support Next.js App Router static compilation safely
 export default function VerifyPaymentPage() {
     return (
         <Suspense
             fallback={
                 <div className="flex min-h-[60vh] flex-col items-center justify-center p-6 text-center">
-                    <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
-                    <p className="mt-3 text-sm text-slate-500">Preparing verification environment...</p>
+                    <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                    <p className="mt-3 text-sm text-muted-foreground">Preparing verification environment…</p>
                 </div>
             }
         >
@@ -235,5 +215,3 @@ export default function VerifyPaymentPage() {
         </Suspense>
     );
 }
-
-
