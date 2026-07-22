@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { InvitationAcceptPage } from "@/modules/subscription";
 
@@ -9,20 +8,11 @@ export default function InviteTokenPage({
 }: {
   params: { token: string };
 }) {
-  const router = useRouter();
   const { status } = useSession();
 
-  // Hold until session check settles to avoid a flicker
+  // Hold until the session check settles to avoid a flicker between the
+  // "sign in to continue" and "finalizing membership" states.
   if (status === "loading") return null;
 
-  return (
-    <InvitationAcceptPage
-      token={params.token}
-      isAuthenticated={status === "authenticated"}
-      onAccepted={() => router.push("/subscription")}
-      onRequiresAuth={() =>
-        router.push(`/auth/signin?next=/invite/${params.token}`)
-      }
-    />
-  );
+  return <InvitationAcceptPage token={params.token} />;
 }

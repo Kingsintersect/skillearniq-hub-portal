@@ -12,24 +12,8 @@ import AuthSidebar from '../../components/AuthSidebar'
 import { AuthContainerHeader } from '../components/AuthContainerHeader'
 import { Fingerprint } from 'lucide-react'
 import { RegisterCompleteData, RegistrationWizard } from '@/modules/auth'
-
-function dashboardPathForRole(role: string): string {
-    switch (role.toLowerCase()) {
-        case "student":
-            return "/subscription";
-        case "parent":
-            return "/subscription/family";
-        case "teacher":
-        case "tutor":
-            return "/teacher/dashboard";
-        case "admin":
-        case "manager":
-        case "super_admin":
-            return "/admin/dashboard";
-        default:
-            return "/subscription";
-    }
-}
+import { dashboardPathForRole } from '@/lib/dashboard-path'
+import { getStoredInviteToken } from '@/lib/invite-token'
 
 const RegisterPage = () => {
     const router = useRouter();
@@ -57,7 +41,14 @@ const RegisterPage = () => {
                 setAccessToken(userData.access_token);
             }
             toast.success(`Welcome, ${result.user.first_name}! Your account is ready.`);
-            router.push(dashboardPathForRole(result.user.role));
+            // If they arrived via a group invite, return to the accept-invite
+            // page to finalise joining before landing on the dashboard.
+            const pendingInvite = getStoredInviteToken();
+            router.push(
+                pendingInvite
+                    ? `/accept-invite/${encodeURIComponent(pendingInvite)}`
+                    : dashboardPathForRole(result.user.role)
+            );
         } else {
             toast.error("Account created but session setup failed. Please sign in.");
             router.push("/auth/signin");

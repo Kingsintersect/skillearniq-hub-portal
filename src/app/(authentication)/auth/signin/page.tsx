@@ -16,24 +16,7 @@ import { AuthContainerHeader } from "../components/AuthContainerHeader";
 import { LockOpen, Loader2 } from "lucide-react";
 import { ReactNode } from "react";
 import { OtpLoginCard } from "@/modules/auth/components/otp-login-form";
-
-function dashboardPathForRole(role: string): string {
-  switch (role.toLowerCase()) {
-    case "student":
-      return "/subscription";
-    case "parent":
-      return "/subscription/family";
-    case "teacher":
-    case "tutor":
-      return "/teacher/dashboard";
-    case "admin":
-    case "manager":
-    case "super_admin":
-      return "/admin/dashboard";
-    default:
-      return "/subscription";
-  }
-}
+import { dashboardPathForRole } from "@/lib/dashboard-path";
 
 export default function LoginPage() {
   const router = useRouter();

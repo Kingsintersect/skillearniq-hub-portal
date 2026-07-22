@@ -365,3 +365,30 @@ export interface InvitationAcceptData {
   message: string;
   group_id: number;
 }
+
+export interface VerifyRegistrationPayload {
+  email: string;
+}
+
+/**
+ * Response of POST /groups/invitations/verify-registration.
+ *
+ * The backend's exact envelope isn't pinned down yet, so every plausible
+ * "is this email already registered?" shape is kept optional and read
+ * defensively by {@link isEmailRegistered} in the subscription hooks.
+ */
+export interface VerifyRegistrationData {
+  success?: boolean;
+  message?: string;
+  registered?: boolean;
+  is_registered?: boolean;
+  exists?: boolean;
+  role?: string;
+  user?: { id?: number; email?: string; role?: string } | null;
+  data?: {
+    registered?: boolean;
+    is_registered?: boolean;
+    exists?: boolean;
+    role?: string;
+  } | null;
+}

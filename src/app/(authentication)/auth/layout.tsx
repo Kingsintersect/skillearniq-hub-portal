@@ -1,26 +1,9 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect } from "react";
-
-function dashboardPathForRole(role?: string): string {
-  switch (role?.toLowerCase()) {
-    case "student":
-      return "/subscription";
-    case "parent":
-      return "/subscription";
-    case "teacher":
-    case "tutor":
-      return "/teacher/dashboard";
-    case "admin":
-    case "manager":
-    case "super_admin":
-      return "/admin/dashboard";
-    default:
-      return "/subscription";
-  }
-}
+import { dashboardPathForRole } from "@/lib/dashboard-path";
 
 export default function AuthGroupLayout({
   children,
@@ -29,12 +12,16 @@ export default function AuthGroupLayout({
 }) {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     if (status === "authenticated") {
-      router.replace(dashboardPathForRole(session?.user?.role));
+      // Honour an explicit post-auth destination (e.g. returning to an
+      // accept-invite page) before falling back to the role dashboard.
+      const next = searchParams.get("next");
+      router.replace(next || dashboardPathForRole(session?.user?.role));
     }
-  }, [status, session, router]);
+  }, [status, session, router, searchParams]);
 
   // Render nothing during initial session check to avoid flash
   if (status === "loading") return null;

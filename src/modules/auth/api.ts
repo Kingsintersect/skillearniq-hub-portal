@@ -34,6 +34,8 @@ import type {
   SubscriptionStatusData,
   UpdateCouponPayload,
   UpdatePlanPayload,
+  VerifyRegistrationData,
+  VerifyRegistrationPayload,
 } from "./types";
 import {
   isDummyModeEnabled,
@@ -60,6 +62,7 @@ import {
   dummyDeleteCoupon,
   dummySendInvitation,
   dummyVerifyInvitation,
+  dummyVerifyRegistration,
   dummyAcceptInvitation,
   dummyRevokeInvitation,
   dummyRemoveMember,
@@ -360,7 +363,27 @@ export const authApi = {
       await simulateDelay(400);
       return createResponse<InvitationVerifyData>(dummyVerifyInvitation(token));
     }
-    return apiClient.get<InvitationVerifyData>(`/groups/invitations/verify/${encodeURIComponent(token)}`);
+    // A recipient opens this link before signing in — handle 401 in-page.
+    return apiClient.get<InvitationVerifyData>(`/groups/invitations/verify/${encodeURIComponent(token)}`, {
+      skipAuthRedirect: true,
+    });
+  },
+
+  /**
+   * Checks whether an invited email already has an account so the
+   * accept-invite flow can either finalise joining (registered) or divert the
+   * visitor to create an account first (not registered).
+   */
+  verifyRegistration: async (payload: VerifyRegistrationPayload) => {
+    if (isDummyModeEnabled()) {
+      console.log("🧪 [DUMMY MODE] verifyRegistration", payload);
+      await simulateDelay(400);
+      return createResponse<VerifyRegistrationData>(dummyVerifyRegistration(payload));
+    }
+    // Runs before the visitor is authenticated — never bounce a 401 to /auth/signin.
+    return apiClient.post<VerifyRegistrationData>("/groups/invitations/verify-registration", payload, {
+      skipAuthRedirect: true,
+    });
   },
 
   acceptInvitation: async (payload: InvitationAcceptPayload) => {
