@@ -65,7 +65,7 @@ const getActivityTypeIcon = (type: string) => {
 export default function ReportsPage() {
   const { selectedChild } = useParentStore();
   const { useCourseGradings } = useParentQueries();
-  
+
   const {
     data: courseGradings = [],
     isLoading,
@@ -85,7 +85,7 @@ export default function ReportsPage() {
   // Get student data for selected child
   const getStudentData = (course: CourseGradingData) => {
     if (!selectedChild?.email) return null;
-    return course.students.find(student => 
+    return course.students.find(student =>
       student.student_email === selectedChild.email
     );
   };
@@ -197,7 +197,7 @@ export default function ReportsPage() {
               {courseGradings.map((course, index) => {
                 const student = getStudentData(course);
                 const isSelected = selectedCourse?.course_id === course.course_id;
-                
+
                 return (
                   <Button
                     key={course.course_id}
@@ -239,7 +239,7 @@ export default function ReportsPage() {
                       </div>
                     </div>
                   </div>
-                  
+
                   {currentStudent && (
                     <div className="text-right">
                       <div className="text-3xl font-bold">{currentStudent.final_grade.toFixed(1)}%</div>
@@ -279,7 +279,7 @@ export default function ReportsPage() {
                           {currentStudent.activities.map((activity, index) => {
                             const percentage = (activity.grade / activity.max_grade) * 100;
                             const isPassing = percentage >= 60;
-                            
+
                             return (
                               <TableRow key={index}>
                                 <TableCell className="font-medium">
@@ -302,7 +302,7 @@ export default function ReportsPage() {
                                   <div className="flex items-center gap-2">
                                     <div className="w-24">
                                       <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-                                        <div 
+                                        <div
                                           className={`h-full ${isPassing ? 'bg-green-500' : 'bg-red-500'}`}
                                           style={{ width: `${Math.min(percentage, 100)}%` }}
                                         />
@@ -413,7 +413,7 @@ export default function ReportsPage() {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground">Courses Enrolled</span>
+                      <span className="text-muted-foreground">Subjects Enrolled</span>
                       <span className="font-bold">{totalCourses}</span>
                     </div>
                     <div className="flex justify-between items-center">
@@ -442,7 +442,7 @@ export default function ReportsPage() {
                       {courseGradings.map((course) => {
                         const student = getStudentData(course);
                         if (!student) return null;
-                        
+
                         return (
                           <div key={course.course_id} className="flex items-center justify-between">
                             <div className="flex items-center gap-2">

@@ -23,9 +23,9 @@ export const useTeacherGradeStore = create<TeacherGradeStore>((set, get) => ({
   fetchCourses: async () => {
     // Prevent duplicate calls while loading
     if (get().isLoading) return;
-    
+
     set({ isLoading: true, error: null });
-    
+
     const getCurrentTeacherId = (): number => {
       if (typeof window !== 'undefined') {
         const userData = localStorage.getItem('user');
@@ -45,9 +45,9 @@ export const useTeacherGradeStore = create<TeacherGradeStore>((set, get) => ({
     try {
       const teacherId = getCurrentTeacherId();
       const classesData = await teacherService.getClasses(teacherId);
-      
-      console.log('Teacher Courses Raw Response:', classesData);
-      
+
+      console.log('Teacher Subjects Raw Response:', classesData);
+
       if (Array.isArray(classesData)) {
         const courses: TeacherCourse[] = classesData.map((course: any) => ({
           id: course.id.toString(),
@@ -56,15 +56,15 @@ export const useTeacherGradeStore = create<TeacherGradeStore>((set, get) => ({
           shortname: course.shortName || '',
           category: course.category?.toString() || '0'
         }));
-        
+
         console.log('Processed teacher courses:', courses);
-        
-        set({ 
-          courses: courses, 
+
+        set({
+          courses: courses,
           isLoading: false,
           error: null
         });
-        
+
         // Only show toast once when courses are loaded
         if (courses.length > 0) {
           toast.success(`Loaded ${courses.length} assigned courses`);
@@ -74,25 +74,25 @@ export const useTeacherGradeStore = create<TeacherGradeStore>((set, get) => ({
       } else {
         console.error('Unexpected response structure from getClasses:', classesData);
         const errorMsg = 'Invalid course data structure received';
-        set({ 
-          error: errorMsg, 
-          isLoading: false 
+        set({
+          error: errorMsg,
+          isLoading: false
         });
         toast.error(errorMsg);
       }
     } catch (error: any) {
       console.error('Error in fetchCourses:', error);
       const errorMsg = error.message || 'Network error while fetching courses';
-      set({ 
-        error: errorMsg, 
-        isLoading: false 
+      set({
+        error: errorMsg,
+        isLoading: false
       });
       toast.error(errorMsg);
     }
   },
 
   setSelectedCourse: (courseId: string) => {
-    set({ 
+    set({
       selectedCourse: courseId,
       gradeData: [],
       courseInfo: null,
@@ -125,22 +125,22 @@ export const useTeacherGradeStore = create<TeacherGradeStore>((set, get) => ({
     // Prevent duplicate calls while loading
     if (get().isLoading) return;
 
-    set({ 
-      isLoading: true, 
-      error: null, 
-      gradeData: [], 
-      courseInfo: null 
+    set({
+      isLoading: true,
+      error: null,
+      gradeData: [],
+      courseInfo: null
     });
 
     try {
       const response = await teacherService.getCourseGrades(parseInt(selectedCourse));
-      
+
       console.log('Teacher Grades API Response:', response);
-      
+
       if (response.status === 200 || response.status === 201) {
         const courseData = response.data;
-        
-        set({ 
+
+        set({
           courseInfo: {
             course_id: courseData.course_id,
             course_code: courseData.course_code || '',
@@ -154,7 +154,7 @@ export const useTeacherGradeStore = create<TeacherGradeStore>((set, get) => ({
           let assignmentScore = 0;
           let quizScore = 0;
           let examScore = student.final_grade || 0;
-          
+
           if (Array.isArray(student.activities)) {
             student.activities.forEach((activity: any) => {
               if (activity.type === 'assign') {
@@ -186,12 +186,12 @@ export const useTeacherGradeStore = create<TeacherGradeStore>((set, get) => ({
           };
         });
 
-        set({ 
-          gradeData: students, 
+        set({
+          gradeData: students,
           isLoading: false,
           error: null
         });
-        
+
         // Only show toast if there are students
         if (students.length > 0) {
           toast.success(`Loaded ${students.length} student records`);
@@ -200,18 +200,18 @@ export const useTeacherGradeStore = create<TeacherGradeStore>((set, get) => ({
         }
       } else {
         const errorMsg = response.message || 'Failed to fetch grade data';
-        set({ 
-          error: errorMsg, 
-          isLoading: false 
+        set({
+          error: errorMsg,
+          isLoading: false
         });
         toast.error(errorMsg);
       }
     } catch (error: any) {
       console.error('Error in fetchGradeData:', error);
       const errorMsg = error.message || 'Network error while fetching grades';
-      set({ 
-        error: errorMsg, 
-        isLoading: false 
+      set({
+        error: errorMsg,
+        isLoading: false
       });
       toast.error(errorMsg);
     }

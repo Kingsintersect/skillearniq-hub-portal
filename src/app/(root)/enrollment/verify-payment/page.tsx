@@ -132,7 +132,7 @@ const VerifyPaymentPage = () => {
                 <p className='mb-2'>Your payment has been confirmed.</p>
                 <p className='mb-4'>Reference: {verifyCredentials.reference}</p>
                 <Button onClick={() => window.location.href = `/${user?.role.toLowerCase()}/dashboard`}>
-                    Continue to Courses
+                    Continue to Subjects
                 </Button>
             </div>
         </div>

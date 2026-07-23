@@ -16,10 +16,10 @@ export default function ClassesPage() {
   const [filters, setFilters] = useState({
     course: 'all',
   });
-  
+
   const { selectedChild } = useParentStore();
   const { useChildAcademicData } = useParentQueries();
-  
+
   const {
     data: academicDataList = [],
     isLoading,
@@ -32,7 +32,7 @@ export default function ClassesPage() {
   // Set selected report
   useEffect(() => {
     if (academicDataList.length > 0) {
-      const report = selectedChild 
+      const report = selectedChild
         ? academicDataList.find(r => r.id.toString() === selectedChild.id.toString())
         : academicDataList[0];
       setSelectedReport(report);
@@ -99,7 +99,7 @@ export default function ClassesPage() {
               <Book className="h-16 w-16 mx-auto mb-4 text-gray-300" />
               <h3 className="text-lg font-semibold mb-2">No Course Data Available</h3>
               <p className="text-muted-foreground">
-                {selectedReport?.moodle?.found === false 
+                {selectedReport?.moodle?.found === false
                   ? 'Moodle integration not available'
                   : 'No courses enrolled'
                 }
@@ -121,7 +121,7 @@ export default function ClassesPage() {
   // Calculate stats
   const totalCourses = selectedReport.courses.length;
   const coursesWithGrades = selectedReport.courses.filter((c: any) => c.finalgrade !== null).length;
-  const averageGrade = selectedReport.courses.reduce((sum: number, course: any) => 
+  const averageGrade = selectedReport.courses.reduce((sum: number, course: any) =>
     sum + (course.finalgrade || 0), 0
   ) / totalCourses;
 
@@ -160,7 +160,7 @@ export default function ClassesPage() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Total Courses</p>
+                  <p className="text-sm text-muted-foreground">Total Subjects</p>
                   <p className="text-2xl font-bold">{totalCourses}</p>
                 </div>
                 <Book className="h-8 w-8 text-blue-500" />
@@ -189,7 +189,7 @@ export default function ClassesPage() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Graded Courses</p>
+                  <p className="text-sm text-muted-foreground">Graded Subjects</p>
                   <p className="text-2xl font-bold">{coursesWithGrades}/{totalCourses}</p>
                 </div>
                 <FileText className="h-8 w-8 text-purple-500" />
@@ -198,12 +198,12 @@ export default function ClassesPage() {
           </Card>
         </div>
 
-       
 
-        {/* Courses Table */}
+
+        {/* Subjects Table */}
         <Card>
           <CardHeader>
-            <CardTitle>Courses</CardTitle>
+            <CardTitle>Subjects</CardTitle>
             <CardDescription>
               {totalCourses} enrolled course{totalCourses !== 1 ? 's' : ''}
             </CardDescription>
@@ -223,7 +223,7 @@ export default function ClassesPage() {
                 {selectedReport.courses.map((course: any, index: number) => {
                   const grade = course.finalgrade || 0;
                   const gradeLetter = getGradeLetter(grade);
-                  
+
                   return (
                     <TableRow key={index}>
                       <TableCell className="font-medium">
@@ -262,11 +262,11 @@ export default function ClassesPage() {
         {/* Detailed View */}
         <Tabs defaultValue="courses" className="mt-6">
           <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="courses">Courses</TabsTrigger>
+            <TabsTrigger value="courses">Subjects</TabsTrigger>
             <TabsTrigger value="performance">Performance</TabsTrigger>
             <TabsTrigger value="activities">Activities</TabsTrigger>
           </TabsList>
-          
+
           <TabsContent value="courses">
             <Card>
               <CardHeader>
@@ -277,7 +277,7 @@ export default function ClassesPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {selectedReport.courses.map((course: any, index: number) => {
                     const grade = course.finalgrade || 0;
-                    
+
                     return (
                       <Card key={index}>
                         <CardContent className="p-4">
@@ -290,7 +290,7 @@ export default function ClassesPage() {
                               {grade}%
                             </Badge>
                           </div>
-                          
+
                           <div className="space-y-2">
                             <div className="flex justify-between text-sm">
                               <span className="text-muted-foreground">Teacher:</span>
@@ -317,7 +317,7 @@ export default function ClassesPage() {
               </CardContent>
             </Card>
           </TabsContent>
-          
+
           <TabsContent value="performance">
             <Card>
               <CardHeader>
@@ -328,7 +328,7 @@ export default function ClassesPage() {
                 <div className="space-y-6">
                   {selectedReport.courses.map((course: any, index: number) => {
                     const grade = course.finalgrade || 0;
-                    
+
                     return (
                       <div key={index} className="space-y-2">
                         <div className="flex justify-between items-center">
@@ -363,7 +363,7 @@ export default function ClassesPage() {
               </CardContent>
             </Card>
           </TabsContent>
-          
+
           <TabsContent value="activities">
             <Card>
               <CardHeader>
@@ -375,7 +375,7 @@ export default function ClassesPage() {
                   {selectedReport.courses.map((course: any, courseIndex: number) => (
                     <div key={courseIndex} className="space-y-3">
                       <h4 className="font-semibold text-lg">{course.course_name}</h4>
-                      
+
                       {/* Assignments */}
                       {course.assignments && course.assignments.length > 0 && (
                         <div className="space-y-2">
@@ -398,7 +398,7 @@ export default function ClassesPage() {
                           ))}
                         </div>
                       )}
-                      
+
                       {/* Moodle Activities */}
                       {course.activities && course.activities.length > 0 && (
                         <div className="space-y-2">

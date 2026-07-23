@@ -109,7 +109,7 @@ export function DashboardView({ userId }: { userId: string }) {
                             className="bg-gradient-to-r from-green-600 to-yellow-600 hover:from-green-700 hover:to-yellow-700 text-white px-12 py-4 text-lg font-semibold rounded-full shadow-lg"
                         >
                             <RefreshCcw className={`w-6 h-6 mr-3 ${isLoading || isFetching ? ' animate-spin' : ''}`} />
-                            Reload Courses
+                            Reload Subjects
                         </Button>
 
                         <Button
@@ -118,7 +118,7 @@ export function DashboardView({ userId }: { userId: string }) {
                             className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-12 py-4 text-lg font-semibold rounded-full shadow-lg"
                         >
                             <Plus className="w-6 h-6 mr-3" />
-                            Explore All Courses
+                            Explore All Subjects
                         </Button>
                     </div>
 

@@ -64,7 +64,7 @@ export function SubCategoriesView() {
                         <div className="text-center p-6 bg-white dark:bg-indigo-950 rounded-lg shadow-sm border border-blue-100 dark:border-gray-700">
                             <BookOpen className="w-12 h-12 text-blue-500 mx-auto mb-4" />
                             <h3 className="font-semibold text-lg mb-2">In Development</h3>
-                            <p className="text-gray-600 dark:text-gray-300">Courses being created by experts</p>
+                            <p className="text-gray-600 dark:text-gray-300">Subjects being created by experts</p>
                         </div>
 
                         <div className="text-center p-6 bg-white dark:bg-indigo-950 rounded-lg shadow-sm border border-green-100 dark:border-gray-700">

@@ -256,7 +256,7 @@ function CourseTable({ gradeData }: { gradeData: any[] }) {
       <div className="px-6 py-6">
          <div className="mb-4 flex items-center gap-2">
             <Award className="h-5 w-5 text-primary" />
-            <h3 className="text-lg font-semibold text-foreground">Course Performance Details</h3>
+...            <h3 className="text-lg font-semibold text-foreground">Course Performance Details</h3>
          </div>
 
          <div className="overflow-x-auto rounded-2xl border border-border">
@@ -284,7 +284,7 @@ function CourseTable({ gradeData }: { gradeData: any[] }) {
                         </td>
                         <td className="px-4 py-4 text-center font-medium text-foreground">{course.gradePoint.toFixed(2)}</td>
                         <td className="px-4 py-4 text-center font-semibold text-primary">{course.qualityPoints.toFixed(2)}</td>
-                      </tr>
+                     </tr>
                   ))}
                   <tr className="bg-primary/5 font-semibold">
                      <td colSpan={2} className="px-4 py-4 text-right text-foreground">
@@ -292,15 +292,15 @@ function CourseTable({ gradeData }: { gradeData: any[] }) {
                            <Award className="h-4 w-4" />
                            <span>Totals:</span>
                         </div>
-                       </td>
+                     </td>
                      <td className="px-4 py-4 text-center text-primary">{totalCredits}</td>
                      <td className="px-4 py-4 text-center text-muted-foreground">-</td>
                      <td className="px-4 py-4 text-center text-muted-foreground">-</td>
                      <td className="px-4 py-4 text-center text-muted-foreground">-</td>
                      <td className="px-4 py-4 text-center text-primary">{totalQualityPoints.toFixed(2)}</td>
-                   </tr>
+                  </tr>
                </tbody>
-             </table>
+            </table>
          </div>
 
          <div className="mt-4 rounded-2xl bg-muted/30 p-4 text-sm text-muted-foreground">
@@ -494,7 +494,7 @@ export default function StudentGradeReportsPage() {
             <div className="flex items-center justify-center h-64">
                <div className="text-center">
                   <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto mb-4" />
-                  <div className="text-lg text-muted-foreground">Loading your courses...</div>
+                  <div className="text-lg text-muted-foreground">Loading your subjects...</div>
                </div>
             </div>
          </div>
@@ -534,9 +534,9 @@ export default function StudentGradeReportsPage() {
                      <p className="text-xs text-muted-foreground mt-1">Current Standing</p>
                   </div>
                   <div className="rounded-2xl border border-border/70 bg-background/60 p-4">
-                     <p className="text-xs text-muted-foreground">Courses Taken</p>
+                     <p className="text-xs text-muted-foreground">Subjects Taken</p>
                      <p className="mt-1 text-2xl font-bold text-foreground">{gradeData.length}</p>
-                     <p className="text-xs text-muted-foreground mt-1">Total Courses</p>
+                     <p className="text-xs text-muted-foreground mt-1">Total Subjects</p>
                   </div>
                </div>
             )}

@@ -634,20 +634,18 @@ export default function StudentClassesPage() {
                   key={tab.key}
                   type="button"
                   onClick={() => setStatusFilter(tab.key)}
-                  className={`rounded-xl px-3 py-1.5 text-xs font-medium transition-colors ${
-                    isActive
+                  className={`rounded-xl px-3 py-1.5 text-xs font-medium transition-colors ${isActive
                       ? "bg-primary text-primary-foreground"
                       : "border border-border bg-background text-foreground hover:bg-accent/40"
-                  }`}
+                    }`}
                 >
                   {tab.label}
                   {tab.count > 0 && (
                     <span
-                      className={`ml-1.5 rounded-full px-1.5 py-0.5 text-[10px] ${
-                        isActive
+                      className={`ml-1.5 rounded-full px-1.5 py-0.5 text-[10px] ${isActive
                           ? "bg-primary-foreground/20 text-primary-foreground"
                           : "bg-muted text-muted-foreground"
-                      }`}
+                        }`}
                     >
                       {tab.count}
                     </span>
@@ -659,7 +657,7 @@ export default function StudentClassesPage() {
         </div>
       </section>
 
-      {/* Courses Display */}
+      {/* Subjects Display */}
       {filteredCourses.length === 0 ? (
         <div className="rounded-3xl border border-border/70 bg-card p-12 text-center">
           <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-50" />
@@ -989,7 +987,7 @@ export default function StudentClassesPage() {
                     className={cn(
                       "h-8 w-8",
                       currentPage === page &&
-                        "bg-primary text-primary-foreground hover:bg-primary/90",
+                      "bg-primary text-primary-foreground hover:bg-primary/90",
                     )}
                   >
                     {page}

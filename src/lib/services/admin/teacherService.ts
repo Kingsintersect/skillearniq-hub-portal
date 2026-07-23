@@ -114,22 +114,22 @@ export const teacherService = {
 
       const url = `/odl/our-programs${queryParams.toString() ? `?${queryParams}` : ''}`;
       const response = await apiClient.get<any>(url);
-      
+
       console.log('📡 Categories API URL:', url);
       console.log('📡 Categories Raw Response:', response);
       console.log('📡 Categories Response Data:', response.data);
-      
+
       // Handle different response structures
       let categoriesData: Category[] = [];
-      
+
       // Case 1: response.data is an array directly
       if (Array.isArray(response.data)) {
         categoriesData = response.data;
-      } 
+      }
       // Case 2: response.data has a data property that is an array
       else if (response.data && Array.isArray(response.data.data)) {
         categoriesData = response.data.data;
-      } 
+      }
       // Case 3: response.data has a data property that is an object with categories
       else if (response.data?.data?.categories && Array.isArray(response.data.data.categories)) {
         categoriesData = response.data.data.categories;
@@ -152,11 +152,11 @@ export const teacherService = {
           }
         }
       }
-      
+
       console.log('✅ Processed categories:', categoriesData);
       console.log('✅ Is categories an array?', Array.isArray(categoriesData));
       console.log('✅ Categories count:', categoriesData.length);
-      
+
       return {
         data: categoriesData,
         message: 'Success',
@@ -178,11 +178,11 @@ export const teacherService = {
 
       const url = `/odl/courses${queryParams.toString() ? `?${queryParams}` : ''}`;
       const response = await apiClient.get<any>(url);
-      
-      console.log('📡 Courses API Response:', response);
-      
+
+      console.log('📡 Subjects API Response:', response);
+
       let coursesData: Course[] = [];
-      
+
       if (Array.isArray(response.data)) {
         coursesData = response.data;
       } else if (response.data && Array.isArray(response.data.data)) {
@@ -190,7 +190,7 @@ export const teacherService = {
       } else if (response.data?.data) {
         coursesData = [response.data.data];
       }
-      
+
       console.log('✅ Processed courses:', coursesData);
 
       return {
@@ -265,9 +265,9 @@ export const teacherService = {
     try {
       const response = await apiClient.get<any>('/admin/teacher/subjects');
       console.log('📡 Teacher Subjects API Response:', response);
-      
+
       let subjectsData: TeacherSubjectAssignment[] = [];
-      
+
       if (Array.isArray(response.data)) {
         subjectsData = response.data;
       } else if (response.data && Array.isArray(response.data.data)) {
@@ -275,7 +275,7 @@ export const teacherService = {
       } else if (response.data?.data) {
         subjectsData = [response.data.data];
       }
-      
+
       return {
         data: subjectsData,
         message: response.message || 'Success',
@@ -287,7 +287,7 @@ export const teacherService = {
       throw error as ApiError;
     }
   },
-  
+
   // Create a new teacher
   createTeacher: async (payload: CreateTeacherPayload): Promise<ApiResponse<Teacher>> => {
     try {
