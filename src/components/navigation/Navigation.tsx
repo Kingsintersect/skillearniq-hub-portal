@@ -48,7 +48,7 @@ export const Navigation = () => {
                     <>
                         <div className={`${isOnEnrollmentPage ? "hidden" : "hidden md:block "}`}>
                             <Link href={`/enrollment`} className={cn(navLinkClasses, "")}>
-                                Enroll In Courses
+                                Enroll In Subjects
                                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary dark:bg-primary-400 transition-all duration-200 group-hover:w-full" />
                             </Link>
                         </div>
@@ -110,7 +110,7 @@ export const Navigation = () => {
                         <>
                             <div className="block">
                                 <Link href={`/enrollment`} className='flex gap-3 items-center'>
-                                    <span className="text-sm font-medium text-gray-700 dark:text-gray-200">Enroll In Courses</span>
+                                    <span className="text-sm font-medium text-gray-700 dark:text-gray-200">Enroll In Subjects</span>
                                 </Link>
                             </div>
                             <div className="block">

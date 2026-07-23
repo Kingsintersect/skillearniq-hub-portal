@@ -429,32 +429,32 @@ export const studentService = {
     return normalize<MoodleCourse[]>(res);
   },
 
-  
 
-getTeachers: async (): Promise<ApiResponse<any[]>> => {
 
-  const res = await apiClient.get<any>('/student/my-teachers');
+  getTeachers: async (): Promise<ApiResponse<any[]>> => {
 
-  const teachers =
-    res.data?.studentTeachers?.data
-    ?? res.data?.data
-    ?? [];
+    const res = await apiClient.get<any>('/student/my-teachers');
 
-  // ✅ normalize shape
-  const normalized = teachers.map((t:any) => ({
-    id: t.id,
-    name: t.name ?? `${t.firstName} ${t.lastName}`,
-    email: t.email,
-    avatar: t.avatar,
-    courses: t.courses ?? []
-  }));
+    const teachers =
+      res.data?.studentTeachers?.data
+      ?? res.data?.data
+      ?? [];
 
-  return {
-    status: 200,
-    message: 'Teachers fetched',
-    data: normalized,
-  };
-},
+    // ✅ normalize shape
+    const normalized = teachers.map((t: any) => ({
+      id: t.id,
+      name: t.name ?? `${t.firstName} ${t.lastName}`,
+      email: t.email,
+      avatar: t.avatar,
+      courses: t.courses ?? []
+    }));
+
+    return {
+      status: 200,
+      message: 'Teachers fetched',
+      data: normalized,
+    };
+  },
 
 
 
@@ -477,7 +477,7 @@ getTeachers: async (): Promise<ApiResponse<any[]>> => {
           body.data?.studentCourses?.message ??
           body.data?.message ??
           body.message ??
-          'Courses data fetched',
+          'Subjects data fetched',
 
         data:
           body.data?.studentCourses?.data ??
@@ -497,10 +497,10 @@ getTeachers: async (): Promise<ApiResponse<any[]>> => {
 
       return {
         status: 200,
-        message: 'Courses data not available',
+        message: 'Subjects data not available',
         data: {
           status: 200,
-          message: 'Courses data not available',
+          message: 'Subjects data not available',
           data: [],
         },
       };
@@ -508,78 +508,78 @@ getTeachers: async (): Promise<ApiResponse<any[]>> => {
   },
 
   /** Get enrolled courses */
- // In studentService.ts - Replace the getEnrolledCourses method:
+  // In studentService.ts - Replace the getEnrolledCourses method:
 
-/** Get enrolled courses - USING THE CORRECT ENDPOINT */
-getEnrolledCourses: async (): Promise<ApiResponse<MoodleCourse[]>> => {
-  try {
-    // Use /student/courses endpoint instead of /student/assessments
-    const response = await apiClient.get<any>('/student/courses');
-    
-    console.log('Student Courses Response:', response);
-    console.log('Response data structure:', response.data);
-    
-    // Handle the response structure you showed in Postman
-    let coursesData: MoodleCourse[] = [];
-    
-    if (response.data && typeof response.data === 'object') {
-      // Check for the exact structure from your Postman response
-      if (response.data.status === true && Array.isArray(response.data.data)) {
-        // Structure: { status: true, message: "Course(s) found", data: [...] }
-        coursesData = response.data.data;
-        console.log('Found courses using structure 1:', coursesData.length);
-      } else if (Array.isArray(response.data.data)) {
-        // Structure: { data: [...] }
-        coursesData = response.data.data;
-        console.log('Found courses using structure 2:', coursesData.length);
-      } else if (Array.isArray(response.data)) {
-        // Structure: [...]
-        coursesData = response.data;
-        console.log('Found courses using structure 3:', coursesData.length);
-      } else if (response.data && Array.isArray(response.data)) {
-        // Direct array response
-        coursesData = response.data;
-        console.log('Found courses using structure 4:', coursesData.length);
+  /** Get enrolled courses - USING THE CORRECT ENDPOINT */
+  getEnrolledCourses: async (): Promise<ApiResponse<MoodleCourse[]>> => {
+    try {
+      // Use /student/courses endpoint instead of /student/assessments
+      const response = await apiClient.get<any>('/student/courses');
+
+      console.log('Student Subjects Response:', response);
+      console.log('Response data structure:', response.data);
+
+      // Handle the response structure you showed in Postman
+      let coursesData: MoodleCourse[] = [];
+
+      if (response.data && typeof response.data === 'object') {
+        // Check for the exact structure from your Postman response
+        if (response.data.status === true && Array.isArray(response.data.data)) {
+          // Structure: { status: true, message: "Course(s) found", data: [...] }
+          coursesData = response.data.data;
+          console.log('Found courses using structure 1:', coursesData.length);
+        } else if (Array.isArray(response.data.data)) {
+          // Structure: { data: [...] }
+          coursesData = response.data.data;
+          console.log('Found courses using structure 2:', coursesData.length);
+        } else if (Array.isArray(response.data)) {
+          // Structure: [...]
+          coursesData = response.data;
+          console.log('Found courses using structure 3:', coursesData.length);
+        } else if (response.data && Array.isArray(response.data)) {
+          // Direct array response
+          coursesData = response.data;
+          console.log('Found courses using structure 4:', coursesData.length);
+        }
       }
-    }
-    
-    console.log('Final courses data:', coursesData);
-    
-    if (coursesData.length === 0) {
-      console.warn('No courses found in the response');
+
+      console.log('Final courses data:', coursesData);
+
+      if (coursesData.length === 0) {
+        console.warn('No courses found in the response');
+        return {
+          status: 200,
+          message: 'No courses enrolled',
+          data: []
+        };
+      }
+
       return {
         status: 200,
-        message: 'No courses enrolled',
+        message: `Found ${coursesData.length} courses`,
+        data: coursesData
+      };
+    } catch (error: any) {
+      console.error('Error fetching enrolled courses:', error);
+      console.error('Error response:', error.response?.data);
+
+      return {
+        status: error.statusCode || 500,
+        message: error.message || 'Failed to fetch enrolled courses',
         data: []
       };
     }
-    
-    return {
-      status: 200,
-      message: `Found ${coursesData.length} courses`,
-      data: coursesData
-    };
-  } catch (error: any) {
-    console.error('Error fetching enrolled courses:', error);
-    console.error('Error response:', error.response?.data);
-    
-    return {
-      status: error.statusCode || 500,
-      message: error.message || 'Failed to fetch enrolled courses',
-      data: []
-    };
-  }
-},
+  },
 
   /** Get course grades */
   getCourseGrades: async (courseId: number): Promise<ApiResponse<CourseGradesResponse>> => {
     try {
       const response = await apiClient.get<any>(`/student/assessments`);
-      
+
       console.log('Student Course Grades Response:', response);
-      
+
       let courseData: any = {};
-      
+
       if (response.data && typeof response.data === 'object') {
         if (response.data.data) {
           courseData = response.data.data;
@@ -587,7 +587,7 @@ getEnrolledCourses: async (): Promise<ApiResponse<MoodleCourse[]>> => {
           courseData = response.data;
         }
       }
-      
+
       const formattedData: CourseGradesResponse = {
         course_id: courseData.course_id || courseId,
         course_code: courseData.course_code || '',
@@ -596,7 +596,7 @@ getEnrolledCourses: async (): Promise<ApiResponse<MoodleCourse[]>> => {
         instructors: Array.isArray(courseData.instructors) ? courseData.instructors : [],
         students: Array.isArray(courseData.students) ? courseData.students : []
       };
-      
+
       return {
         status: 200,
         message: 'Success',
@@ -715,16 +715,16 @@ getEnrolledCourses: async (): Promise<ApiResponse<MoodleCourse[]>> => {
   getGamificationData: async (): Promise<ApiResponse<GamificationData>> => {
     try {
       const res = await apiClient.get<any>('/student/gamification');
-      
+
       console.log('Full gamification response:', res);
-      
+
       const gamificationResponse = res.data?.gamification || res.data || {};
       console.log('Gamification response object:', gamificationResponse);
-      
+
       const raw = gamificationResponse.data || {};
       console.log('Raw gamification data:', raw);
       console.log('Rewards data:', raw.rewards);
-      
+
       const mapped: GamificationData = {
         profile: {
           id: String(raw.profile?.id ?? '0'),
@@ -832,69 +832,69 @@ getEnrolledCourses: async (): Promise<ApiResponse<MoodleCourse[]>> => {
  * STUDENT MESSAGING
 ================================= */
 
-/* =====================================================
-   STUDENT MESSAGING
-===================================================== */
+  /* =====================================================
+     STUDENT MESSAGING
+  ===================================================== */
 
-getSentMessages: async (): Promise<ApiResponse<Message[]>> => {
+  getSentMessages: async (): Promise<ApiResponse<Message[]>> => {
 
-  const res = await apiClient.get<any>('/student/messages');
+    const res = await apiClient.get<any>('/student/messages');
 
-  console.log("SENT RAW ->", res); // <-- add this once
+    console.log("SENT RAW ->", res); // <-- add this once
 
-  return {
-    status: res.status,
-    message: res.message,
-    data: res.data?.messages ?? [],
-  };
-},
-
-
-
-getReceivedMessages: async (): Promise<ApiResponse<Message[]>> => {
-
-  const res = await apiClient.get<any>('/student/messages/received');
-
-  return {
-    status: 200,
-    message: 'Received messages fetched',
-    data: res.data?.messages ?? [],
-  };
-},
+    return {
+      status: res.status,
+      message: res.message,
+      data: res.data?.messages ?? [],
+    };
+  },
 
 
-sendMessage: async (
-  payload: SendMessagePayload
-): Promise<ApiResponse<Message>> => {
 
-  const res = await apiClient.post<MessageResponse>(
-    '/student/messages',
-    payload
-  );
+  getReceivedMessages: async (): Promise<ApiResponse<Message[]>> => {
 
-  return {
-    status: 200,
-    message: res.message,
-    data: (res.data?.data ?? res.data) as Message,
-  };
-},
+    const res = await apiClient.get<any>('/student/messages/received');
 
-updateMessage: async (
-  id: number,
-  payload: UpdateMessagePayload
-): Promise<ApiResponse<void>> => {
+    return {
+      status: 200,
+      message: 'Received messages fetched',
+      data: res.data?.messages ?? [],
+    };
+  },
 
-  const res = await apiClient.put(
-    `/student/messages/${id}`,
-    payload
-  );
 
-  return normalize<void>(res);
-},
+  sendMessage: async (
+    payload: SendMessagePayload
+  ): Promise<ApiResponse<Message>> => {
 
-deleteMessage: async (id: number): Promise<ApiResponse<void>> => {
-  return apiClient.delete(`/student/messages/${id}`);
-},
+    const res = await apiClient.post<MessageResponse>(
+      '/student/messages',
+      payload
+    );
+
+    return {
+      status: 200,
+      message: res.message,
+      data: (res.data?.data ?? res.data) as Message,
+    };
+  },
+
+  updateMessage: async (
+    id: number,
+    payload: UpdateMessagePayload
+  ): Promise<ApiResponse<void>> => {
+
+    const res = await apiClient.put(
+      `/student/messages/${id}`,
+      payload
+    );
+
+    return normalize<void>(res);
+  },
+
+  deleteMessage: async (id: number): Promise<ApiResponse<void>> => {
+    return apiClient.delete(`/student/messages/${id}`);
+  },
 
   /** Export results */
   exportResults: async (format: 'csv' | 'excel' | 'pdf' = 'csv'): Promise<ApiResponse<{ downloadUrl: string }>> => {

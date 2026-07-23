@@ -88,7 +88,7 @@ export function CoursesView({ userId }: { userId: string }) {
 
                     <div className="space-y-4">
                         <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                            Exciting Courses Coming Soon!
+                            Exciting Subjects Coming Soon!
                         </h2>
                         <p className="text-gray-600 dark:text-gray-300 max-w-md mx-auto leading-relaxed">
                             We're working hard to bring you amazing courses for <strong>{selectedSubCategory.name}</strong>.
@@ -134,7 +134,7 @@ export function CoursesView({ userId }: { userId: string }) {
                                 className="bg-blue-600 hover:bg-blue-700 text-white"
                             >
                                 <BookOpen className="w-4 h-4 mr-2" />
-                                Browse All Courses
+                                Browse All Subjects
                             </Button>
                         </div>
                     </div>

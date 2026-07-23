@@ -72,7 +72,7 @@ export const useStudentQueries = () => {
       },
       onSuccess: (data) => {
         queryClient.invalidateQueries({ queryKey: ['student', 'gamification'] });
-        
+
         if (data.message) {
           toast.success(data.message);
         } else {
@@ -130,7 +130,7 @@ export const useStudentQueries = () => {
     });
   };
 
-  // Moodle Courses
+  // Moodle Subjects
   const useCourses = () => {
     return useQuery({
       queryKey: ['student', 'courses'],
@@ -139,7 +139,7 @@ export const useStudentQueries = () => {
     });
   };
 
-  // Student Courses with Progress
+  // Student Subjects with Progress
   const useStudentCourses = () => {
     return useQuery({
       queryKey: ['student', 'courses', 'progress'],
@@ -151,7 +151,7 @@ export const useStudentQueries = () => {
   // Export results mutation
   const useExportResults = () => {
     return useMutation({
-      mutationFn: (format: 'csv' | 'excel' | 'pdf') => 
+      mutationFn: (format: 'csv' | 'excel' | 'pdf') =>
         studentService.exportResults(format),
       onSuccess: () => {
         toast.success('Results exported successfully');
@@ -162,76 +162,76 @@ export const useStudentQueries = () => {
     });
   };
 
- const useSentMessages = () => {
-  return useQuery({
-    queryKey: ['student','messages','sent'],
-    queryFn: studentService.getSentMessages,
-  });
-};
+  const useSentMessages = () => {
+    return useQuery({
+      queryKey: ['student', 'messages', 'sent'],
+      queryFn: studentService.getSentMessages,
+    });
+  };
 
-const useReceivedMessages = () => {
-  return useQuery({
-    queryKey: ['student','messages','received'],
-    queryFn: studentService.getReceivedMessages,
-  });
-};
+  const useReceivedMessages = () => {
+    return useQuery({
+      queryKey: ['student', 'messages', 'received'],
+      queryFn: studentService.getReceivedMessages,
+    });
+  };
 
-const useSendMessage = () => {
-  return useMutation({
-    mutationFn: studentService.sendMessage,
+  const useSendMessage = () => {
+    return useMutation({
+      mutationFn: studentService.sendMessage,
 
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey:['student','messages']
-      });
+      onSuccess: () => {
+        queryClient.invalidateQueries({
+          queryKey: ['student', 'messages']
+        });
 
-      toast.success('Message sent');
-    }
-  });
-};
+        toast.success('Message sent');
+      }
+    });
+  };
 
-const useUpdateMessage = () => {
-  return useMutation({
-    mutationFn: ({
-      id,
-      payload
-    }: {
-      id:number;
-      payload:UpdateMessagePayload;
-    }) => studentService.updateMessage(id,payload),
+  const useUpdateMessage = () => {
+    return useMutation({
+      mutationFn: ({
+        id,
+        payload
+      }: {
+        id: number;
+        payload: UpdateMessagePayload;
+      }) => studentService.updateMessage(id, payload),
 
-    onSuccess:()=>{
-      queryClient.invalidateQueries({
-        queryKey:['student','messages']
-      });
+      onSuccess: () => {
+        queryClient.invalidateQueries({
+          queryKey: ['student', 'messages']
+        });
 
-      toast.success('Message updated');
-    }
-  });
-};
+        toast.success('Message updated');
+      }
+    });
+  };
 
 
-const useDeleteMessage = () => {
-  return useMutation({
-    mutationFn: studentService.deleteMessage,
+  const useDeleteMessage = () => {
+    return useMutation({
+      mutationFn: studentService.deleteMessage,
 
-    onSuccess:()=>{
-      queryClient.invalidateQueries({
-        queryKey:['student','messages']
-      });
+      onSuccess: () => {
+        queryClient.invalidateQueries({
+          queryKey: ['student', 'messages']
+        });
 
-      toast.success('Message deleted');
-    }
-  });
-};
+        toast.success('Message deleted');
+      }
+    });
+  };
 
-const useTeachers = () => {
-  return useQuery({
-    queryKey:['student','teachers'],
-    queryFn: studentService.getTeachers,
-    staleTime: 1000 * 60 * 10, // cache 10 mins
-  });
-};
+  const useTeachers = () => {
+    return useQuery({
+      queryKey: ['student', 'teachers'],
+      queryFn: studentService.getTeachers,
+      staleTime: 1000 * 60 * 10, // cache 10 mins
+    });
+  };
 
 
 
@@ -296,11 +296,11 @@ const useTeachers = () => {
     useChangePassword,
     useExportData,
     useExportResults,
-     useSentMessages,
-  useReceivedMessages,
-  useSendMessage,
-  useUpdateMessage,
-  useDeleteMessage,
-  useTeachers
+    useSentMessages,
+    useReceivedMessages,
+    useSendMessage,
+    useUpdateMessage,
+    useDeleteMessage,
+    useTeachers
   };
 };

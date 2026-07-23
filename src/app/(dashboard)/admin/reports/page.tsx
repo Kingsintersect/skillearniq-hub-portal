@@ -54,8 +54,8 @@ function DashboardContent() {
     // When category is selected but no course yet
     if (selectedCategory && courses.length === 0) {
       return (
-        <EmptyState 
-          title="No Courses Available"
+        <EmptyState
+          title="No Subjects Available"
           message="There are no courses in this category."
         />
       );
@@ -64,7 +64,7 @@ function DashboardContent() {
     // When category is selected but no course selected yet
     if (selectedCategory && !selectedCourse) {
       return (
-        <EmptyState 
+        <EmptyState
           title="Select a Course"
           message="Please select a course from the dropdown to view grade reports."
         />
@@ -93,7 +93,7 @@ function DashboardContent() {
         <Suspense fallback={<LoadingState />}>
           <FilterSection />
         </Suspense>
-        
+
         {renderContent()}
       </main>
     </div>

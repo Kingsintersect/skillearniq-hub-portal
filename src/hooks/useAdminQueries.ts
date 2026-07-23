@@ -1,9 +1,9 @@
 // hooks/useAdminQueries.ts
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { 
-  teacherService, 
-  Teacher, 
-  CreateTeacherPayload, 
+import {
+  teacherService,
+  Teacher,
+  CreateTeacherPayload,
   UpdateTeacherPayload,
   AssignTeacherPayload,
   TeacherFilterParams,
@@ -17,33 +17,33 @@ import {
 } from '@/lib/services/admin/messageService';
 
 
-import { 
+import {
   gradeService,
   CourseCategory,
   CourseGradesResponse
 } from '@/lib/services/admin/gradeService';
 
-import { 
-  studentService, 
-  Student, 
-  CreateStudentPayload, 
-  StudentFilterParams 
+import {
+  studentService,
+  Student,
+  CreateStudentPayload,
+  StudentFilterParams
 } from '@/lib/services/admin/studentService';
-import { 
-  parentService, 
-  Parent, 
-  CreateParentPayload, 
-  ParentFilterParams 
+import {
+  parentService,
+  Parent,
+  CreateParentPayload,
+  ParentFilterParams
 } from '@/lib/services/admin/parentService';
-import { 
-  paymentService, 
- 
-  PaymentFilterParams 
+import {
+  paymentService,
+
+  PaymentFilterParams
 } from '@/lib/services/admin/paymentService';
 import { Payment, PaymentWithDetails } from '@/types/auth';
-import { 
-  dashboardService, 
-  DashboardStats 
+import {
+  dashboardService,
+  DashboardStats
 } from '@/lib/services/admin/dashboardService';
 import { toast } from 'sonner';
 
@@ -70,67 +70,67 @@ export const useAdminQueries = () => {
 
 
   const useSendMessage = () => {
-  return useMutation({
-    mutationFn: messageService.sendMessage,
+    return useMutation({
+      mutationFn: messageService.sendMessage,
 
-    onSuccess: (res: any) => {
-      queryClient.invalidateQueries({ queryKey: ['sent-messages'] });
+      onSuccess: (res: any) => {
+        queryClient.invalidateQueries({ queryKey: ['sent-messages'] });
 
-      toast.success(
-        res?.message || 'Message sent successfully!'
-      );
-    },
+        toast.success(
+          res?.message || 'Message sent successfully!'
+        );
+      },
 
-    onError: (err: any) => {
-      toast.error(err?.message || 'Failed to send message');
-    },
-  });
-};
-
-
-const useSentMessages = () => {
-  return useQuery({
-    queryKey: ['sent-messages'],
-    queryFn: messageService.getSentMessages,
-    staleTime: 1000 * 60 * 2,
-  });
-};
+      onError: (err: any) => {
+        toast.error(err?.message || 'Failed to send message');
+      },
+    });
+  };
 
 
-const useReceivedMessages = () => {
-  return useQuery({
-    queryKey: ['received-messages'],
-    queryFn: messageService.getReceivedMessages,
-  });
-};
+  const useSentMessages = () => {
+    return useQuery({
+      queryKey: ['sent-messages'],
+      queryFn: messageService.getSentMessages,
+      staleTime: 1000 * 60 * 2,
+    });
+  };
 
 
-const useUpdateMessage = () => {
-  return useMutation({
-    mutationFn: ({ id, message }: { id: number; message: string }) =>
-      messageService.updateMessage(id, message),
-
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['sent-messages'] });
-      toast.success('Message updated!');
-    },
-  });
-};
+  const useReceivedMessages = () => {
+    return useQuery({
+      queryKey: ['received-messages'],
+      queryFn: messageService.getReceivedMessages,
+    });
+  };
 
 
-const useDeleteMessage = () => {
-  return useMutation({
-    mutationFn: messageService.deleteMessage,
+  const useUpdateMessage = () => {
+    return useMutation({
+      mutationFn: ({ id, message }: { id: number; message: string }) =>
+        messageService.updateMessage(id, message),
 
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['sent-messages'] });
-      toast.success('Message deleted!');
-    },
-  });
-};
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['sent-messages'] });
+        toast.success('Message updated!');
+      },
+    });
+  };
 
 
- // Grade Reports Queries
+  const useDeleteMessage = () => {
+    return useMutation({
+      mutationFn: messageService.deleteMessage,
+
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['sent-messages'] });
+        toast.success('Message deleted!');
+      },
+    });
+  };
+
+
+  // Grade Reports Queries
   const useCourseCategories = () => {
     return useQuery({
       queryKey: ['course-categories'],
@@ -211,22 +211,22 @@ const useDeleteMessage = () => {
   };
 
   const useTeacher = (id: number) => {
-  return useQuery({
-    queryKey: ['teacher', id],
-    queryFn: () => teacherService.getTeacher(id),
-    enabled: !!id,
-    staleTime: 5 * 60 * 1000,
-  });
-};
+    return useQuery({
+      queryKey: ['teacher', id],
+      queryFn: () => teacherService.getTeacher(id),
+      enabled: !!id,
+      staleTime: 5 * 60 * 1000,
+    });
+  };
 
-// Get teacher subjects
-const useTeacherSubjects = () => {
-  return useQuery({
-    queryKey: ['teacher-subjects'],
-    queryFn: teacherService.getTeacherSubjects,
-    staleTime: 5 * 60 * 1000,
-  });
-};
+  // Get teacher subjects
+  const useTeacherSubjects = () => {
+    return useQuery({
+      queryKey: ['teacher-subjects'],
+      queryFn: teacherService.getTeacherSubjects,
+      staleTime: 5 * 60 * 1000,
+    });
+  };
 
   // Categories - Fixed to accept parameters
   const useCategories = (params?: any) => {
@@ -237,7 +237,7 @@ const useTeacherSubjects = () => {
     });
   };
 
-  // Courses - Fixed to accept parameters
+  // Subjects - Fixed to accept parameters
   const useCourses = (params?: any) => {
     return useQuery({
       queryKey: ['courses', params],
@@ -455,7 +455,7 @@ const useTeacherSubjects = () => {
   return {
     // Dashboard
     useDashboardStats,
-    
+
     // Teachers
     useTeachers,
     useTeacher,
@@ -468,7 +468,7 @@ const useTeacherSubjects = () => {
     useAssignTeacher,
     useDeleteTeacher,
     useBulkUploadTeachers,
-    
+
     // Students
     useStudents,
     useAllStudents,
@@ -476,26 +476,26 @@ const useTeacherSubjects = () => {
     useUpdateStudentStatus,
     useDeleteStudent,
     useBulkUploadStudents,
-    
+
     // Parents
     useParents,
     useAllParents,
     useCreateParent,
     useDeleteParent,
-    
+
     // Payments
     usePayments,
     usePaymentDetails,
 
     useSendMessage,
-useSentMessages,
-useReceivedMessages,
-useUpdateMessage,
-useDeleteMessage,
+    useSentMessages,
+    useReceivedMessages,
+    useUpdateMessage,
+    useDeleteMessage,
 
 
-     // Grade Reports
-     useCourseCategories,
+    // Grade Reports
+    useCourseCategories,
     useCoursesByCategory,
     useAllCourses,
     useCourseGrades,
