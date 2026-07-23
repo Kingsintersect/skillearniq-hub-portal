@@ -110,7 +110,7 @@ export const AssessmentsPage: React.FC = () => {
   const currentTeacherId = getCurrentTeacherId();
 
   const { useClasses, useAssessments } = useTeacherQueries();
-  
+
   const {
     data: coursesData = [],
     isLoading: coursesLoading,
@@ -128,7 +128,7 @@ export const AssessmentsPage: React.FC = () => {
   });
 
   useEffect(() => {
-    console.log('Courses data:', coursesData);
+    console.log('Subjects data:', coursesData);
     console.log('Number of courses:', coursesData?.length || 0);
   }, [coursesData]);
 
@@ -139,7 +139,7 @@ export const AssessmentsPage: React.FC = () => {
   const handleCourseSelect = (courseId: string) => {
     const id = courseId ? parseInt(courseId) : undefined;
     setSelectedCourseId(id);
-    
+
     if (coursesData && id) {
       const selected = coursesData.find((course: Course) => course.id === id);
       setSelectedCourse(selected || null);
@@ -150,7 +150,7 @@ export const AssessmentsPage: React.FC = () => {
 
   const getCurrentViewData = (): Assessment[] => {
     if (!assessmentsData?.assessments) return [];
-    
+
     const assessments = assessmentsData.assessments;
     switch (view) {
       case 'upcoming': return assessments.upcoming || [];
@@ -178,11 +178,11 @@ export const AssessmentsPage: React.FC = () => {
     ];
 
     const totalAssessments = allAssessments.length;
-    const pendingGrading = (assessments.upcoming || []).filter((a: Assessment) => 
+    const pendingGrading = (assessments.upcoming || []).filter((a: Assessment) =>
       a.status === 'scheduled' || a.status === 'in-progress'
     ).length;
     const completedWithScores = (assessments.completed || []).filter((a: Assessment) => a.averageScore);
-    const avgScore = completedWithScores.length > 0 
+    const avgScore = completedWithScores.length > 0
       ? completedWithScores.reduce((sum: number, a: Assessment) => sum + (a.averageScore || 0), 0) / completedWithScores.length
       : 0;
     const totalSubmissions = allAssessments.reduce((sum: number, a: Assessment) => sum + (a.submissions || 0), 0);
@@ -265,18 +265,18 @@ export const AssessmentsPage: React.FC = () => {
   const currentViewData = getCurrentViewData();
   const stats = calculateStats();
 
-  const filteredData = searchTerm 
+  const filteredData = searchTerm
     ? currentViewData.filter((assessment: Assessment) =>
-        assessment.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        assessment.class?.toLowerCase().includes(searchTerm.toLowerCase())
-      )
+      assessment.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      assessment.class?.toLowerCase().includes(searchTerm.toLowerCase())
+    )
     : currentViewData;
 
   const getTabCounts = () => {
     if (!assessmentsData?.assessments) {
       return { upcoming: 0, completed: 0, drafts: 0 };
     }
-    
+
     const assessments = assessmentsData.assessments;
     return {
       upcoming: assessments.upcoming?.length || 0,
@@ -287,10 +287,10 @@ export const AssessmentsPage: React.FC = () => {
 
   const tabCounts = getTabCounts();
 
-  const totalAssessments = (assessmentsData?.assessments) 
-    ? (assessmentsData.assessments.upcoming?.length || 0) + 
-      (assessmentsData.assessments.completed?.length || 0) + 
-      (assessmentsData.assessments.drafts?.length || 0)
+  const totalAssessments = (assessmentsData?.assessments)
+    ? (assessmentsData.assessments.upcoming?.length || 0) +
+    (assessmentsData.assessments.completed?.length || 0) +
+    (assessmentsData.assessments.drafts?.length || 0)
     : 0;
 
   if (coursesLoading) {
@@ -312,7 +312,7 @@ export const AssessmentsPage: React.FC = () => {
         <div className="flex items-center justify-center h-64">
           <div className="text-center max-w-md">
             <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-foreground mb-2">Unable to Load Courses</h3>
+            <h3 className="text-lg font-semibold text-foreground mb-2">Unable to Load Subjects</h3>
             <p className="text-muted-foreground mb-4">
               We couldn't load your courses. Please check your connection and try again.
             </p>
@@ -349,9 +349,9 @@ export const AssessmentsPage: React.FC = () => {
                 New Assessment
               </Button>
             </DialogTrigger>
-            <CreateAssessmentDialog 
-              onCreate={handleCreateAssessment} 
-              classes={coursesData || []} 
+            <CreateAssessmentDialog
+              onCreate={handleCreateAssessment}
+              classes={coursesData || []}
               selectedCourseId={selectedCourseId}
             />
           </Dialog>
@@ -370,9 +370,9 @@ export const AssessmentsPage: React.FC = () => {
             >
               <SelectTrigger className="rounded-xl mt-1.5">
                 <SelectValue placeholder={
-                  coursesLoading ? "Loading courses..." : 
-                  !coursesData || coursesData.length === 0 ? "No courses assigned" : 
-                  "Select a course"
+                  coursesLoading ? "Loading courses..." :
+                    !coursesData || coursesData.length === 0 ? "No courses assigned" :
+                      "Select a course"
                 } />
               </SelectTrigger>
               {coursesData && coursesData.length > 0 && (
@@ -385,7 +385,7 @@ export const AssessmentsPage: React.FC = () => {
                 </SelectContent>
               )}
             </Select>
-            
+
             {(!coursesData || coursesData.length === 0) && !coursesLoading && (
               <div className="mt-2 p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-800">
                 <div className="flex items-start gap-2">
@@ -397,7 +397,7 @@ export const AssessmentsPage: React.FC = () => {
                 </div>
               </div>
             )}
-            
+
             {coursesData && coursesData.length > 0 && (
               <p className="text-xs text-muted-foreground mt-2">
                 {coursesData.length} course{coursesData.length !== 1 ? 's' : ''} available
@@ -506,9 +506,9 @@ export const AssessmentsPage: React.FC = () => {
                   Create New Assessment
                 </Button>
               </DialogTrigger>
-              <CreateAssessmentDialog 
-                onCreate={handleCreateAssessment} 
-                classes={coursesData || []} 
+              <CreateAssessmentDialog
+                onCreate={handleCreateAssessment}
+                classes={coursesData || []}
                 selectedCourseId={selectedCourseId}
               />
             </Dialog>
@@ -538,40 +538,40 @@ export const AssessmentsPage: React.FC = () => {
       )}
 
       {/* Show when course has no assessments */}
-      {selectedCourseId && assessmentsData && 
-       !assessmentsLoading && 
-       !assessmentsError &&
-       totalAssessments === 0 && (
-        <div className="rounded-3xl border border-border/70 bg-card/95 p-12 text-center">
-          <div className="flex h-20 w-20 items-center justify-center rounded-full bg-blue-50 mx-auto mb-4">
-            <FolderOpen className="h-10 w-10 text-blue-500" />
+      {selectedCourseId && assessmentsData &&
+        !assessmentsLoading &&
+        !assessmentsError &&
+        totalAssessments === 0 && (
+          <div className="rounded-3xl border border-border/70 bg-card/95 p-12 text-center">
+            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-blue-50 mx-auto mb-4">
+              <FolderOpen className="h-10 w-10 text-blue-500" />
+            </div>
+            <h3 className="text-lg font-semibold text-foreground mb-2">No Assessments Yet</h3>
+            <p className="text-muted-foreground mb-4">
+              There are no assessments created for <span className="font-semibold text-foreground">{selectedCourse?.name}</span> yet.
+              Create your first assessment to get started.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button className="gap-2">
+                    <Plus size={16} />
+                    Create First Assessment
+                  </Button>
+                </DialogTrigger>
+                <CreateAssessmentDialog
+                  onCreate={handleCreateAssessment}
+                  classes={coursesData || []}
+                  selectedCourseId={selectedCourseId}
+                />
+              </Dialog>
+              <Button variant="outline" onClick={() => refetchAssessments()}>
+                <Loader2 className="h-4 w-4 mr-2" />
+                Refresh
+              </Button>
+            </div>
           </div>
-          <h3 className="text-lg font-semibold text-foreground mb-2">No Assessments Yet</h3>
-          <p className="text-muted-foreground mb-4">
-            There are no assessments created for <span className="font-semibold text-foreground">{selectedCourse?.name}</span> yet.
-            Create your first assessment to get started.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button className="gap-2">
-                  <Plus size={16} />
-                  Create First Assessment
-                </Button>
-              </DialogTrigger>
-              <CreateAssessmentDialog 
-                onCreate={handleCreateAssessment} 
-                classes={coursesData || []} 
-                selectedCourseId={selectedCourseId}
-              />
-            </Dialog>
-            <Button variant="outline" onClick={() => refetchAssessments()}>
-              <Loader2 className="h-4 w-4 mr-2" />
-              Refresh
-            </Button>
-          </div>
-        </div>
-      )}
+        )}
 
       {/* Search and Tabs */}
       {selectedCourseId && assessmentsData && !assessmentsLoading && !assessmentsError && totalAssessments > 0 && (
@@ -660,8 +660,8 @@ const AssessmentsListView: React.FC<{
         </h3>
         <p className="text-muted-foreground">
           {type === 'upcoming' ? 'No assessments are scheduled for this course yet.' :
-            type === 'completed' ? 'No assessments have been completed for this course yet.' : 
-            'No assessment drafts have been saved for this course yet.'}
+            type === 'completed' ? 'No assessments have been completed for this course yet.' :
+              'No assessment drafts have been saved for this course yet.'}
         </p>
       </div>
     );
@@ -716,8 +716,8 @@ const AssessmentsListView: React.FC<{
                 <TableCell>
                   <Badge variant={
                     assessment.type === 'quiz' ? 'secondary' :
-                    assessment.type === 'assignment' ? 'default' :
-                    assessment.type === 'exam' ? 'destructive' : 'outline'
+                      assessment.type === 'assignment' ? 'default' :
+                        assessment.type === 'exam' ? 'destructive' : 'outline'
                   }>
                     {assessment.type}
                   </Badge>
@@ -745,9 +745,9 @@ const AssessmentsListView: React.FC<{
                 <TableCell className="hidden sm:table-cell">
                   <Badge variant={
                     assessment.status === 'scheduled' ? 'secondary' :
-                    assessment.status === 'in-progress' ? 'default' :
-                    assessment.status === 'completed' ? 'outline' :
-                    assessment.status === 'graded' ? 'default' : 'secondary'
+                      assessment.status === 'in-progress' ? 'default' :
+                        assessment.status === 'completed' ? 'outline' :
+                          assessment.status === 'graded' ? 'default' : 'secondary'
                   }>
                     {assessment.status}
                   </Badge>
@@ -906,7 +906,7 @@ const CreateAssessmentDialog: React.FC<CreateAssessmentDialogProps> = ({ onCreat
             onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
             placeholder="Enter assessment description"
             className="rounded-xl"
-            required          />
+            required />
         </div>
 
         <div className="flex justify-end gap-2 pt-4">

@@ -275,7 +275,7 @@ function CourseTable({ courses }: { courses: ReportCourse[] }) {
                         </td>
                         <td className="px-4 py-4 text-center font-medium text-foreground">{course.gradePoint.toFixed(2)}</td>
                         <td className="px-4 py-4 text-center font-semibold text-primary">{course.qualityPoints.toFixed(2)}</td>
-                      </tr>
+                     </tr>
                   ))}
                   <tr className="bg-primary/5 font-semibold">
                      <td colSpan={2} className="px-4 py-4 text-right text-foreground">
@@ -341,7 +341,7 @@ function GradeDistribution({ summary }: { summary: ReportSummary }) {
             </div>
             <div className="mt-4 border-t border-border pt-4 text-sm text-muted-foreground">
                <div className="flex justify-between">
-                  <span>Total Courses:</span>
+                  <span>Total Subjects:</span>
                   <span className="font-medium text-foreground">
                      {summary.gradeDistribution.reduce((sum, item) => sum + item.count, 0)}
                   </span>
@@ -582,7 +582,7 @@ export default function StudentGradeReportsPage() {
                      <p className="text-xs text-muted-foreground mt-1">Current Standing</p>
                   </div>
                   <div className="rounded-2xl border border-border/70 bg-background/60 p-4">
-                     <p className="text-xs text-muted-foreground">Courses Taken</p>
+                     <p className="text-xs text-muted-foreground">Subjects Taken</p>
                      <p className="mt-1 text-2xl font-bold text-foreground">{reportCourses.length}</p>
                      <p className="text-xs text-muted-foreground mt-1">This Semester</p>
                   </div>

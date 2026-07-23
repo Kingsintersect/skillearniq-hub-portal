@@ -23,12 +23,12 @@ export const useStudentGradeStore = create<StudentGradeStore>((set, get) => ({
   // Fetch student's enrolled courses
   fetchCourses: async () => {
     set({ isLoading: true, error: null });
-    
+
     try {
       const response = await studentService.getEnrolledCourses();
-      
-      console.log('Student Courses API Response:', response);
-      
+
+      console.log('Student Subjects API Response:', response);
+
       if (response.status === 200 || response.status === 201) {
         const courses = response.data.map((course: MoodleCourse) => ({
           id: course.id.toString(),
@@ -38,15 +38,15 @@ export const useStudentGradeStore = create<StudentGradeStore>((set, get) => ({
           category: course.category?.toString() || '0',
           summary: course.summary || ''
         }));
-        
+
         console.log('Processed student courses:', courses);
-        
-        set({ 
-          courses: courses, 
+
+        set({
+          courses: courses,
           isLoading: false,
-          error: null 
+          error: null
         });
-        
+
         if (courses.length > 0) {
           toast.success(`Loaded ${courses.length} enrolled courses`);
         } else {
@@ -54,25 +54,25 @@ export const useStudentGradeStore = create<StudentGradeStore>((set, get) => ({
         }
       } else {
         const errorMsg = response.message || 'Failed to fetch courses';
-        set({ 
-          error: errorMsg, 
-          isLoading: false 
+        set({
+          error: errorMsg,
+          isLoading: false
         });
         toast.error(errorMsg);
       }
     } catch (error: any) {
       console.error('Error in fetchCourses:', error);
       const errorMsg = error.message || 'Network error while fetching courses';
-      set({ 
-        error: errorMsg, 
-        isLoading: false 
+      set({
+        error: errorMsg,
+        isLoading: false
       });
       toast.error(errorMsg);
     }
   },
 
   setSelectedCourse: (courseId: string) => {
-    set({ 
+    set({
       selectedCourse: courseId,
       gradeData: [],
       courseInfo: null,
@@ -102,22 +102,22 @@ export const useStudentGradeStore = create<StudentGradeStore>((set, get) => ({
       return;
     }
 
-    set({ 
-      isLoading: true, 
-      error: null, 
-      gradeData: [], 
-      courseInfo: null 
+    set({
+      isLoading: true,
+      error: null,
+      gradeData: [],
+      courseInfo: null
     });
 
     try {
       const response = await studentService.getCourseGrades(parseInt(selectedCourse));
-      
+
       console.log('Student Grades API Response:', response);
-      
+
       if (response.status === 200 || response.status === 201) {
         const courseData = response.data;
-        
-        set({ 
+
+        set({
           courseInfo: {
             course_id: courseData.course_id,
             course_code: courseData.course_code || '',
@@ -144,19 +144,19 @@ export const useStudentGradeStore = create<StudentGradeStore>((set, get) => ({
         };
 
         const currentStudentId = getCurrentStudentId();
-        
+
         // Filter to get only the current student's data
-        const currentStudent = courseData.students.find((student: any) => 
+        const currentStudent = courseData.students.find((student: any) =>
           student.student_id === currentStudentId
         );
 
         let students: StudentGradeData[] = [];
-        
+
         if (currentStudent) {
           let assignmentScore = 0;
           let quizScore = 0;
           let examScore = currentStudent.final_grade || 0;
-          
+
           if (Array.isArray(currentStudent.activities)) {
             currentStudent.activities.forEach((activity: any) => {
               if (activity.type === 'assign') {
@@ -188,12 +188,12 @@ export const useStudentGradeStore = create<StudentGradeStore>((set, get) => ({
           }];
         }
 
-        set({ 
-          gradeData: students, 
+        set({
+          gradeData: students,
           isLoading: false,
-          error: null 
+          error: null
         });
-        
+
         if (students.length > 0) {
           toast.success(`Loaded your grade information for this course`);
         } else {
@@ -201,18 +201,18 @@ export const useStudentGradeStore = create<StudentGradeStore>((set, get) => ({
         }
       } else {
         const errorMsg = response.message || 'Failed to fetch grade data';
-        set({ 
-          error: errorMsg, 
-          isLoading: false 
+        set({
+          error: errorMsg,
+          isLoading: false
         });
         toast.error(errorMsg);
       }
     } catch (error: any) {
       console.error('Error in fetchGradeData:', error);
       const errorMsg = error.message || 'Network error while fetching grades';
-      set({ 
-        error: errorMsg, 
-        isLoading: false 
+      set({
+        error: errorMsg,
+        isLoading: false
       });
       toast.error(errorMsg);
     }

@@ -34,7 +34,7 @@ const SiteHeader = () => {
                 {user?.role === 'STUDENT' && <div className="flex items-center gap-2">
                     <LucideLink className="w-4 h-4" />
                     <Link href={`/enrollment`} >
-                        Enroll In Courses
+                        Enroll In Subjects
                     </Link>
                 </div>}
                 {/* <ThemeSelector /> */}

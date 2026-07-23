@@ -25,26 +25,26 @@ export const useGradeStore = create<GradeStore>((set, get) => ({
   // FIXED: fetchCategories function with better error handling
   fetchCategories: async () => {
     set({ isLoading: true, error: null });
-    
+
     try {
       const response = await gradeService.getCourseCategories();
-      
+
       console.log('Categories API Response:', response); // Debug log
-      
+
       if (response.status === 200 || response.status === 201) {
         const categories = response.data.map((cat: any) => ({
           id: cat.id.toString(),
           name: cat.name
         }));
-        
+
         console.log('Processed categories:', categories); // Debug log
-        
-        set({ 
-          courseCategories: categories, 
+
+        set({
+          courseCategories: categories,
           isLoading: false,
-          error: null 
+          error: null
         });
-        
+
         // Show success toast only if we actually got categories
         if (categories.length > 0) {
           toast.success(`Loaded ${categories.length} categories`);
@@ -53,18 +53,18 @@ export const useGradeStore = create<GradeStore>((set, get) => ({
         }
       } else {
         const errorMsg = response.message || 'Failed to fetch categories';
-        set({ 
-          error: errorMsg, 
-          isLoading: false 
+        set({
+          error: errorMsg,
+          isLoading: false
         });
         toast.error(errorMsg);
       }
     } catch (error: any) {
       console.error('Error in fetchCategories:', error); // Debug log
       const errorMsg = error.message || 'Network error while fetching categories';
-      set({ 
-        error: errorMsg, 
-        isLoading: false 
+      set({
+        error: errorMsg,
+        isLoading: false
       });
       toast.error(errorMsg);
     }
@@ -72,7 +72,7 @@ export const useGradeStore = create<GradeStore>((set, get) => ({
 
   // FIXED: setSelectedCategory with better error handling
   setSelectedCategory: async (categoryId: string) => {
-    set({ 
+    set({
       selectedCategory: categoryId,
       selectedCourse: '',
       courses: [],
@@ -87,9 +87,9 @@ export const useGradeStore = create<GradeStore>((set, get) => ({
 
     try {
       const response = await gradeService.getCoursesByCategory(parseInt(categoryId));
-      
-      console.log('Courses API Response:', response); // Debug log
-      
+
+      console.log('Subjects API Response:', response); // Debug log
+
       if (response.status === 200 || response.status === 201) {
         const courses = response.data.map((course: any) => ({
           id: course.id.toString(),
@@ -97,15 +97,15 @@ export const useGradeStore = create<GradeStore>((set, get) => ({
           category: course.category.toString(),
           course_code: course.shortname
         }));
-        
+
         console.log('Processed courses:', courses); // Debug log
-        
-        set({ 
-          courses, 
+
+        set({
+          courses,
           isLoading: false,
-          error: null 
+          error: null
         });
-        
+
         if (courses.length > 0) {
           toast.success(`Found ${courses.length} courses`);
         } else {
@@ -113,18 +113,18 @@ export const useGradeStore = create<GradeStore>((set, get) => ({
         }
       } else {
         const errorMsg = response.message || 'Failed to fetch courses';
-        set({ 
-          error: errorMsg, 
-          isLoading: false 
+        set({
+          error: errorMsg,
+          isLoading: false
         });
         toast.error(errorMsg);
       }
     } catch (error: any) {
       console.error('Error in setSelectedCategory:', error); // Debug log
       const errorMsg = error.message || 'Network error while fetching courses';
-      set({ 
-        error: errorMsg, 
-        isLoading: false 
+      set({
+        error: errorMsg,
+        isLoading: false
       });
       toast.error(errorMsg);
     }
@@ -156,22 +156,22 @@ export const useGradeStore = create<GradeStore>((set, get) => ({
       return;
     }
 
-    set({ 
-      isLoading: true, 
-      error: null, 
-      gradeData: [], 
-      courseInfo: null 
+    set({
+      isLoading: true,
+      error: null,
+      gradeData: [],
+      courseInfo: null
     });
 
     try {
       const response = await gradeService.getCourseGrades(parseInt(selectedCourse));
-      
+
       console.log('Grades API Response:', response); // Debug log
-      
+
       if (response.status === 200 || response.status === 201) {
         const courseData = response.data;
-        
-        set({ 
+
+        set({
           courseInfo: {
             course_id: courseData.course_id,
             course_code: courseData.course_code || '',
@@ -185,7 +185,7 @@ export const useGradeStore = create<GradeStore>((set, get) => ({
           let assignmentScore = 0;
           let quizScore = 0;
           let examScore = student.final_grade || 0;
-          
+
           if (Array.isArray(student.activities)) {
             student.activities.forEach((activity: any) => {
               if (activity.type === 'assign') {
@@ -215,26 +215,26 @@ export const useGradeStore = create<GradeStore>((set, get) => ({
           };
         });
 
-        set({ 
-          gradeData: students, 
+        set({
+          gradeData: students,
           isLoading: false,
-          error: null 
+          error: null
         });
         toast.success(`Loaded ${students.length} student records`);
       } else {
         const errorMsg = response.message || 'Failed to fetch grade data';
-        set({ 
-          error: errorMsg, 
-          isLoading: false 
+        set({
+          error: errorMsg,
+          isLoading: false
         });
         toast.error(errorMsg);
       }
     } catch (error: any) {
       console.error('Error in fetchGradeData:', error); // Debug log
       const errorMsg = error.message || 'Network error while fetching grades';
-      set({ 
-        error: errorMsg, 
-        isLoading: false 
+      set({
+        error: errorMsg,
+        isLoading: false
       });
       toast.error(errorMsg);
     }
