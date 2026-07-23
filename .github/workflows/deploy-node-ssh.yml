@@ -113,7 +113,7 @@ jobs:
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Job 2 — Deploy
-# Runs only on pushes to main (not on PRs).
+# Runs only on pushes to master (not on PRs).
 # Sequence:
 #   1. Transfer archive to server home directory
 #   2. Extract archive into app directory (scripts become available)
@@ -123,7 +123,7 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/master'
 
     steps:
       # Compute APP_DIR here (env context not available in job-level env: blocks).
