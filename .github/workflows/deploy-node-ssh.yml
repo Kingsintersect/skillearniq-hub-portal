@@ -1,0 +1,199 @@
+name: Deploy to VPS - Production
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Triggers
+# ─────────────────────────────────────────────────────────────────────────────
+on:
+  push:
+    branches: [master]
+
+# ─────────────────────────────────────────────────────────────────────────────
+# CONFIGURE THESE for each application — everything else is generic.
+#
+# To reuse this workflow in another repo:
+#   1. Copy this file unchanged.
+#   2. Edit the values below (the env block).
+#   3. Set the required secrets in GitHub → Settings → Secrets and variables.
+#
+# Required secrets (same for every app on the same server):
+#   DEPLOY_SSH_PRIVATE_KEY  — private key whose public key is in ~/.ssh/authorized_keys
+#   DEPLOY_SSH_HOST         — server IP or hostname
+#   DEPLOY_SSH_PORT         — SSH port (usually 22)
+#   DEPLOY_SSH_USER         — SSH login username
+#
+# App-specific secret:
+#   LOCAL_VARIABLES         — the FULL contents of this app's .env file, pasted
+#                             as-is into a single GitHub secret. One secret to
+#                             maintain — add/remove vars by editing this secret's
+#                             value, no workflow file changes needed.
+#
+#                             Used for BOTH:
+#                               - build time (NEXT_PUBLIC_* baked into the bundle)
+#                               - runtime on the server (.env.production)
+# ─────────────────────────────────────────────────────────────────────────────
+
+env:
+  # ── App identity (change these for each application) ────────────────────────
+  APP_NAME: skillearniqhub.qverselearning.org    # PM2 process name — must be unique per app on the server
+  APP_PORT: '3500'                            # port Next.js listens on — must be unique per app on the server
+  DOMAIN: skillearniqhub.qverselearning.org       # public domain name
+  LE_EMAIL: support@qverselearning.com        # SSL contact email (cPanel AutoSSL / Let's Encrypt)
+
+  # Backend proxy — set to https://your-api.com/api/v1/ (trailing slash required).
+  # Leave empty (BACKEND_URL: '') if this app has no external backend to proxy.
+  BACKEND_URL: 'https://prep-school.qverselearning.org/api/v1/'
+
+  # Webserver that fronts this domain: nginx or apache.
+  # On cPanel servers Nginx sits on port 80 in front of Apache — set nginx here
+  # so Nginx proxies directly to Next.js, bypassing Apache entirely.
+  # Leave blank to auto-detect (auto-detect defaults to apache on cPanel).
+  WEBSERVER: nginx
+
+  # ── Infrastructure (no need to change per app) ───────────────────────────────
+  NODE_VERSION: '22'
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Job 1 — Build
+# Runs on every push to master. Produces a deployment archive artifact.
+# ─────────────────────────────────────────────────────────────────────────────
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+        # clean previous build artifacts to prevent accidental inclusion in the deployment archive.
+      - name: Clean previous build
+        run: rm -rf .next
+
+      # Write the full LOCAL_VARIABLES secret to .env so Next.js picks up every
+      # NEXT_PUBLIC_* var automatically at build time. No need to enumerate vars
+      # here — whatever is in the LOCAL_VARIABLES secret is what gets used.
+      - name: Write env file for build
+        run: printf '%s\n' "${{ secrets.LOCAL_VARIABLES }}" > .env
+
+      - name: Build application
+        run: npm run build
+
+      # Remove .env before archiving — it was only needed for the build step.
+      # The server gets its own .env.production written by deploy-server.sh.
+      - name: Remove build-time env file
+        run: rm -f .env
+
+      # Archive contains everything the server needs.
+      # node_modules is intentionally excluded — npm ci runs on the server.
+      # .htaccess is included so cPanel/Apache proxies to Next.js immediately on extract.
+      - name: Create deployment archive
+        run: |
+          tar -czf next-deploy.tar.gz \
+            .next \
+            public \
+            package.json \
+            package-lock.json \
+            next.config.ts \
+            ecosystem.config.js \
+            scripts \
+            .htaccess
+
+      - name: Upload archive as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nextjs-build
+          path: next-deploy.tar.gz
+          retention-days: 1
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Job 2 — Deploy
+# Runs only on pushes to main (not on PRs).
+# Sequence:
+#   1. Transfer archive to server home directory
+#   2. Extract archive into app directory (scripts become available)
+#   3. Bootstrap VPS (idempotent — skips already-installed tools)
+#   4. Run deploy script (scoped to this app only)
+# ─────────────────────────────────────────────────────────────────────────────
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      # Compute APP_DIR here (env context not available in job-level env: blocks).
+      # APP_DIR follows the cPanel convention ~/DOMAIN — change the path here if
+      # your server uses a different directory layout.
+      - name: Set APP_DIR
+        run: echo "APP_DIR=/home/${{ secrets.DEPLOY_SSH_USER }}/${{ env.DOMAIN }}" >> $GITHUB_ENV
+
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: nextjs-build
+
+      - name: Setup SSH agent
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}
+
+      - name: Add server to known hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -p ${{ secrets.DEPLOY_SSH_PORT }} \
+            ${{ secrets.DEPLOY_SSH_HOST }} >> ~/.ssh/known_hosts
+
+      # ── Step 1: Transfer archive ────────────────────────────────────────────
+      - name: Transfer archive to server
+        run: |
+          scp -P ${{ secrets.DEPLOY_SSH_PORT }} \
+            next-deploy.tar.gz \
+            ${{ secrets.DEPLOY_SSH_USER }}@${{ secrets.DEPLOY_SSH_HOST }}:~
+
+      # ── Step 2: Extract archive so scripts/ is available ───────────────────
+      - name: Extract archive on server
+        run: |
+          ssh -p ${{ secrets.DEPLOY_SSH_PORT }} \
+            ${{ secrets.DEPLOY_SSH_USER }}@${{ secrets.DEPLOY_SSH_HOST }} \
+            "mkdir -p ${{ env.APP_DIR }} && \
+             tar -xzf ~/next-deploy.tar.gz -C ${{ env.APP_DIR }} && \
+             rm -f ~/next-deploy.tar.gz && \
+             chmod +x ${{ env.APP_DIR }}/scripts/bootstrap-vps.sh \
+                      ${{ env.APP_DIR }}/scripts/deploy-server.sh"
+
+      # ── Step 3: Bootstrap VPS (idempotent — safe to run on every deploy) ───
+      # Installs Node/PM2/Nginx/Certbot only if missing. Warns on port conflicts.
+      # Does NOT install anything if already present.
+      - name: Bootstrap VPS
+        run: |
+          ssh -p ${{ secrets.DEPLOY_SSH_PORT }} \
+            ${{ secrets.DEPLOY_SSH_USER }}@${{ secrets.DEPLOY_SSH_HOST }} \
+            "bash ${{ env.APP_DIR }}/scripts/bootstrap-vps.sh \
+               ${{ secrets.DEPLOY_SSH_USER }}"
+
+      # ── Step 4: Deploy app (scoped to this app only) ────────────────────────
+      # The full LOCAL_VARIABLES blob is piped to the server over stdin (NOT as
+      # a quoted shell arg/env var) and written to a temp file there.
+      # deploy-server.sh is expected to pick up that file and write it to
+      # .env.production. Piping via stdin avoids any shell-escaping issues from
+      # quotes, $, backticks, or newlines inside the secret's value.
+      - name: Deploy application
+        run: |
+          ssh -p ${{ secrets.DEPLOY_SSH_PORT }} \
+            ${{ secrets.DEPLOY_SSH_USER }}@${{ secrets.DEPLOY_SSH_HOST }} \
+            "cat > /tmp/${{ env.APP_NAME }}.env.incoming && \
+             bash ${{ env.APP_DIR }}/scripts/deploy-server.sh \
+               '${{ env.APP_DIR }}' \
+               '${{ env.APP_NAME }}' \
+               '${{ env.APP_PORT }}' \
+               '${{ env.DOMAIN }}' \
+               '${{ env.LE_EMAIL }}' \
+               '${{ env.BACKEND_URL }}' \
+               '${{ env.WEBSERVER }}' \
+               '/tmp/${{ env.APP_NAME }}.env.incoming'" <<< "${{ secrets.LOCAL_VARIABLES }}"
+
