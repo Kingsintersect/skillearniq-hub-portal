@@ -75,9 +75,8 @@ function DashboardCard({ title, subtitle, icon, action, children, tone = "primar
                     {subtitle && <p className="mt-1 text-xs text-muted-foreground">{subtitle}</p>}
                 </div>
                 <div
-                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl ${
-                        tone === "accent" ? "bg-accent/15 text-accent" : "bg-primary/10 text-primary"
-                    }`}
+                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl ${tone === "accent" ? "bg-accent/15 text-accent" : "bg-primary/10 text-primary"
+                        }`}
                 >
                     {icon}
                 </div>
@@ -91,7 +90,7 @@ function DashboardCard({ title, subtitle, icon, action, children, tone = "primar
 export default function Dashboard() {
     const router = useRouter();
     const { useDashboardSummary, useGamificationData, useClasses, useAssessments, useAttendance } = useStudentQueries();
-    
+
     const { data: dashboardResponse, isLoading: dashboardLoading } = useDashboardSummary();
     const { data: gamificationResponse, isLoading: gamificationLoading } = useGamificationData();
     const { data: classesResponse, isLoading: classesLoading } = useClasses();
@@ -132,11 +131,11 @@ export default function Dashboard() {
     }
 
     const { profile, upcomingDeadlines } = dashboardData;
-    
+
     const studentId = profile?.admission_no || profile?.user_id?.toString() || 'Not assigned';
     const fullName = profile ? `${profile.first_name} ${profile.last_name}` : 'Student';
     const firstName = profile?.first_name || 'Student';
-    
+
     // Safe access with fallbacks - these might come from meta or be undefined
     const department = profile?.meta?.department || 'Computer Science';
     const level = profile?.meta?.level || '400 Level';
@@ -158,12 +157,12 @@ export default function Dashboard() {
         name: entry.name?.split(' ')[0] || `Student ${entry.rank}`,
         grade: entry.points || 0,
     })) || [
-        { name: "You", grade: 85 },
-        { name: "Peer 1", grade: 78 },
-        { name: "Peer 2", grade: 72 },
-        { name: "Peer 3", grade: 68 },
-        { name: "Peer 4", grade: 65 },
-    ];
+            { name: "You", grade: 85 },
+            { name: "Peer 1", grade: 78 },
+            { name: "Peer 2", grade: 72 },
+            { name: "Peer 3", grade: 68 },
+            { name: "Peer 4", grade: 65 },
+        ];
 
     // Brand palette: navy, orange, gold, light-navy.
     const CHART_COLORS = ['#293073', '#FB6801', '#C08A2D', '#6B72B8'];
@@ -270,13 +269,13 @@ export default function Dashboard() {
                     icon={<Brain size={18} />}
                 >
                     <p className="text-lg font-semibold text-foreground">
-                        {assessments.length > 0 && assessments[0]?.subject 
-                            ? assessments[0].subject 
+                        {assessments.length > 0 && assessments[0]?.subject
+                            ? assessments[0].subject
                             : "Mathematics"}
                     </p>
                     <p className="mt-1 text-xs text-muted-foreground">
                         Avg score: {assessments.length > 0 && assessments[0]?.score && assessments[0]?.max_score
-                            ? `${Math.round((assessments[0].score / assessments[0].max_score) * 100)}%` 
+                            ? `${Math.round((assessments[0].score / assessments[0].max_score) * 100)}%`
                             : '85%'}
                     </p>
                 </DashboardCard>
@@ -447,7 +446,7 @@ export default function Dashboard() {
                                     className="mt-3 flex items-center justify-center gap-2 rounded-xl bg-primary/10 p-3 text-sm font-semibold text-primary transition-colors hover:bg-primary/20"
                                 >
                                     <GraduationCap size={16} />
-                                    Browse All Courses
+                                    Browse All Subjects
                                     <ChevronRight size={14} />
                                 </Link>
                             </div>
@@ -648,7 +647,7 @@ export default function Dashboard() {
                                     </div>
                                     <Badge variant={
                                         record.status === 'present' ? 'default' :
-                                        record.status === 'absent' ? 'destructive' : 'secondary'
+                                            record.status === 'absent' ? 'destructive' : 'secondary'
                                     }>
                                         {record.status || 'N/A'}
                                     </Badge>

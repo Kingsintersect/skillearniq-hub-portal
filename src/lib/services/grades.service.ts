@@ -70,9 +70,9 @@ export const SEMESTERS: GradeSemester[] = [
    { id: "sem-6", label: "Second Semester", academicYearId: "ay-2024-2025", academicYear: "2024/2025" },
    ...(CURRENT_ACADEMIC_YEAR !== "2024/2025"
       ? [
-           { id: "sem-7", label: "First Semester", academicYearId: CURRENT_ACADEMIC_YEAR_ID, academicYear: CURRENT_ACADEMIC_YEAR },
-           { id: "sem-8", label: "Second Semester", academicYearId: CURRENT_ACADEMIC_YEAR_ID, academicYear: CURRENT_ACADEMIC_YEAR },
-        ]
+         { id: "sem-7", label: "First Semester", academicYearId: CURRENT_ACADEMIC_YEAR_ID, academicYear: CURRENT_ACADEMIC_YEAR },
+         { id: "sem-8", label: "Second Semester", academicYearId: CURRENT_ACADEMIC_YEAR_ID, academicYear: CURRENT_ACADEMIC_YEAR },
+      ]
       : []),
 ];
 
@@ -168,7 +168,7 @@ function gradeStatus(gradeId: number, semId: string): GradeStatus {
 
 // ─── Generate mock grades ─────────────────────────────────────────────────────
 
-// Courses assigned per semester for each program (alternating sets)
+// Subjects assigned per semester for each program (alternating sets)
 const PROGRAM_COURSES: Record<string, number[][]> = {
    csc: [[1, 2, 3], [4, 5, 1]], // courses for semesters 1,3,5 vs 2,4,6
    eee: [[6, 7, 8], [9, 10, 6]],

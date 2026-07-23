@@ -23,7 +23,7 @@ export const StudentNavMain: SidebarNavConfig = {
                 { title: "Pay Tuition Fee", url: "/history/student-payments/tuition" },
             ],
         },
-        { title: "My Courses", icon: School, items: [{ title: "My Courses", url: "/student/classes" }] },
+        { title: "My Subjects", icon: School, items: [{ title: "My Subjects", url: "/student/classes" }] },
         {
             title: "History",
             icon: DollarSign,

@@ -27,7 +27,7 @@ export const CoursesGridView = ({ searchTerm = '' }: CoursesGridViewProps) => {
   useEffect(() => {
     const fetchStudentCounts = async () => {
       if (courses.length === 0) return;
-      
+
       setIsLoadingCounts(true);
       try {
         const counts: Record<number, number> = {};
@@ -108,7 +108,7 @@ export const CoursesGridView = ({ searchTerm = '' }: CoursesGridViewProps) => {
     return (
       <div className="text-center py-12">
         <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-50" />
-        <h3 className="text-lg font-medium text-foreground">No Courses Found</h3>
+        <h3 className="text-lg font-medium text-foreground">No Subjects Found</h3>
         <p className="text-sm text-muted-foreground mt-1">
           {searchTerm ? 'No courses match your search criteria' : 'No courses available for this study stream'}
         </p>
@@ -121,7 +121,7 @@ export const CoursesGridView = ({ searchTerm = '' }: CoursesGridViewProps) => {
       {filteredCourses.map((course: any, index: number) => {
         const studentCount = studentCounts[course.id] ?? 0;
         const courseLmsUrl = getCourseLmsUrl(course.id);
-        
+
         return (
           <motion.div
             key={course.id}

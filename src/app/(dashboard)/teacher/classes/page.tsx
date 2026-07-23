@@ -63,7 +63,7 @@ export default function CoursesPage() {
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Course Management</p>
-            <h1 className="mt-2 text-2xl font-bold text-foreground sm:text-3xl">Assigned Courses</h1>
+            <h1 className="mt-2 text-2xl font-bold text-foreground sm:text-3xl">Assigned Subjects</h1>
             <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
               Browse and manage your assigned courses. View course details, track progress, and access teaching materials.
             </p>
@@ -79,7 +79,7 @@ export default function CoursesPage() {
           <div className="rounded-2xl border border-border/70 bg-background/60 p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-muted-foreground">Total Courses</p>
+                <p className="text-xs text-muted-foreground">Total Subjects</p>
                 <p className="mt-1 text-2xl font-bold text-foreground">{courses.length}</p>
               </div>
               <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary/10 text-primary">
@@ -107,7 +107,7 @@ export default function CoursesPage() {
           <div className="rounded-2xl border border-border/70 bg-background/60 p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-muted-foreground">Active Courses</p>
+                <p className="text-xs text-muted-foreground">Active Subjects</p>
                 <p className="mt-1 text-2xl font-bold text-foreground">{courses.length}</p>
               </div>
               <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-500">
@@ -119,11 +119,11 @@ export default function CoursesPage() {
         </div>
       </motion.section>
 
-      {/* Courses Section */}
+      {/* Subjects Section */}
       <div className="rounded-3xl border border-border/70 bg-card/95 p-5 shadow-sm backdrop-blur-sm">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
           <div>
-            <p className="text-sm font-semibold text-card-foreground">Available Courses</p>
+            <p className="text-sm font-semibold text-card-foreground">Available Subjects</p>
             <p className="text-xs text-muted-foreground mt-1">
               {filteredCourses.length > 0
                 ? `${filteredCourses.length} courses assigned`

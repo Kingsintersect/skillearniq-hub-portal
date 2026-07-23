@@ -44,7 +44,7 @@ export default function ParentsDashboard() {
   useEffect(() => {
     if (childrenData) {
       setChildren(childrenData);
-      
+
       // If no child is selected, select the first one
       if (!selectedChild && childrenData.length > 0) {
         const firstChild = childrenData[0];
@@ -62,7 +62,7 @@ export default function ParentsDashboard() {
   }, [stats, setDashboardStats]);
 
   // Find stats for selected child
-  const selectedChildStats = dashboardStats?.childrenStats?.find(child => 
+  const selectedChildStats = dashboardStats?.childrenStats?.find(child =>
     child.first_name === selectedChild?.first_name
   ) || dashboardStats?.childrenStats?.[0];
 
@@ -70,7 +70,7 @@ export default function ParentsDashboard() {
   const totalChildren = children.length;
   const averageAttendance = dashboardStats?.childrenStats?.reduce((sum, child) => sum + (child.attendance || 0), 0) || 0;
   const avgAttendance = totalChildren > 0 ? Math.round(averageAttendance / totalChildren) : 0;
-  
+
   const totalPendingAssignments = dashboardStats?.childrenStats?.reduce((sum, child) => sum + (child.pendingAssignments || 0), 0) || 0;
   const enrolledChildren = dashboardStats?.childrenStats?.filter(child => child.enrollment_status === 'enrolled').length || 0;
   const notEnrolledChildren = totalChildren - enrolledChildren;
@@ -218,7 +218,7 @@ export default function ParentsDashboard() {
                 <div className="space-y-1">
                   <p className="text-sm font-medium text-muted-foreground">Average Grade</p>
                   <p className="text-2xl font-bold">
-                    {dashboardStats?.childrenStats?.length 
+                    {dashboardStats?.childrenStats?.length
                       ? Math.round(dashboardStats.childrenStats.reduce((sum, child) => sum + (child.avgGrade || 0), 0) / dashboardStats.childrenStats.length)
                       : 0
                     }%
@@ -280,7 +280,7 @@ export default function ParentsDashboard() {
                           </div>
                         </div>
                         <div className="flex justify-between items-center py-2">
-                          <span className="text-muted-foreground">Enrolled Courses</span>
+                          <span className="text-muted-foreground">Enrolled Subjects</span>
                           <span className="font-semibold">{selectedChildStats.enrolled_courses?.length || 0}</span>
                         </div>
                         <div className="flex justify-between items-center py-2">
@@ -375,7 +375,7 @@ export default function ParentsDashboard() {
                                 <span className="font-semibold">{childStats?.attendance || 0}%</span>
                               </div>
                               <div className="flex justify-between text-sm">
-                                <span className="text-muted-foreground">Courses</span>
+                                <span className="text-muted-foreground">Subjects</span>
                                 <span className="font-semibold">{childStats?.enrolled_courses?.length || 0}</span>
                               </div>
                               <div className="flex justify-between text-sm">
@@ -476,7 +476,7 @@ export default function ParentsDashboard() {
                         </div>
                       </div>
                     ))}
-                    
+
                     {selectedChildStats.assignments?.overdue?.slice(0, 3).map((assignment: any, index: number) => (
                       <div key={index} className="flex items-start gap-3">
                         <div className="p-2 rounded-lg bg-red-50 dark:bg-red-900">
@@ -489,12 +489,12 @@ export default function ParentsDashboard() {
                       </div>
                     ))}
 
-                    {selectedChildStats.assignments?.upcoming?.length === 0 && 
-                     selectedChildStats.assignments?.overdue?.length === 0 && (
-                      <div className="text-center py-4 text-muted-foreground text-sm">
-                        No recent activity
-                      </div>
-                    )}
+                    {selectedChildStats.assignments?.upcoming?.length === 0 &&
+                      selectedChildStats.assignments?.overdue?.length === 0 && (
+                        <div className="text-center py-4 text-muted-foreground text-sm">
+                          No recent activity
+                        </div>
+                      )}
                   </div>
                 </CardContent>
               </Card>
