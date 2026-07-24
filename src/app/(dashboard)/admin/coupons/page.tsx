@@ -457,7 +457,7 @@ function CouponDialog({ open, onOpenChange, editingCoupon }: CouponDialogProps) 
 
                                     <FormLabel>
 
-                                        Expiry Date{" "}
+                                        Expiry Date{" Month before Day "}
 
                                         <span className="text-muted-foreground font-normal">(optional)</span>
 

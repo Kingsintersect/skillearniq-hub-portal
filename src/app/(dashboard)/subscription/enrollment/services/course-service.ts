@@ -19,7 +19,9 @@ class CourseService {
     getEnrolledCourseWithCategories = async (): Promise<Enrollment[]> => {
         try {
             const response = await apiClient.get<EnrollmentApiResponse>("/student/my-enrolled-courses-with-category");
-            const apiCourses = (response as any).courses || []; //response.data.courses || [];
+            // const apiCourses = (response as any).courses || []; //response.data.courses || [];
+            const apiCourses = (response as any).data.courses || []; //response.data.courses || [];
+            // console.log("API COURSES", apiCourses, response.data.courses);
 
             // Transform API courses to Enrollment format
             return apiCourses.map((apiCourse: EnrolledCourseResponseType) => this.transformApiCourseToEnrollment(apiCourse));
@@ -254,7 +256,8 @@ class CourseService {
 
     processPayment = async (programId: string, paymentData: Record<string, unknown>): Promise<PaymentData> => {
         try {
-            const response = await apiClient.post<PaymentData>('/student/course-payment', {
+            // const response = await apiClient.post<PaymentData>('/student/course-payment', {
+            const response = await apiClient.post<PaymentData>('/subscriptions/my-access', {
                 "department": paymentData.program_name,
                 "course_group_id": programId,
                 "amount": paymentData.amount,
