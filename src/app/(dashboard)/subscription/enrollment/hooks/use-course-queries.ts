@@ -18,7 +18,7 @@ export const useCourseQueries = (userId: string) => {
     const mergedCategoriesQuery = getMergedCategoriesQuery();
     const enrollmentsQuery = getStudentEnrollmentsQuery();
     const paidCategoriesQuery = getPaidCategoriesQuery();
-
+    // console.log("enrollmentsQuery", enrollmentsQuery.data);
     useEffect(() => {
         if (mergedCategoriesQuery.data) setCategories(mergedCategoriesQuery.data);
         if (enrollmentsQuery.data) setEnrolledCourses(enrollmentsQuery.data);

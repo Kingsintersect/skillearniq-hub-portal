@@ -299,6 +299,10 @@ export const StudentNavMain: SidebarNavConfig = {
                     url: "/subscription",
                 },
                 {
+                    title: "User Enrollments",
+                    url: "/subscription/enrollment",
+                },
+                {
                     title: "Billings",
                     url: "/subscription/billing",
                 },

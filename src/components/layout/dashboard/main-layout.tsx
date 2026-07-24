@@ -24,7 +24,7 @@ export function MainLayout({ children, requireAuth = false }: MainLayoutProps) {
                 router.push(ROUTES.login);
                 // alert("MainLayout: User is not authenticated. Redirecting to login page.");
             } else if (!requireAuth && isAuthenticated && pathname === ROUTES.login) {
-                if (user?.role === "STUDENT") router.push(`/enrollment`)
+                if (user?.role === "STUDENT") router.push(`/subscription/enrollment`)
                 else router.push(`/${user?.role.toLocaleLowerCase() + ROUTES.dashboard}`);
             }
         }
