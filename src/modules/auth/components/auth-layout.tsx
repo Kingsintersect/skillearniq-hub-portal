@@ -33,7 +33,7 @@ export function AuthLayout({
 				animate={{ opacity: 1, y: 0 }}
 				transition={{ duration: 0.4, ease: "easeOut" }}
 				className={cn(
-					"auth-scope w-full max-w-md rounded-3xl border border-gray-100 bg-white p-6 shadow-xl shadow-black/5 sm:p-8 dark:border-gray-800 dark:bg-gray-900",
+					"auth-scope w-full rounded-3xl border border-gray-100 bg-white p-6 shadow-xl shadow-black/5 sm:p-8 dark:border-gray-800 dark:bg-gray-900",
 					className
 				)}
 			>

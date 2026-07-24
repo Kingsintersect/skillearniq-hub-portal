@@ -59,6 +59,7 @@ export const NAV_SECTIONS: NavSection[] = [
         title: "Subscriptions",
         items: [
             { label: "My Subscription", href: "/subscription", icon: CreditCard, roles: [STUDENT, PARENT] },
+            { label: "My Enrollments", href: "/subscription/enrollment", icon: CreditCard, roles: [STUDENT, PARENT] },
             { label: "Billing", href: "/subscription/billing", icon: CreditCard, roles: [STUDENT, PARENT] },
             { label: "Family Plan", href: "/subscription/family", icon: Users, roles: [STUDENT, PARENT] },
             { label: "Referrals", href: "/subscription/referrals", icon: Users, roles: [STUDENT, PARENT] },

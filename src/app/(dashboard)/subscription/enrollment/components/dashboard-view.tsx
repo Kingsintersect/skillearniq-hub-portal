@@ -23,13 +23,6 @@ export function DashboardView({ userId }: { userId: string }) {
         setCourseToUnenroll,
     } = useCourseQueries(userId);
 
-    // const handleUnenroll = (courseId: string, courseGroupId: number) => {
-    //     unenrollFromCourseMutation.mutate({
-    //         courseGroupId: courseGroupId,
-    //         courseId: parseInt(courseId)
-    //     });
-    // };
-
     const handleUnenrollClick = (courseId: string, courseGroupId: number, courseName: string) => {
         setCourseToUnenroll({ courseId, courseGroupId, courseName });
         setUnenrollModalOpen(true);
@@ -55,15 +48,15 @@ export function DashboardView({ userId }: { userId: string }) {
                     transition={{ duration: 0.5 }}
                     className="space-y-6"
                 >
-                    <div className="w-32 h-32 mx-auto mb-6 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full flex items-center justify-center">
+                    <div className="w-32 h-32 mx-auto mb-6 bg-gradient-to-br from-primary-600 via-primary-500 to-accent-500 rounded-full flex items-center justify-center shadow-xl shadow-primary-500/25">
                         <Rocket className="w-16 h-16 text-white" />
                     </div>
 
                     <div className="space-y-4">
-                        <h1 className="text-4xl font-bold text-gray-900  dark:text-white">
-                            Start Your Learning Journey!
+                        <h1 className="text-4xl font-bold font-outfit text-foreground">
+                            Start your learning journey!
                         </h1>
-                        <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed dark:text-white">
+                        <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
                             Discover amazing courses tailored for your career growth.
                             Learn from industry experts and join a community of passionate learners.
                         </p>
@@ -76,22 +69,22 @@ export function DashboardView({ userId }: { userId: string }) {
                     transition={{ delay: 0.3, duration: 0.5 }}
                     className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto mt-12"
                 >
-                    <div className="text-center p-6 bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-gray-700/30 dark:border-gray-700">
-                        <Target className="w-12 h-12 text-blue-500 dark:text-blue-400 mx-auto mb-4" />
-                        <h3 className="font-semibold text-lg mb-2 dark:text-white">Set Your Goals</h3>
-                        <p className="text-gray-600 dark:text-gray-300">Choose from 100+ courses aligned with your career objectives</p>
+                    <div className="text-center p-6 bg-card rounded-2xl shadow-sm border border-border">
+                        <Target className="w-12 h-12 text-primary-500 mx-auto mb-4" />
+                        <h3 className="font-semibold text-lg mb-2 font-outfit text-foreground">Set your goals</h3>
+                        <p className="text-muted-foreground">Choose from 100+ courses aligned with your career objectives</p>
                     </div>
 
-                    <div className="text-center p-6 bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-gray-700/30 dark:border-gray-700">
-                        <BookOpen className="w-12 h-12 text-green-500 dark:text-green-400 mx-auto mb-4" />
-                        <h3 className="font-semibold text-lg mb-2 dark:text-white">Learn by Doing</h3>
-                        <p className="text-gray-600 dark:text-gray-300">Hands-on projects and real-world scenarios</p>
+                    <div className="text-center p-6 bg-card rounded-2xl shadow-sm border border-border">
+                        <BookOpen className="w-12 h-12 text-secondary-600 dark:text-secondary-400 mx-auto mb-4" />
+                        <h3 className="font-semibold text-lg mb-2 font-outfit text-foreground">Learn by doing</h3>
+                        <p className="text-muted-foreground">Hands-on projects and real-world scenarios</p>
                     </div>
 
-                    <div className="text-center p-6 bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-gray-700/30 dark:border-gray-700">
-                        <Award className="w-12 h-12 text-yellow-500 dark:text-yellow-400 mx-auto mb-4" />
-                        <h3 className="font-semibold text-lg mb-2 dark:text-white">Get Certified</h3>
-                        <p className="text-gray-600 dark:text-gray-300">Earn certificates to showcase your skills</p>
+                    <div className="text-center p-6 bg-card rounded-2xl shadow-sm border border-border">
+                        <Award className="w-12 h-12 text-accent-500 mx-auto mb-4" />
+                        <h3 className="font-semibold text-lg mb-2 font-outfit text-foreground">Get certified</h3>
+                        <p className="text-muted-foreground">Earn certificates to showcase your skills</p>
                     </div>
                 </motion.div>
 
@@ -101,28 +94,29 @@ export function DashboardView({ userId }: { userId: string }) {
                     transition={{ delay: 0.6, duration: 0.5 }}
                     className="pt-8"
                 >
-                    <div className="flex flex-col space-x-5 md:flex-row justify-center items-center gap-4">
+                    <div className="flex flex-col space-x-0 space-y-3 md:flex-row md:space-y-0 md:space-x-4 justify-center items-center gap-1">
                         <Button
                             size="lg"
+                            variant="outline"
                             onClick={reloadCategoriesAndCourses}
                             disabled={isLoading || isFetching}
-                            className="bg-gradient-to-r from-green-600 to-yellow-600 hover:from-green-700 hover:to-yellow-700 text-white px-12 py-4 text-lg font-semibold rounded-full shadow-lg"
+                            className="border-primary-300 text-primary-700 hover:bg-primary-50 dark:text-primary-300 dark:border-primary-700 dark:hover:bg-primary-800/40 px-8 py-4 text-base font-semibold rounded-full"
                         >
-                            <RefreshCcw className={`w-6 h-6 mr-3 ${isLoading || isFetching ? ' animate-spin' : ''}`} />
-                            Reload Subjects
+                            <RefreshCcw className={`w-5 h-5 mr-2 ${isLoading || isFetching ? ' animate-spin' : ''}`} />
+                            Reload subjects
                         </Button>
 
                         <Button
                             size="lg"
                             onClick={toggleShowAllCategories}
-                            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-12 py-4 text-lg font-semibold rounded-full shadow-lg"
+                            className="bg-gradient-to-r from-primary-600 to-accent-500 hover:from-primary-700 hover:to-accent-600 text-white px-10 py-4 text-lg font-semibold rounded-full shadow-lg shadow-primary-500/25"
                         >
                             <Plus className="w-6 h-6 mr-3" />
-                            Explore All Subjects
+                            Explore all subjects
                         </Button>
                     </div>
 
-                    <p className="text-gray-500 mt-4 text-sm">
+                    <p className="text-muted-foreground mt-4 text-sm">
                         Join 50,000+ students already learning with us
                     </p>
                 </motion.div>
@@ -132,34 +126,33 @@ export function DashboardView({ userId }: { userId: string }) {
 
     return (
         <>
-            <div className="space-y-12">
+            <div className="space-y-10">
                 <motion.div
                     initial={{ y: -20, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
-                    className="flex justify-between items-center"
+                    className="flex flex-col sm:flex-row justify-between sm:items-center gap-4"
                 >
                     <div>
-                        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">My Learning Dashboard</h1>
-                        <p className="text-primary-800 mt-2">Continue where you left off</p>
+                        <h1 className="text-3xl font-bold font-outfit text-foreground">My learning dashboard</h1>
+                        <p className="text-muted-foreground mt-2">Continue where you left off</p>
                     </div>
-                    <div className="flex items-center space-x-5">
+                    <div className="flex items-center space-x-3">
                         <Button
                             type="button"
-                            variant="secondary"
+                            variant="outline"
                             size="sm"
                             onClick={clearCache}
-                            className="text-xs"
+                            className="text-xs border-border text-muted-foreground hover:text-foreground hover:bg-muted rounded-full"
                         >
-                            <Database className="w-3 h-3 mr-1" />
-                            Refresh Data
+                            <Database className="w-3 h-3 mr-1.5" />
+                            Refresh data
                         </Button>
                         <Button
                             onClick={toggleShowAllCategories}
-                            variant="outline"
-                            className="border-blue-200 text-blue-600 hover:bg-blue-50 hover:text-blue-600 dark:border-yellow-200 dark:text-yellow-600 dark:hover:bg-yellow-50 dark:hover:text-yellow-600"
+                            className="bg-accent-500 hover:bg-accent-600 text-white rounded-full shadow-sm shadow-accent-500/20"
                         >
                             <Plus className="w-4 h-4 mr-2" />
-                            Enroll in More Programs
+                            Enroll in more programs
                         </Button>
                     </div>
                 </motion.div>
@@ -171,16 +164,18 @@ export function DashboardView({ userId }: { userId: string }) {
                                 key={enrollment.id}
                                 initial={{ y: 20, opacity: 0 }}
                                 animate={{ y: 0, opacity: 1 }}
-                                transition={{ delay: index * 0.1 }}
+                                transition={{ delay: index * 0.08 }}
                                 whileHover={{ y: -5 }}
                             >
-                                <Card className="h-full border-2 border-transparent dark:border-gray-600 hover:border-blue-300 transition-all duration-300 hover:shadow-lg">
+                                <Card className="h-full border-2 border-transparent bg-card shadow-sm hover:border-accent-400 hover:shadow-lg hover:shadow-primary-500/10 transition-all duration-300">
                                     <CardHeader className="pb-4">
-                                        <div className="flex items-center justify-between">
-                                            <CardTitle className="text-lg leading-tight">
+                                        <div className="flex items-center justify-between gap-3">
+                                            <CardTitle className="text-lg leading-tight font-outfit">
                                                 {enrollment.course.course_name || enrollment.course.title}
                                             </CardTitle>
-                                            <Award className="w-5 h-5 text-yellow-500" />
+                                            <div className="w-9 h-9 rounded-full bg-secondary-100 dark:bg-secondary-900/40 flex items-center justify-center shrink-0">
+                                                <Award className="w-5 h-5 text-secondary-600 dark:text-secondary-400" />
+                                            </div>
                                         </div>
                                         <CardDescription className="line-clamp-2">
                                             {enrollment.course.course_group}
@@ -188,32 +183,30 @@ export function DashboardView({ userId }: { userId: string }) {
                                     </CardHeader>
                                     <CardContent>
                                         <div className="space-y-4">
-                                            <div className="flex items-center justify-between text-sm text-gray-600">
-                                                <span className="text-xs text-gray-500">
+                                            <div className="flex items-center justify-between text-sm">
+                                                <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-md">
                                                     {enrollment.course.short_name}
                                                 </span>
                                             </div>
 
                                             <div className="space-y-2">
                                                 <div className="flex justify-between text-sm">
-                                                    <span className="text-gray-600">Progress</span>
-                                                    <span className="font-semibold">{enrollment.progress}%</span>
+                                                    <span className="text-muted-foreground">Progress</span>
+                                                    <span className="font-semibold text-foreground">{enrollment.progress}%</span>
                                                 </div>
-                                                <Progress value={enrollment.progress} className="h-2" />
+                                                <Progress value={enrollment.progress} className="h-2 [&>div]:bg-accent-500" />
                                             </div>
 
-                                            <div className="grid grid-cols-2 gap-5">
+                                            <div className="grid grid-cols-2 gap-3">
                                                 <Button
-                                                    className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-                                                    onClick={() => courseService.redirectToCourseWarePlatform(String(user?.username))}
+                                                    className="w-full bg-primary-600 hover:bg-primary-700 text-primary-foreground rounded-full"
+                                                    onClick={() => courseService.redirectToCourseWarePlatform(String(user?.email))}
                                                 >
-                                                    Continue Learning
+                                                    Continue
                                                 </Button>
                                                 <Button
                                                     variant="ghost"
-                                                    className="dark:hover:text-white"
-                                                    // onClick={() => handleUnenroll(enrollment.course.id, enrollment.course.course_group_id)}
-                                                    // disabled={isUnenrollmentProcessing}
+                                                    className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-full"
                                                     onClick={() => handleUnenrollClick(
                                                         enrollment.courseId,
                                                         enrollment.course.course_group_id,
@@ -221,7 +214,7 @@ export function DashboardView({ userId }: { userId: string }) {
                                                     )}
                                                     disabled={isUnenrollmentProcessing}
                                                 >
-                                                    {isUnenrollmentProcessing ? 'Unenrolling...' : 'Unenroll'}
+                                                    {isUnenrollmentProcessing ? 'Unenrolling…' : 'Unenroll'}
                                                 </Button>
                                             </div>
                                         </div>
@@ -236,9 +229,9 @@ export function DashboardView({ userId }: { userId: string }) {
                 open={unenrollModalOpen}
                 onOpenChange={setUnenrollModalOpen}
                 onConfirm={handleConfirmUnenroll}
-                title="Unenroll from Course"
+                title="Unenroll from course"
                 description={`Are you sure you want to unenroll from "${courseToUnenroll?.courseName}"? `}
-                confirmText="Yes, Unenroll"
+                confirmText="Yes, unenroll"
                 cancelText="Cancel"
                 variant="destructive"
             />

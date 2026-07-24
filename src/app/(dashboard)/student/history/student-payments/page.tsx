@@ -187,7 +187,7 @@ export default function PaymentsPage() {
               View and manage your payment records, track outstanding balances, and make secure payments.
             </p>
           </div>
-          <Link href="/enrollment">
+          <Link href="/subscription/enrollment">
             <Button variant="secondary" className="gap-2">
               <CreditCard size={16} />
               Make New Payment
