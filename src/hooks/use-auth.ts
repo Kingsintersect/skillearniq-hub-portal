@@ -85,7 +85,7 @@ export function useAuth() {
                 toast.success(`Welcome back, ${session.user.first_name}!`);
                 setparentOTP(false);
 
-                if (session.user?.role === "STUDENT") router.push(`/enrollment`)
+                if (session.user?.role === "STUDENT") router.push(`/subscription/enrollment`)
                 else router.push(`/${session.user?.role.toLocaleLowerCase() + ROUTES.dashboard}`)
             }
         },

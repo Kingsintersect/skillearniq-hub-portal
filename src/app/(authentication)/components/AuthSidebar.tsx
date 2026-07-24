@@ -10,7 +10,7 @@ const TRUST = [
 
 export default function AuthSidebar() {
     return (
-        <div className="relative font-outfit flex h-full w-full min-h-[600px] flex-col justify-between overflow-hidden bg-primary p-8 text-white md:p-12 lg:p-14">
+        <div className="relative font-outfit flex h-full w-full min-h-[600px] flex-col justify-between overflow-hidden bg-[#1B2151] p-8 text-white md:p-12 lg:p-14">
             {/* Soft solid shapes (no gradients) */}
             <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
                 <div className="absolute -top-16 -right-10 h-56 w-56 rounded-full bg-white/5" />
