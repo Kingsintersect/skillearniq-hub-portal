@@ -186,7 +186,7 @@ export function CoursesView({ userId }: { userId: string }) {
                             ) : (
                                 <div className="flex items-center">
                                     <CreditCard className="w-4 h-4 mr-2" />
-                                    <span className="hidden sm:inline">Unlock access to courses</span>
+                                    <span className="hidden sm:inline">Enrol in courses</span>
                                     <span className="sm:hidden">Enroll now</span>
                                 </div>
                             )}
