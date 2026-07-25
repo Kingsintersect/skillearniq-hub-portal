@@ -157,6 +157,19 @@ if sudo ss -tlnp 2>/dev/null | grep ':80' | grep -qivE 'nginx'; then
     echo ""
 fi
 
+# ── PM2 log rotation (idempotent, run every bootstrap) ───────────────────────
+if [[ -f "$(dirname "${BASH_SOURCE[0]}")/pm2-logrotate-setup.sh" ]]; then
+    bash "$(dirname "${BASH_SOURCE[0]}")/pm2-logrotate-setup.sh"
+fi
+
+# ── PM2 health check cron (idempotent, run every bootstrap) ──────────────────
+# Uses this app's own APP_DIR since that's where the scripts live on the server.
+if [[ -f "$(dirname "${BASH_SOURCE[0]}")/setup-health-cron.sh" ]]; then
+    bash "$(dirname "${BASH_SOURCE[0]}")/setup-health-cron.sh" \
+        "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)" \
+        "${SLACK_WEBHOOK_URL:-}"
+fi
+
 echo ""
 echo "============================================"
 echo "  ✅ Bootstrap complete!"

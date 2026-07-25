@@ -233,7 +233,7 @@ export default function LoginPage() {
             />
 
             {/* OTP Alternative */}
-            <div className="mt-4 text-center">
+            {/* <div className="mt-4 text-center">
               <button
                 onClick={() => setAuthMethod("otp")}
                 disabled={otpLoading}
@@ -242,7 +242,7 @@ export default function LoginPage() {
                 {otpLoading && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
                 Sign in with OTP instead
               </button>
-            </div>
+            </div> */}
           </div>
         </div>
       </div>
@@ -369,7 +369,7 @@ export default function LoginPage() {
           />
 
           {/* OTP Alternative */}
-          <div className="mt-4 text-center">
+          {/* <div className="mt-4 text-center">
             <button
               onClick={() => setAuthMethod("otp")}
               disabled={otpLoading}
@@ -378,7 +378,7 @@ export default function LoginPage() {
               {otpLoading && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
               Sign in with OTP instead
             </button>
-          </div>
+          </div> */}
         </div>
       </div>
     </div>
