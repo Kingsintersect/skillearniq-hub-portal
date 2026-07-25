@@ -356,6 +356,7 @@ class CourseService {
     }
 
     redirectToCourseWarePlatform = (username: string): void => {
+        // console.log('Redirecting to courseware platform for user:', username);
         const courseUrl = `${lmsLoginUrl}/ssotester/index.php?sso_loggers=1&u=${username}&password=1`;
         window.open(courseUrl, '_blank');
     }
