@@ -7,6 +7,7 @@ import { motion } from 'framer-motion';
 import { useCourseQueries } from '../hooks/use-course-queries';
 import { courseService } from '../services/course-service';
 import { ConfirmModal } from '@/components/global/confirm-modal';
+import { useAuthContext } from '@/providers/AuthProvider';
 
 export function DashboardView({ userId }: { userId: string }) {
     const { enrolledCourses, toggleShowAllCategories, clearCache } = useCourseStore();
@@ -16,13 +17,13 @@ export function DashboardView({ userId }: { userId: string }) {
         isFetching,
         unenrollFromCourseMutation,
         isUnenrollmentProcessing,
-        user,
+        // user,
         unenrollModalOpen,
         setUnenrollModalOpen,
         courseToUnenroll,
         setCourseToUnenroll,
     } = useCourseQueries(userId);
-
+    const { user } = useAuthContext();
     const handleUnenrollClick = (courseId: string, courseGroupId: number, courseName: string) => {
         setCourseToUnenroll({ courseId, courseGroupId, courseName });
         setUnenrollModalOpen(true);
@@ -204,7 +205,7 @@ export function DashboardView({ userId }: { userId: string }) {
                                                 >
                                                     Continue
                                                 </Button>
-                                                <Button
+                                                {/* <Button
                                                     variant="ghost"
                                                     className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-full"
                                                     onClick={() => handleUnenrollClick(
@@ -215,7 +216,7 @@ export function DashboardView({ userId }: { userId: string }) {
                                                     disabled={isUnenrollmentProcessing}
                                                 >
                                                     {isUnenrollmentProcessing ? 'Unenrolling…' : 'Unenroll'}
-                                                </Button>
+                                                </Button> */}
                                             </div>
                                         </div>
                                     </CardContent>
