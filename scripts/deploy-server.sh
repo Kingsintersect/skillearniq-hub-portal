@@ -563,6 +563,15 @@ if [[ -n "${NOT_ONLINE}" ]]; then
 fi
 echo "✅ All ${APP_NAME} instances are online"
 
+# ── Memory sanity report (informational — logged in CI, not yet a hard gate) ──
+TOTAL_MEM_MB=$(pm2 jlist 2>/dev/null | node -e '
+  const d = JSON.parse(require("fs").readFileSync(0,"utf8"));
+  const mb = d.filter(p => p.name === process.argv[1])
+              .reduce((s,p) => s + p.monit.memory, 0) / 1024 / 1024;
+  console.log(Math.round(mb));
+' "${APP_NAME}")
+echo "  Total memory for ${APP_NAME}: ${TOTAL_MEM_MB}MB across all instances"
+
 echo ""
 echo "============================================"
 echo "  ✅ Deployment complete!"
