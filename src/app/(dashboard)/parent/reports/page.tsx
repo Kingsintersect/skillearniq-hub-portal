@@ -48,7 +48,7 @@ const getGradeColor = (grade: string) => {
     case 'D': return 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300';
     case 'E': return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300';
     case 'F': return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300';
-    default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300';
+    default: return 'bg-muted text-foreground dark:bg-gray-900 dark:text-gray-300';
   }
 };
 
@@ -131,7 +131,7 @@ export default function ReportsPage() {
         <div className="max-w-6xl mx-auto">
           <Card>
             <CardContent className="p-6 text-center">
-              <User className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+              <User className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
               <div className="text-muted-foreground">
                 Please select a student to view reports
               </div>
@@ -148,7 +148,7 @@ export default function ReportsPage() {
         <div className="max-w-6xl mx-auto">
           <Card>
             <CardContent className="p-6 text-center">
-              <FileText className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+              <FileText className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
               <div className="text-muted-foreground">
                 No course grading data available for {selectedChild.first_name}
               </div>
@@ -345,7 +345,7 @@ export default function ReportsPage() {
                         {selectedCourse.instructors.length > 0 ? (
                           <div className="space-y-3">
                             {selectedCourse.instructors.map((instructor) => (
-                              <div key={instructor.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                              <div key={instructor.id} className="flex items-center gap-3 p-3 bg-muted/40 rounded-lg">
                                 <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
                                   <User className="h-5 w-5 text-blue-600" />
                                 </div>
@@ -375,21 +375,21 @@ export default function ReportsPage() {
                         {currentStudent ? (
                           <div className="space-y-4">
                             <div className="grid grid-cols-2 gap-4">
-                              <div className="p-3 bg-gray-50 rounded-lg">
+                              <div className="p-3 bg-muted/40 rounded-lg">
                                 <div className="text-sm text-muted-foreground">Final Grade</div>
                                 <div className="text-2xl font-bold">{currentStudent.final_grade.toFixed(1)}%</div>
                               </div>
-                              <div className="p-3 bg-gray-50 rounded-lg">
+                              <div className="p-3 bg-muted/40 rounded-lg">
                                 <div className="text-sm text-muted-foreground">Letter Grade</div>
                                 <div className={`text-2xl font-bold ${getGradeColor(currentStudent.letter_grade)} px-2 py-1 rounded`}>
                                   {currentStudent.letter_grade}
                                 </div>
                               </div>
-                              <div className="p-3 bg-gray-50 rounded-lg">
+                              <div className="p-3 bg-muted/40 rounded-lg">
                                 <div className="text-sm text-muted-foreground">Quality Points</div>
                                 <div className="text-2xl font-bold">{currentStudent.quality_points}</div>
                               </div>
-                              <div className="p-3 bg-gray-50 rounded-lg">
+                              <div className="p-3 bg-muted/40 rounded-lg">
                                 <div className="text-sm text-muted-foreground">Credit Load</div>
                                 <div className="text-2xl font-bold">{currentStudent.credit_load}</div>
                               </div>
@@ -446,7 +446,7 @@ export default function ReportsPage() {
                         return (
                           <div key={course.course_id} className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                              <BookOpen className="h-4 w-4 text-gray-500" />
+                              <BookOpen className="h-4 w-4 text-muted-foreground" />
                               <span className="font-medium">{course.course_code}</span>
                             </div>
                             <div className="flex items-center gap-2">

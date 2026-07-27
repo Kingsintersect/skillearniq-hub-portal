@@ -226,7 +226,7 @@ export default function AdminDashboard() {
 
         {/* Stats Cards */}
         <div className="relative mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <div className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-card">
+          <div className="rounded-2xl border border-black/5 bg-card p-4 shadow-sm dark:border-white/10 dark:bg-card">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-muted-foreground">Total Students</p>
@@ -239,7 +239,7 @@ export default function AdminDashboard() {
             <p className="text-xs text-green-600 mt-2">+12 this month</p>
           </div>
 
-          <div className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-card">
+          <div className="rounded-2xl border border-black/5 bg-card p-4 shadow-sm dark:border-white/10 dark:bg-card">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-muted-foreground">Total Teachers</p>
@@ -252,7 +252,7 @@ export default function AdminDashboard() {
             <p className="text-xs text-green-600 mt-2">+2 this month</p>
           </div>
 
-          <div className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-card">
+          <div className="rounded-2xl border border-black/5 bg-card p-4 shadow-sm dark:border-white/10 dark:bg-card">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-muted-foreground">Total Parents</p>
@@ -265,7 +265,7 @@ export default function AdminDashboard() {
             <p className="text-xs text-green-600 mt-2">+8 this month</p>
           </div>
 
-          <div className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-card">
+          <div className="rounded-2xl border border-black/5 bg-card p-4 shadow-sm dark:border-white/10 dark:bg-card">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-muted-foreground">Active Classes</p>

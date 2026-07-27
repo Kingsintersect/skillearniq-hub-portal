@@ -40,7 +40,7 @@ export const LiveClassSchedule: React.FC = () => {
   const isUpcoming = (classTime: string) => new Date(classTime) > new Date();
 
   return (
-    <div className="bg-white rounded-lg shadow p-6 mt-6">
+    <div className="bg-card rounded-lg shadow p-6 mt-6">
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-lg font-medium">Live Class Schedule</h3>
         <button
@@ -88,7 +88,7 @@ export const LiveClassSchedule: React.FC = () => {
           <div key={liveClass.id} className="flex justify-between items-center p-3 border rounded">
             <div>
               <h4 className="font-medium">{liveClass.title}</h4>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-muted-foreground">
                 {new Date(liveClass.startTime).toLocaleString()} - {new Date(liveClass.endTime).toLocaleString()}
               </p>
             </div>
@@ -98,14 +98,14 @@ export const LiveClassSchedule: React.FC = () => {
                   Join Class
                 </button>
               ) : (
-                <span className="text-gray-500 text-sm">Completed</span>
+                <span className="text-muted-foreground text-sm">Completed</span>
               )}
             </div>
           </div>
         ))}
         
         {liveClasses.length === 0 && (
-          <div className="text-center py-4 text-gray-500">
+          <div className="text-center py-4 text-muted-foreground">
             No live classes scheduled
           </div>
         )}

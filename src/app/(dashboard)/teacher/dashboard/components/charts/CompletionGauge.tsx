@@ -49,13 +49,13 @@ export const CompletionGauge: React.FC<CompletionGaugeProps> = ({
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-center">
             <div className="text-2xl font-bold">{value}/{max}</div>
-            <div className="text-sm text-gray-600">{percentage.toFixed(0)}%</div>
+            <div className="text-sm text-muted-foreground">{percentage.toFixed(0)}%</div>
           </div>
         </div>
       </div>
       <div className="text-center mt-2">
-        <div className="font-medium text-gray-900">{title}</div>
-        <div className="text-sm text-gray-600">{subtitle}</div>
+        <div className="font-medium text-foreground">{title}</div>
+        <div className="text-sm text-muted-foreground">{subtitle}</div>
       </div>
     </div>
   );

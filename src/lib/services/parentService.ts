@@ -1,15 +1,44 @@
 // lib/services/parentService.ts
 import { apiClient } from '@/core/client';
-import { 
-  ChildAcademicData, 
-  Message, 
-  ParentChild, 
-  ParentDashboardStats, 
-  Payment, 
-  PaymentSummary, 
-  StudentGradeReport 
+import {
+  ChildAcademicData,
+  Message,
+  ParentChild,
+  ParentDashboardStats,
+  Payment,
+  PaymentSummary,
+  StudentGradeReport
 } from '@/store/parentStore';
+import type { ChildLinkStatus, SelectableChild } from '@/store/childSelectorStore';
 import { toast } from 'sonner';
+
+/**
+ * Reads the parent↔child link status defensively — the backend's exact field
+ * isn't pinned down, so several plausible shapes are checked. When no status is
+ * present the child is treated as accepted (some backends only return accepted
+ * links from /parent/children).
+ */
+function normalizeChildStatus(raw: any): ChildLinkStatus {
+  const value = (
+    raw?.status ??
+    raw?.acceptance_status ??
+    raw?.link_status ??
+    raw?.pivot?.status ??
+    raw?.meta?.status ??
+    ''
+  )
+    .toString()
+    .toLowerCase();
+
+  if (value === 'pending' || value === 'invited') return 'pending';
+  if (value === 'declined' || value === 'rejected') return 'declined';
+  if (value === 'accepted' || value === 'active') return 'accepted';
+
+  const acceptedFlag = raw?.accepted ?? raw?.is_accepted ?? raw?.pivot?.accepted;
+  if (acceptedFlag === false || acceptedFlag === 0) return 'pending';
+
+  return 'accepted';
+}
 
 export interface ParentDashboardResponse {
   children: Array<{
@@ -227,6 +256,39 @@ export const parentService = {
       console.error('Error fetching children:', error);
       return [];
     }
+  },
+
+  /**
+   * Linked children with their acceptance status, for the "Manage Children"
+   * UI and the accepted-only child selector.
+   */
+  getManagedChildren: async (): Promise<SelectableChild[]> => {
+    try {
+      const response = await apiClient.get<ParentChildrenResponse>('/parent/children');
+      const apiChildren = (response.data?.children || []) as any[];
+      return apiChildren.map((child) => ({
+        id: child.id.toString(),
+        first_name: child.first_name,
+        last_name: child.last_name,
+        email: child.email,
+        status: normalizeChildStatus(child),
+      }));
+    } catch (error) {
+      console.error('Error fetching managed children:', error);
+      return [];
+    }
+  },
+
+  /** Link a student to this parent by email. POST /parent/add-child { email } */
+  addChild: async (email: string): Promise<any> => {
+    const response = await apiClient.post<any>('/parent/add-child', { email });
+    return response.data;
+  },
+
+  /** Unlink a student from this parent by email. POST /parent/remove-child { email } */
+  removeChild: async (email: string): Promise<any> => {
+    const response = await apiClient.post<any>('/parent/remove-child', { email });
+    return response.data;
   },
 
   getChildAcademicData: async (childId?: string): Promise<ChildAcademicData[]> => {

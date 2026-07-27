@@ -8,7 +8,7 @@ interface BadgeDisplayProps {
 }
 
 const rarityColors = {
-    [BadgeRarity.COMMON]: "bg-gray-100 text-gray-800 border-gray-200",
+    [BadgeRarity.COMMON]: "bg-muted text-foreground border-border",
     [BadgeRarity.UNCOMMON]: "bg-green-100 text-green-800 border-green-200",
     [BadgeRarity.RARE]: "bg-blue-100 text-blue-800 border-blue-200",
     [BadgeRarity.EPIC]: "bg-purple-100 text-purple-800 border-purple-200",

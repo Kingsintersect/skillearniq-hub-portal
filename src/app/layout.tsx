@@ -43,7 +43,7 @@ const META_THEME_COLORS = {
 export const metadata: Metadata = {
 	title: {
 		template: `%s | ${APP_CONFIG.name}`,
-		default: `${APP_CONFIG.name} - Student Portal`,
+		default: `${APP_CONFIG.name}`,
 	},
 	description: APP_CONFIG.description,
 	keywords: [...APP_CONFIG.keywords],

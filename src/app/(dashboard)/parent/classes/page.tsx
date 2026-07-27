@@ -77,7 +77,7 @@ export default function ClassesPage() {
         <div className="max-w-7xl mx-auto">
           <Card>
             <CardContent className="p-6 text-center">
-              <Users className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+              <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
               <p className="text-muted-foreground">Please select a student first from the dashboard</p>
             </CardContent>
           </Card>
@@ -228,12 +228,12 @@ export default function ClassesPage() {
                     <TableRow key={index}>
                       <TableCell className="font-medium">
                         <div className="flex items-center">
-                          <Book className="h-4 w-4 mr-2 text-gray-500" />
+                          <Book className="h-4 w-4 mr-2 text-muted-foreground" />
                           {course.course_name}
                         </div>
                       </TableCell>
                       <TableCell>
-                        <code className="bg-gray-100 px-2 py-1 rounded text-sm">
+                        <code className="bg-muted px-2 py-1 rounded text-sm">
                           {course.course_code || 'N/A'}
                         </code>
                       </TableCell>
@@ -381,7 +381,7 @@ export default function ClassesPage() {
                         <div className="space-y-2">
                           <h5 className="font-medium text-sm text-muted-foreground">Assignments</h5>
                           {course.assignments.map((assignment: any, assignmentIndex: number) => (
-                            <div key={assignmentIndex} className="flex items-center justify-between p-3 bg-gray-50 rounded">
+                            <div key={assignmentIndex} className="flex items-center justify-between p-3 bg-muted/40 rounded">
                               <div>
                                 <div className="font-medium">{assignment.title}</div>
                                 <div className="text-sm text-muted-foreground">Due: {assignment.dueDate}</div>

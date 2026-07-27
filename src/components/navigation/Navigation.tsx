@@ -9,6 +9,7 @@ import Link from 'next/link';
 import { ModeToggle } from '../ui/mood-toggle';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import { roleDashboardPath } from '@/lib/dashboard-path';
 
 export const Navigation = () => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -17,6 +18,7 @@ export const Navigation = () => {
     const role = user?.role.toLocaleLowerCase();
     const isHomepage = pathname === '/'
     const isOnEnrollmentPage = pathname === '/subscription/enrollment'
+    const initials = `${user?.first_name?.[0] ?? ''}${user?.last_name?.[0] ?? ''}`.toUpperCase() || 'U';
 
     const handleNavClick = (href: string) => {
         const element = document.querySelector(href);
@@ -52,15 +54,14 @@ export const Navigation = () => {
                                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary dark:bg-primary-400 transition-all duration-200 group-hover:w-full" />
                             </Link>
                         </div>
-                        <div className={`${isHomepage ? "hidden" : "hidden md:block "}`}>
-                            <Link href={`/${role}/profile`} className='flex gap-3 items-center'>
-                                <div className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center">
-                                    <User className="w-4 h-4 text-gray-600 dark:text-gray-300" />
-                                </div>
-                                <span className="text-sm font-medium text-gray-700 dark:text-gray-200">{user.first_name}</span>
-                                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary dark:bg-primary-400 transition-all duration-200 group-hover:w-full" />
-                            </Link>
-                        </div>
+                        <Link
+                            href={roleDashboardPath(user.role)}
+                            title={`Go to your dashboard, ${user.first_name}`}
+                            aria-label="Go to your dashboard"
+                            className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary text-xs font-bold text-white shadow-sm transition-transform hover:scale-105 hover:bg-primary-600"
+                        >
+                            {initials}
+                        </Link>
                         <Button
                             variant="ghost"
                             size="sm"
@@ -108,13 +109,23 @@ export const Navigation = () => {
                     ))}
                     {user ? (
                         <>
+                            <Link
+                                href={roleDashboardPath(user.role)}
+                                onClick={() => setIsMobileMenuOpen(false)}
+                                className="flex items-center gap-3"
+                            >
+                                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary text-xs font-bold text-white">
+                                    {initials}
+                                </span>
+                                <span className="text-sm font-medium text-gray-700 dark:text-gray-200">Go to dashboard</span>
+                            </Link>
                             <div className="block">
-                                <Link href={`/subscription/enrollment`} className='flex gap-3 items-center'>
+                                <Link href={`/subscription/enrollment`} className='flex gap-3 items-center' onClick={() => setIsMobileMenuOpen(false)}>
                                     <span className="text-sm font-medium text-gray-700 dark:text-gray-200">Enroll In Subjects</span>
                                 </Link>
                             </div>
                             <div className="block">
-                                <Link href={`/${role}/profile`} className='flex gap-3 items-center'>
+                                <Link href={`/${role}/profile`} className='flex gap-3 items-center' onClick={() => setIsMobileMenuOpen(false)}>
                                     <div className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center">
                                         <User className="w-4 h-4 text-gray-600 dark:text-gray-300" />
                                     </div>
