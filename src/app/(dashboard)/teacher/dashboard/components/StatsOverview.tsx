@@ -19,7 +19,7 @@ export const StatsOverview: React.FC<StatsOverviewProps> = ({ stats }) => {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
       {/* Grading Progress */}
-      <div className="bg-white rounded-xl shadow-sm p-6">
+      <div className="bg-card rounded-xl shadow-sm p-6">
         <CompletionGauge
           value={stats.gradedAssignments}
           max={stats.totalAssignments}
@@ -30,13 +30,13 @@ export const StatsOverview: React.FC<StatsOverviewProps> = ({ stats }) => {
       </div>
 
       {/* Average Score */}
-      <div className="bg-white rounded-xl shadow-sm p-6">
+      <div className="bg-card rounded-xl shadow-sm p-6">
         <div className="text-center">
           <div className="text-4xl font-bold text-blue-600 mb-2">
             {stats.averageClassScore}%
           </div>
-          <div className="text-lg font-medium text-gray-900">Class Average</div>
-          <div className="text-sm text-gray-600">Across all assignments</div>
+          <div className="text-lg font-medium text-foreground">Class Average</div>
+          <div className="text-sm text-muted-foreground">Across all assignments</div>
           <div className={`mt-2 text-sm ${
             stats.averageClassScore >= 80 ? 'text-green-600' :
             stats.averageClassScore >= 70 ? 'text-yellow-600' : 'text-red-600'
@@ -48,7 +48,7 @@ export const StatsOverview: React.FC<StatsOverviewProps> = ({ stats }) => {
       </div>
 
       {/* Attendance Rate */}
-      <div className="bg-white rounded-xl shadow-sm p-6">
+      <div className="bg-card rounded-xl shadow-sm p-6">
         <CompletionGauge
           value={stats.attendanceRate}
           max={100}
@@ -59,11 +59,11 @@ export const StatsOverview: React.FC<StatsOverviewProps> = ({ stats }) => {
       </div>
 
       {/* Pending Actions */}
-      <div className="bg-white rounded-xl shadow-sm p-6">
+      <div className="bg-card rounded-xl shadow-sm p-6">
         <div className="space-y-4">
           <div>
             <div className="flex justify-between items-center mb-1">
-              <span className="text-sm font-medium text-gray-700">Pending Grading</span>
+              <span className="text-sm font-medium text-foreground">Pending Grading</span>
               <span className="text-lg font-bold text-red-600">{stats.pendingGrading}</span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2">
@@ -76,17 +76,17 @@ export const StatsOverview: React.FC<StatsOverviewProps> = ({ stats }) => {
           
           <div>
             <div className="flex justify-between items-center mb-1">
-              <span className="text-sm font-medium text-gray-700">Upcoming Deadlines</span>
+              <span className="text-sm font-medium text-foreground">Upcoming Deadlines</span>
               <span className="text-lg font-bold text-orange-600">{stats.upcomingDeadlines.length}</span>
             </div>
-            <div className="text-xs text-gray-600">
+            <div className="text-xs text-muted-foreground">
               Next: {stats.upcomingDeadlines[0]?.title}
             </div>
           </div>
 
           <div>
             <div className="flex justify-between items-center mb-1">
-              <span className="text-sm font-medium text-gray-700">Total Students</span>
+              <span className="text-sm font-medium text-foreground">Total Students</span>
               <span className="text-lg font-bold text-blue-600">{stats.studentPerformance.length}</span>
             </div>
           </div>

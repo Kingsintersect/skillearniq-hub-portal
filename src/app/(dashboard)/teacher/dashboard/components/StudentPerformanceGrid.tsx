@@ -24,15 +24,15 @@ export const StudentPerformanceGrid: React.FC<StudentPerformanceGridProps> = ({ 
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm p-6">
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">Student Performance</h3>
+    <div className="bg-card rounded-xl shadow-sm p-6">
+      <h3 className="text-lg font-semibold text-foreground mb-4">Student Performance</h3>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {students.map((student) => (
           <div key={student.studentId} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
             <div className="flex justify-between items-start mb-3">
               <div>
-                <h4 className="font-medium text-gray-900">{student.studentName}</h4>
-                <p className="text-sm text-gray-600">{student.assignmentsCompleted} assignments</p>
+                <h4 className="font-medium text-foreground">{student.studentName}</h4>
+                <p className="text-sm text-muted-foreground">{student.assignmentsCompleted} assignments</p>
               </div>
               <span className="text-lg">{getTrendIcon(student.trend)}</span>
             </div>

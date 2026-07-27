@@ -5,9 +5,27 @@ import { useParentStore } from "@/store/parentStore";
 import {
   ChildAcademicData,
   Payment,
+  ParentChild,
   StudentGradeReport,
 } from "@/store/parentStore";
+import {
+  useChildSelectorStore,
+  type SelectableChild,
+} from "@/store/childSelectorStore";
 import { toast } from "sonner";
+
+// Accepted linked children are mirrored into the parent store so every existing
+// view (dashboard, header selector, payments, reports) automatically shows only
+// accepted children.
+const toParentChild = (child: SelectableChild): ParentChild => ({
+  id: child.id,
+  first_name: child.first_name,
+  last_name: child.last_name,
+  grade: "",
+  studentId: child.id,
+  relationship: "child",
+  email: child.email,
+});
 
 export const useParentQueries = () => {
   const queryClient = useQueryClient();
@@ -274,6 +292,75 @@ export const useParentQueries = () => {
     });
   };
 
+  // Managed children (with acceptance status) — powers the "Manage Children"
+  // UI and mirrors accepted children into the parent store (accepted-only view).
+  const useManagedChildren = () => {
+    return useQuery({
+      queryKey: ["parent", "managed-children"],
+      queryFn: async () => {
+        const list = await parentService.getManagedChildren();
+
+        // Full list (incl. pending) for the management UI + accepted-only selector.
+        useChildSelectorStore.getState().setChildren(list);
+
+        // Mirror accepted children into the parent store so existing views only
+        // ever see accepted children, and keep the selection valid.
+        const accepted = list
+          .filter((c) => c.status === "accepted")
+          .map(toParentChild);
+        const parent = useParentStore.getState();
+        parent.setChildren(accepted);
+
+        const selected = parent.selectedChild;
+        const selectedStillAccepted =
+          selected && accepted.some((c) => c.id === selected.id);
+        if (!selectedStillAccepted) {
+          const next = accepted[0] ?? null;
+          parent.setSelectedChild(next);
+          parent.setSelectedStudentId(next?.id ?? null);
+        }
+
+        return list;
+      },
+      staleTime: 5 * 60 * 1000,
+      retry: 2,
+    });
+  };
+
+  const useAddChild = () => {
+    return useMutation({
+      mutationFn: (email: string) => parentService.addChild(email),
+      onSuccess: () => {
+        queryClient.invalidateQueries({
+          queryKey: ["parent", "managed-children"],
+        });
+        queryClient.invalidateQueries({ queryKey: ["parent", "children"] });
+        queryClient.invalidateQueries({ queryKey: ["parent", "dashboard"] });
+        toast.success(
+          "Request sent. Your child will appear here once they accept."
+        );
+      },
+      onError: (error: any) =>
+        toast.error(error?.message ?? "Couldn't add this child. Please try again."),
+    });
+  };
+
+  const useRemoveChild = () => {
+    return useMutation({
+      mutationFn: (email: string) => parentService.removeChild(email),
+      onSuccess: () => {
+        queryClient.invalidateQueries({
+          queryKey: ["parent", "managed-children"],
+        });
+        queryClient.invalidateQueries({ queryKey: ["parent", "children"] });
+        queryClient.invalidateQueries({ queryKey: ["parent", "dashboard"] });
+        toast.success("Child removed.");
+      },
+      onError: (error: any) =>
+        toast.error(error?.message ?? "Couldn't remove this child. Please try again."),
+    });
+  };
+
   // Invalidate queries helper
   const invalidateQueries = () => {
     queryClient.invalidateQueries({ queryKey: ["parent"] });
@@ -283,6 +370,9 @@ export const useParentQueries = () => {
     // Queries
     useDashboardStats,
     useChildren,
+    useManagedChildren,
+    useAddChild,
+    useRemoveChild,
     useChildAcademicData,
     useCourseGradings,
     //usePaymentHistory,

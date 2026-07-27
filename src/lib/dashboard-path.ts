@@ -22,3 +22,25 @@ export function dashboardPathForRole(role?: string): string {
       return "/subscription";
   }
 }
+
+/**
+ * The role's actual dashboard route (as opposed to {@link dashboardPathForRole},
+ * which is the post-login landing/subscription gate). Used for a "Dashboard"
+ * link surfaced to an already–signed-in user, e.g. in the public header.
+ */
+export function roleDashboardPath(role?: string): string {
+  switch ((role ?? "").toLowerCase()) {
+    case "parent":
+      return "/parent/dashboard";
+    case "teacher":
+    case "tutor":
+      return "/teacher/dashboard";
+    case "admin":
+    case "manager":
+    case "super_admin":
+      return "/admin/dashboard";
+    case "student":
+    default:
+      return "/student/dashboard";
+  }
+}

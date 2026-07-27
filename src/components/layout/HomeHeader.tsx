@@ -5,6 +5,7 @@ import { useScrollAnimation } from '@/hooks/animations/useScrollAnimation';
 import { cn } from '@/lib/utils';
 import { Logo } from '@/components/layout/Logo';
 import { Navigation } from '../navigation/Navigation';
+import { ModeToggle } from '@/components/ui/mood-toggle';
 
 export const HomeHeader: React.FC = () => {
     const { isScrolled } = useScrollAnimation();
@@ -21,7 +22,10 @@ export const HomeHeader: React.FC = () => {
                 )}
             >
                 <Logo size="md" />
-                <Navigation />
+                <div className="flex items-center gap-2">
+                    <Navigation />
+                    {/* <ModeToggle /> */}
+                </div>
             </div>
         </header>
     );
