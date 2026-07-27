@@ -23,12 +23,12 @@ import { useParentStore } from '@/store/parentStore';
 import { useParentQueries } from '@/hooks/useParentQueries';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { ManageChildrenCard } from './components/ManageChildrenCard';
 
 export default function ParentsDashboard() {
   const {
     selectedStudentId,
     children,
-    setChildren,
     setSelectedStudentId,
     selectedChild,
     setSelectedChild,
@@ -36,23 +36,11 @@ export default function ParentsDashboard() {
     setDashboardStats
   } = useParentStore();
 
-  const { useDashboardStats, useChildren } = useParentQueries();
+  const { useDashboardStats, useManagedChildren } = useParentQueries();
   const { data: stats, isLoading: statsLoading, error: statsError } = useDashboardStats();
-  const { data: childrenData, isLoading: childrenLoading, error: childrenError } = useChildren();
-
-  // Sync children data with store
-  useEffect(() => {
-    if (childrenData) {
-      setChildren(childrenData);
-
-      // If no child is selected, select the first one
-      if (!selectedChild && childrenData.length > 0) {
-        const firstChild = childrenData[0];
-        setSelectedChild(firstChild);
-        setSelectedStudentId(firstChild.id.toString());
-      }
-    }
-  }, [childrenData, setChildren, selectedChild, setSelectedChild, setSelectedStudentId]);
+  // useManagedChildren loads linked children and mirrors ACCEPTED ones into the
+  // parent store, so everything below only ever shows accepted children.
+  const { isLoading: childrenLoading, error: childrenError } = useManagedChildren();
 
   // Sync dashboard stats
   useEffect(() => {
@@ -119,21 +107,15 @@ export default function ParentsDashboard() {
   if (children.length === 0) {
     return (
       <div className="min-h-screen p-6">
-        <div className="max-w-8xl mx-auto">
-          <Card>
-            <CardContent className="text-center py-12">
-              <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Users className="h-10 w-10 text-blue-500" />
-              </div>
-              <h3 className="text-lg font-semibold text-foreground mb-2">No Children Registered</h3>
-              <p className="text-muted-foreground mb-4">
-                You don't have any children registered in the system yet.
-              </p>
-              <p className="text-sm text-muted-foreground">
-                Please contact the school administration to register your children.
-              </p>
-            </CardContent>
-          </Card>
+        <div className="max-w-2xl mx-auto space-y-6">
+          <div className="space-y-1 text-center">
+            <h1 className="text-2xl font-bold tracking-tight">Add your children</h1>
+            <p className="text-muted-foreground">
+              Link your children by their student email to follow their progress.
+              You&apos;ll see a child&apos;s details once they accept the request.
+            </p>
+          </div>
+          <ManageChildrenCard />
         </div>
       </div>
     );
@@ -408,6 +390,8 @@ export default function ParentsDashboard() {
 
           {/* Quick Actions Sidebar */}
           <div className="space-y-6">
+            <ManageChildrenCard />
+
             <Card>
               <CardHeader className="pb-4">
                 <CardTitle className="text-xl">Quick Access</CardTitle>
