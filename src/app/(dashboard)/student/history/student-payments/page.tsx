@@ -131,7 +131,7 @@ export default function PaymentsPage() {
       case 'paid': return 'bg-emerald-500/10 text-emerald-600 border-emerald-200';
       case 'pending': return 'bg-amber-500/10 text-amber-600 border-amber-200';
       case 'overdue': return 'bg-red-500/10 text-red-600 border-red-200';
-      default: return 'bg-gray-500/10 text-gray-600';
+      default: return 'bg-gray-500/10 text-muted-foreground';
     }
   };
 
@@ -197,7 +197,7 @@ export default function PaymentsPage() {
 
         {/* Stats Cards */}
         <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-4">
-          <div className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-card">
+          <div className="rounded-2xl border border-black/5 bg-card p-4 shadow-sm dark:border-white/10 dark:bg-card">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-muted-foreground">Total Due</p>
@@ -209,7 +209,7 @@ export default function PaymentsPage() {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-card">
+          <div className="rounded-2xl border border-black/5 bg-card p-4 shadow-sm dark:border-white/10 dark:bg-card">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-muted-foreground">Paid Amount</p>
@@ -223,7 +223,7 @@ export default function PaymentsPage() {
             <p className="text-xs text-muted-foreground mt-1">{paidPercentage.toFixed(1)}% of total due</p>
           </div>
 
-          <div className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-card">
+          <div className="rounded-2xl border border-black/5 bg-card p-4 shadow-sm dark:border-white/10 dark:bg-card">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-muted-foreground">Pending</p>
@@ -237,7 +237,7 @@ export default function PaymentsPage() {
             <p className="text-xs text-muted-foreground mt-1">{pendingPercentage.toFixed(1)}% of total due</p>
           </div>
 
-          <div className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-card">
+          <div className="rounded-2xl border border-black/5 bg-card p-4 shadow-sm dark:border-white/10 dark:bg-card">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-muted-foreground">Overdue</p>

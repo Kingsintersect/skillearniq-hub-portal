@@ -21,7 +21,7 @@ const getGradeBadgeClass = (grade: string) => {
         case 'C': return 'bg-yellow-100 text-yellow-800 border-yellow-300 dark:bg-yellow-900/30 dark:text-yellow-300';
         case 'D': return 'bg-orange-100 text-orange-800 border-orange-300 dark:bg-orange-900/30 dark:text-orange-300';
         case 'F': return 'bg-red-100 text-red-800 border-red-300 dark:bg-red-900/30 dark:text-red-300';
-        default: return 'bg-gray-100 text-gray-800 border-gray-300 dark:bg-gray-900/30 dark:text-gray-300';
+        default: return 'bg-muted text-foreground border-border dark:bg-gray-900/30 dark:text-gray-300';
     }
 };
 

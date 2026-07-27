@@ -383,7 +383,7 @@ export default function GamificationPage() {
                     key={badge.id}
                     className="text-center rounded-2xl border border-border/70 bg-background/60 p-4 opacity-60"
                   >
-                    <div className="text-3xl mb-2 text-gray-400">{badge.icon || '🔒'}</div>
+                    <div className="text-3xl mb-2 text-muted-foreground">{badge.icon || '🔒'}</div>
                     <p className="text-sm font-semibold text-foreground">{badge.name}</p>
                     <p className="text-xs text-muted-foreground mt-1">{badge.description}</p>
                     <Badge variant="outline" className="mt-2">
@@ -417,7 +417,7 @@ export default function GamificationPage() {
                     >
                       <div className="flex items-center gap-4">
                         <div className={`w-8 text-center font-bold ${
-                          idx === 0 ? 'text-yellow-500' : idx === 1 ? 'text-gray-400' : idx === 2 ? 'text-amber-600' : 'text-muted-foreground'
+                          idx === 0 ? 'text-yellow-500' : idx === 1 ? 'text-muted-foreground' : idx === 2 ? 'text-amber-600' : 'text-muted-foreground'
                         }`}>
                           #{student.rank}
                         </div>

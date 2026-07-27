@@ -147,7 +147,7 @@ export const TeachersPageView: React.FC = () => {
 
         {/* Stats Cards */}
         <div className="relative mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <div className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-card">
+          <div className="rounded-2xl border border-black/5 bg-card p-4 shadow-sm dark:border-white/10 dark:bg-card">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-muted-foreground">Total Teachers</p>
@@ -159,7 +159,7 @@ export const TeachersPageView: React.FC = () => {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-card">
+          <div className="rounded-2xl border border-black/5 bg-card p-4 shadow-sm dark:border-white/10 dark:bg-card">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-muted-foreground">Active</p>
@@ -172,7 +172,7 @@ export const TeachersPageView: React.FC = () => {
             <Progress value={totalTeachers > 0 ? (activeTeachers / totalTeachers) * 100 : 0} className="h-1 mt-2" />
           </div>
 
-          <div className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-card">
+          <div className="rounded-2xl border border-black/5 bg-card p-4 shadow-sm dark:border-white/10 dark:bg-card">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-muted-foreground">Inactive</p>
@@ -185,7 +185,7 @@ export const TeachersPageView: React.FC = () => {
             <Progress value={totalTeachers > 0 ? (inactiveTeachers / totalTeachers) * 100 : 0} className="h-1 mt-2" />
           </div>
 
-          <div className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-card">
+          <div className="rounded-2xl border border-black/5 bg-card p-4 shadow-sm dark:border-white/10 dark:bg-card">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-muted-foreground">Verified</p>

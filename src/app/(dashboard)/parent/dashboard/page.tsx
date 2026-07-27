@@ -85,7 +85,7 @@ export default function ParentsDashboard() {
           <div className="flex justify-center items-center h-64">
             <div className="text-center">
               <Loader2 className="h-12 w-12 animate-spin text-blue-600 mx-auto mb-4" />
-              <p className="text-gray-600">Loading dashboard...</p>
+              <p className="text-muted-foreground">Loading dashboard...</p>
             </div>
           </div>
         </div>
@@ -343,7 +343,7 @@ export default function ParentsDashboard() {
                           key={child.id}
                           className={`cursor-pointer transition-all border-2 ${isSelected
                             ? 'border-blue-500 bg-blue-50 dark:bg-blue-950'
-                            : 'border-transparent hover:border-gray-300'
+                            : 'border-transparent hover:border-border'
                             }`}
                           onClick={() => {
                             setSelectedChild(child);

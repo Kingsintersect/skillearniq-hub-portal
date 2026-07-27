@@ -603,7 +603,7 @@ export default function StudentsPage() {
 
         {/* Stats Cards */}
         <div className="relative mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <div className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-card">
+          <div className="rounded-2xl border border-black/5 bg-card p-4 shadow-sm dark:border-white/10 dark:bg-card">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-muted-foreground">Total Students</p>
@@ -615,7 +615,7 @@ export default function StudentsPage() {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-card">
+          <div className="rounded-2xl border border-black/5 bg-card p-4 shadow-sm dark:border-white/10 dark:bg-card">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-muted-foreground">Active</p>
@@ -628,7 +628,7 @@ export default function StudentsPage() {
             <Progress value={(activeStudents / totalStudents) * 100 || 0} className="h-1 mt-2" />
           </div>
 
-          <div className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-card">
+          <div className="rounded-2xl border border-black/5 bg-card p-4 shadow-sm dark:border-white/10 dark:bg-card">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-muted-foreground">Inactive</p>
@@ -641,7 +641,7 @@ export default function StudentsPage() {
             <Progress value={(inactiveStudents / totalStudents) * 100 || 0} className="h-1 mt-2" />
           </div>
 
-          <div className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-card">
+          <div className="rounded-2xl border border-black/5 bg-card p-4 shadow-sm dark:border-white/10 dark:bg-card">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-muted-foreground">Verified</p>
